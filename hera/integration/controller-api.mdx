@@ -1,0 +1,93 @@
+---
+title: 'Controller API'
+description: 'Connect server scripts to Hera.'
+icon: 'braces'
+---
+
+Hera creates a `BindableEvent` named `API` under the elevator model. Use it from server scripts.
+
+```lua
+local elevator = workspace:WaitForChild("Elevator")
+local api = elevator:WaitForChild("API")
+
+api.Event:Connect(function(message)
+    if message.event == "onReady" then
+        print("Hera is ready")
+    end
+end)
+```
+
+<Callout type="warning">
+  Do not pass unvalidated client requests directly to the controller API. Check permissions and
+  values in a server script first.
+</Callout>
+
+## Add a call
+
+API calls use a callback `BindableEvent` to report arrival.
+
+```lua
+local callback = Instance.new("BindableEvent")
+
+callback.Event:Connect(function(message)
+    if message.request == "api-onArrival" then
+        print("Arrived at", message.data.floor)
+        callback:Destroy()
+    end
+end)
+
+api:Fire({
+    request = "queueAdd",
+    data = {
+        floor = 5,
+        direction = 1, -- up: 1, down: -1, neutral: 0
+        doorGroup = 1,
+        accessibility = false,
+        source = "api",
+        api = callback,
+    },
+})
+```
+
+Use `queueRemove` with the same floor, direction, and door group to remove a call.
+
+## Read controller state
+
+Fire `getStates` with a unique `returnId`, then listen for `returnStates` with the same ID. The response includes the current floor, direction, speed, service state, queue, and door states.
+
+```lua
+api:Fire({
+    request = "getStates",
+    data = { returnId = "my-request" },
+})
+```
+
+Connect the event listener before firing the request.
+
+## Other requests
+
+| Request       | Purpose                                           |
+| ------------- | ------------------------------------------------- |
+| `queueCheck`  | Ask Hera to process the current queue             |
+| `queueRemove` | Remove a matching call                            |
+| `lock`        | Lock or unlock car and hall calls                 |
+| `riotService` | Prevent new calls to the configured primary floor |
+| `playerWelds` | Enable or disable passenger stabilization         |
+
+## Events
+
+Common events include:
+
+| Event                                  | Use                                   |
+| -------------------------------------- | ------------------------------------- |
+| `onReady`                              | Controller startup completed          |
+| `onFloorChanged`                       | Floor indication changed              |
+| `onMoveDirectionChanged`               | Travel direction changed              |
+| `onQueueDirectionChanged`              | Call-serving direction changed        |
+| `onDoorStateChanged`                   | A door group opened, closed, or moved |
+| `onQueueChanged`                       | The call queue changed                |
+| `moveStart`, `moveRun`, `moveLeveling` | Travel phase changed                  |
+| `indicator`, `indicatorCar`            | Landing or car indicator command      |
+| `chime`, `chimeCar`                    | Landing or car chime command          |
+
+Each message stores its payload in `message.data`.

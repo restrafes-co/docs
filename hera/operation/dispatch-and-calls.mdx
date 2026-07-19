@@ -1,0 +1,37 @@
+---
+title: 'Calls and dispatch'
+description: 'Learn how Hera answers car and hall calls.'
+icon: 'list-ordered'
+---
+
+Hera accepts calls from car buttons, hall buttons, and the controller API. Each call includes a floor and door group. Hall calls also include the requested direction.
+
+## How calls are served
+
+Hera uses collective operation:
+
+1. The car continues serving calls in its current direction.
+2. Calls ahead of the car are served when the car can stop for them.
+3. Calls behind the car remain registered.
+4. When no calls remain in the current direction, the car reverses to serve the remaining calls.
+
+This is similar to the way a conventional passenger elevator answers several calls without reversing for every new request.
+
+## Car and hall calls
+
+- A car call selects a destination from inside the car.
+- An up or down hall call requests travel in that direction.
+- Pressing a button for the current floor opens or reopens the selected door group.
+- Pressing an already registered button does not add a duplicate call or cancel the existing call.
+
+Front and rear openings may have separate calls at the same floor.
+
+## Accessible calls
+
+An API call may set `accessibility = true`. Hera then uses the configured accessibility door and nudge timers for that stop.
+
+## Call settings
+
+`QUEUE.PROCESS_DELAY` adds a short delay before Hera begins processing a call. `QUEUE.RESET_DIRECTION_ON_FINAL_CAR_CALL` controls whether the direction indicator returns to neutral after the final car call.
+
+Use the [controller API](/hera/integration/controller-api) to add, remove, or monitor calls from another server script.

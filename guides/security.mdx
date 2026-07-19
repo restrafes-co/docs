@@ -1,0 +1,63 @@
+---
+title: "Security"
+description: "How XCS secures your in-game code — Ed25519 signing, loader verification, and the trust chain that prevents malicious code from reaching your game."
+icon: "shield-check"
+---
+
+We've taken extensive steps to ensure that XCS code running inside your Roblox experience is always legitimate, untampered, and goes through a strict cryptographic verification process before ever executing in your game.
+
+XCS uses a unique loading architecture that delivers freshly signed code to your game servers on every startup. This means you never need to manually update scripts when new features ship — and more importantly, no unauthorized code can ever slip through.
+
+## How the System Works
+
+Two components make this possible:
+
+- A **build process** that packages the latest access-control logic, cryptographically signs it with an Ed25519 private key, and uploads the signed result to the XCS server.
+- A **loader** (called the MainModule) that ships with your game. On every server start, it fetches the latest signed module, verifies its signature, and runs it in a sandboxed environment.
+
+The critical design choice: the signing key never touches the server. The server stores and serves code that has already been signed — it cannot create signatures on its own. This eliminates the server as a single point of compromise.
+
+## What Happens When Your Game Starts
+
+Every time your Roblox game server boots, the loader goes through three steps:
+
+1. **Fetch** — The loader requests the latest module from the XCS server, which responds with the code and its Ed25519 signature.
+2. **Verify** — The loader checks the signature against a hardcoded public key. If anything doesn't match, execution halts immediately — no code runs.
+3. **Execute** — On a valid signature, the loader runs the code inside a sandboxed Luau virtual machine that keeps the module isolated from your game environment.
+
+## Why Ed25519
+
+We chose Ed25519, a modern elliptic-curve signature algorithm, because it's fast, compact, and provides strong guarantees against two categories of attack:
+
+- **Tampering in transit** — If an attacker intercepts or modifies the module between the server and your game, the signature won't verify and the loader rejects it outright.
+- **Unauthorized deployments** — Only the holder of the Ed25519 private key can produce a valid signature. Even if someone compromised the XCS server, they could not create signatures — the key isn't there.
+
+The trust chain works like this:
+
+```
+Build (signed locally)  →  XCS server (stores, never signs)  →  Game server (verifies, then executes)
+```
+
+The private key stays on authorized developer machines. The public key is embedded in the loader that ships with every copy of your game.
+
+## Built-In Protections
+
+| Protection                 | How we enforce it                                                                    |
+| -------------------------- | ------------------------------------------------------------------------------------ |
+| **Code authenticity**      | Every deployment must match the Ed25519 public key baked into your game's loader     |
+| **Key isolation**          | The signing key exists only on authorized developer machines — the server can't sign |
+| **Fresh code every start** | The loader fetches the latest signed deployment each time your game server boots     |
+| **Sandboxed execution**    | Module code runs inside vLuau, isolated from your game's Lua environment             |
+
+<CardGroup cols={2}>
+  <Card title="Location Setup" icon="map-pin" href="/guides/location-setup">
+    Set up a location and download the XCS starter kit.
+  </Card>
+  <Card
+    title="Remote Unlock Setup"
+    icon="radio"
+    href="/guides/remote-unlock-setup"
+  >
+    Configure MessagingService for remote unlock commands.
+  </Card>
+</CardGroup>

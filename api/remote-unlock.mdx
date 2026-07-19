@@ -1,0 +1,156 @@
+---
+title: 'Remote Unlock'
+description: 'Comprehensive reference for the Consumer API remote unlock endpoint — scope options, Roblox MessagingService integration, the polling acknowledgment system, and error codes.'
+icon: 'door-open'
+api: 'POST /api/consumer/v1/access-points/{id}/remote-unlock'
+playground: 'interactive'
+---
+
+The remote unlock endpoint triggers an access point to open programmatically. The unlock command is delivered to your Roblox game server through Roblox Open Cloud MessagingService.
+
+The interactive playground above lets you test the endpoint directly. Set your API key in the **X-API-Key** field, provide the access point ID as a path parameter, fill in the request body, and click "Try it!"
+
+<ParamField path="id" type="string" required>
+  The ID of the access point to unlock.
+</ParamField>
+
+---
+
+## Scope Behavior
+
+### Universe Scope
+
+An unlock with `"scope": "universe"` broadcasts the unlock to **everyone** in the game instance. No specific player is targeted. The response is returned immediately since there is no polling for acknowledgment.
+
+### Player Scope
+
+An unlock with `"scope": "player"` targets a **specific player** identified by their Roblox user ID or username.
+
+<ParamField body="scope" type="string" required>
+  Either `"universe"` or `"player"`. Universe unlocks for everyone; player unlocks for a specific
+  user.
+</ParamField>
+
+<ParamField body="robloxUserId" type="string" required={false}>
+  The Roblox user ID for player-scoped unlocks. Required when `scope` is `"player"` and
+  `robloxUsername` is not provided.
+</ParamField>
+
+<ParamField body="robloxUsername" type="string" required={false}>
+  An alternative to `robloxUserId`. The Roblox username for player-scoped unlocks. Resolved to a
+  numeric user ID server-side. Required when `scope` is `"player"` and `robloxUserId` is not
+  provided.
+</ParamField>
+
+<Callout type="info">
+  For player scope, you only need to provide one of `robloxUserId` or `robloxUsername`. If both are
+  provided, `robloxUserId` takes precedence.
+</Callout>
+
+## Unlock Time
+
+<ParamField body="unlockTime" type="integer" required={false} default="8">
+  How long the door stays unlocked, in seconds. Must be between 2 and 60. The access point's
+  configuration can override this value.
+</ParamField>
+
+| Condition            | Behavior                                    |
+| -------------------- | ------------------------------------------- |
+| Omitted              | Defaults to 8 seconds                       |
+| 2–60                 | Custom duration                             |
+| Outside range        | Returns HTTP 400                            |
+| Overridden by config | Access point configuration takes precedence |
+
+## Roblox MessagingService Message Format
+
+When a remote unlock is triggered, XCS publishes a typed message to the location's shared Roblox MessagingService topic, `xcs-location-{locationId}`. Remote unlocks and Telephone Entry transcripts use the same topic and are distinguished by the `type` field.
+
+```json
+{
+  "v": 1,
+  "type": "remote_unlock",
+  "locationId": "uuid-of-the-location",
+  "payload": {
+    "accessPointId": "uuid-of-the-access-point",
+    "scope": "player",
+    "unlockTime": 8,
+    "robloxUserId": "12345",
+    "requestId": "uuid-unique-request-identifier"
+  }
+}
+```
+
+<ResponseField name="v" type="integer" required>
+  Message schema version. Currently `1`.
+</ResponseField>
+
+<ResponseField name="locationId" type="string (UUID)" required>
+  The location that owns the access point being unlocked.
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+  Message kind. Remote unlock messages use `remote_unlock`.
+</ResponseField>
+
+<ResponseField name="payload.accessPointId" type="string (UUID)" required>
+  The access point being unlocked.
+</ResponseField>
+
+<ResponseField name="payload.scope" type="string" required>
+  `"universe"` or `"player"`. Matches the scope from the request.
+</ResponseField>
+
+<ResponseField name="payload.unlockTime" type="integer" required>
+  Unlock duration in seconds.
+</ResponseField>
+
+<ResponseField name="payload.robloxUserId" type="string">
+  The target player's Roblox user ID. Present only when scope is `"player"`.
+</ResponseField>
+
+<ResponseField name="payload.requestId" type="string (UUID)" required>
+  Unique identifier for this unlock request. Used for acknowledgment tracking.
+</ResponseField>
+
+<Callout type="note">
+  Your game server must subscribe to the `xcs-location-{locationId}` topic via
+  Roblox MessagingService to receive unlock commands. The `{locationId}` in the
+  topic name matches the location's UUID in XCS.
+
+If you are using the stock XCS package in your Roblox experience, this
+subscription is handled automatically.
+
+MessagingService is currently in beta — you must be enrolled in the Roblox
+beta program and enable the <code>rblx-messaging_service-transport</code>
+flag in the <strong>Experiments</strong> tab of your experience's settings.
+
+</Callout>
+
+## Polling and Acknowledgment
+
+For player-scoped unlocks, the API uses a Redis-backed polling system to confirm delivery:
+
+1. XCS publishes the unlock message to Roblox MessagingService.
+2. XCS sets a Redis key with the `requestId` marking the status as `pending`.
+3. Your game server processes the message and acknowledges it by writing back to the status key.
+4. XCS polls every 250 ms for up to 5 seconds. If it detects `completed`, it returns HTTP 200 with `acknowledged: true`.
+5. If no acknowledgment is received within 5 seconds, XCS returns HTTP 504.
+
+<Callout type="warning">
+  Universe-scoped unlocks are acknowledged immediately without polling because they do not target a
+  specific player. The response always returns `acknowledged: true`.
+</Callout>
+
+## Error Codes
+
+| Status | Error                                                     | Resolution                                                                                                                                                          |
+| ------ | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 400    | Invalid or missing `scope`                                | Ensure `scope` is `"universe"` or `"player"`.                                                                                                                       |
+| 400    | Missing `robloxUserId`/`robloxUsername` for player scope  | Provide one of these fields when using `"player"` scope.                                                                                                            |
+| 400    | Invalid `unlockTime`                                      | Must be between 2 and 60 seconds.                                                                                                                                   |
+| 401    | Invalid or missing API key                                | Check the `X-API-Key` header is present and valid.                                                                                                                  |
+| 403    | API key not authorized for this access point              | The API key's organization does not own this access point.                                                                                                          |
+| 404    | Access point not found                                    | Verify the access point ID in the URL.                                                                                                                              |
+| 422    | Location missing Roblox Universe ID or Open Cloud API key | Configure the Roblox integration for the location in the XCS dashboard.                                                                                             |
+| 502    | Roblox MessagingService error                             | Check your Open Cloud API key and Universe ID configuration.                                                                                                        |
+| 504    | Remote unlock timed out                                   | Your game server did not acknowledge the unlock within 5 seconds. The command was still delivered to any running server instances but no confirmation was received. |

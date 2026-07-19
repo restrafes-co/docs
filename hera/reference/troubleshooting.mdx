@@ -1,0 +1,77 @@
+---
+title: 'Troubleshooting'
+description: 'Resolve common Hera setup and operation problems.'
+icon: 'wrench'
+---
+
+Start with the first Hera warning or error in Output. Later errors may be caused by the same missing part or setting.
+
+## Hera does not start
+
+- Confirm that the elevator contains `CONFIGURATION`, `CAR`, and `FLOORS`.
+- Confirm that `CAR` contains a `.PLATFORM` BasePart.
+- Give every floor a numeric name and a `LEVEL_MAIN` BasePart.
+- Restore the complete configuration if a section was removed.
+- Restart the server after correcting the model.
+
+## The car does not move
+
+- Confirm that the requested floor exists.
+- Confirm that every door group is fully closed.
+- Check that `MOTOR_SPEED`, acceleration, deceleration, and leveling speed are positive.
+- Check whether the call is locked or the controller is out of service.
+- Try a car call and a hall call to determine whether the issue affects one fixture or all calls.
+
+## The car overshoots or levels poorly
+
+1. Check the height of every `LEVEL_MAIN` part.
+2. Lower `MOTOR_SPEED` while testing.
+3. Adjust the up and down deceleration values separately.
+4. Lower `LEVELING_SPEED` if the final approach is too fast.
+5. Disable pre-opening until leveling is consistent.
+
+## Doors do not move correctly
+
+- Confirm that the car and landing use the same numeric door group.
+- Confirm that every door leaf contains a `SCALE` part.
+- Check the leaf prefix: `DL`, `DR`, `DU`, or `DD`.
+- Check the number at the end of the leaf name, which controls travel distance.
+- Remember that a lower method 2 or 3 speed value produces a faster door cycle.
+
+## Doors remain open
+
+- Check `TIMER_LENGTH` and `NUDGE_TIMER_LENGTH`.
+- Check whether a sensor is continuously obstructed.
+- Press the matching door-close button to release door hold.
+- Confirm that the sensor is under the correct door group.
+
+## Buttons do not register
+
+- Each fixture needs a `BUTTON` BasePart.
+- The fixture prefix must exist in `DOOR_GROUP_ALIASES`.
+- A car-call floor must match an existing numeric floor.
+- Hall buttons must use `U`, `D`, or `N`.
+- Check whether the call is already registered or locked.
+
+## Sensors do not reopen the doors
+
+- Place sensors under `CAR/.DOORSENSORS/<group>`.
+- Set `DOORS.SENSOR_ENABLED` to `true`.
+- Confirm that touch detection is enabled on the sensor parts.
+- Sensors do not reopen a nudge close.
+
+## Sound or voice does not play
+
+- Confirm that the audio asset is permitted for the experience.
+- Check the sound's enabled setting, asset ID, volume, and maximum distance.
+- For voice, enable the event or floor cue and confirm that its words exist in the selected vocabulary.
+
+## An API script receives no response
+
+- Run it from a server `Script`, not a `LocalScript`.
+- Wait for the elevator's `API` object before connecting.
+- Connect the listener before firing `getStates`.
+- Match the `returnId` in the `returnStates` response.
+- Include a callback `BindableEvent` when adding an API call.
+
+See [Controller API](/hera/integration/controller-api) for request examples.

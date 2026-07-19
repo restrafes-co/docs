@@ -1,0 +1,37 @@
+---
+title: 'Configuration'
+description: 'Learn how Hera configuration is organized.'
+icon: 'settings-2'
+---
+
+Hera reads its settings from the `CONFIGURATION` ModuleScript inside the elevator model.
+
+## Editing configuration
+
+1. Make a backup of the working configuration.
+2. Change one system at a time.
+3. Keep setting names and capitalization unchanged.
+4. Restart the server after each change.
+5. Test the affected floors, doors, and fixtures before continuing.
+
+<Callout type="warning">
+  Examples in these guides show only the settings being discussed. Keep all other sections from the
+  complete configuration supplied with Hera.
+</Callout>
+
+## Sections
+
+| Section         | Controls                                       |
+| --------------- | ---------------------------------------------- |
+| `NAME`          | Elevator name and identifier                   |
+| `MAIN`          | Main floor                                     |
+| `MOVE`          | Travel, leveling, pre-opening, counterweight   |
+| `DOORS`         | Door movement, timing, sensors, and nudging    |
+| `SOUNDS`        | Chimes, motors, alarm, and other sound effects |
+| `BUTTONS`       | Button and lamp appearance                     |
+| `API`           | Indicators, chimes, and floor indication       |
+| `QUEUE`         | Call handling                                  |
+| `VOICE`         | Voice announcements                            |
+| `MISCELLANEOUS` | Door aliases, parking, and passenger welding   |
+
+Use the [configuration reference](/hera/reference/configuration) when you need the name of a particular setting.

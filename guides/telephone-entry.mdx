@@ -1,0 +1,187 @@
+---
+title: 'Telephone Entry'
+description: 'Configure location dial codes, verify recipients, and test Telephone Entry calls.'
+icon: 'phone-call'
+---
+
+Telephone Entry (also known as a phone intercom) lets a visitor in your Roblox experience call an approved XCS user from an in-game entry panel. The visitor enters a short dial code, speaks with the recipient, and waits for the recipient to grant or deny access.
+
+<Callout type="info">
+  Telephone Entry is currently available to a limited number of organizations.
+</Callout>
+
+## Download the example place
+
+Download the [Telephone Entry example place](https://xcs-public-cdn.restrafes.co/intercom-example.rbxl)
+and open the `.rbxl` file in Roblox Studio to try the feature in a test experience.
+
+## How calls work
+
+1. A visitor enters a recipient's dial code.
+2. XCS calls the recipient's verified phone number.
+3. The recipient answers and communicates with the visitor.
+4. The recipient presses **1** to grant access or **2** to deny it.
+5. A granted entry appears in the location's event log.
+
+No answer, a hangup, or reaching the call limit results in a denial.
+
+## Requirements
+
+Before a dial code can be created:
+
+- Telephone Entry must be enabled for the organization.
+- The location must have a Roblox universe and Open Cloud API key configured under **Settings → Messaging**.
+- The recipient must be a **present** member of the organization.
+- The recipient must have a verified email address.
+- The recipient must have a verified phone number.
+- The recipient must enable **Allow phone calls** in their privacy settings.
+- The administrator must have permission to manage the organization.
+
+<Callout type="warning">
+  Recipient phone numbers are kept private. Organization administrators only see the recipient's XCS
+  identity, including their avatar, display name, and username.
+</Callout>
+
+## Recipient setup
+
+Recipients add and verify their own phone number. An administrator cannot enter a number on another user's behalf.
+
+The recipient's XCS email address must also be verified before they can be assigned to a dial code.
+
+<Steps>
+  <Step title="Add your phone number">
+    Open <strong>User Settings → Profile</strong>. Under your email address, choose your country
+    code and enter your phone number. Save your changes.
+  </Step>
+  <Step title="Place the verification call">
+    In the verification dialog, select <strong>Place call</strong>. Answer the call and press
+    <strong>1</strong>. The dialog shows the call's current progress.
+  </Step>
+  <Step title="Allow phone calls">
+    In the <strong>Privacy</strong> section, enable <strong>Allow phone calls</strong> and save your
+    changes.
+  </Step>
+</Steps>
+
+An unverified number can remain on the account, but it cannot be assigned to a dial code.
+
+Turning off **Allow phone calls** disables the user's existing dial routes and prevents administrators from enabling them. Turning the setting back on does not reactivate those routes; an administrator must enable each route again. Changing or removing the verified number removes the routes.
+
+## Configure the location
+
+Telephone Entry uses the location's Roblox MessagingService connection for live call transcripts and responses.
+
+1. Open the location in XCS.
+2. Go to **Settings → Messaging**.
+3. Confirm that the correct Roblox universe is linked.
+4. Add an Open Cloud API key with MessagingService publish permission.
+5. Save the settings.
+
+See [Remote Unlock Setup](/guides/remote-unlock-setup) for instructions on creating and protecting an Open Cloud API key.
+
+The Telephone Entry table remains visible when Messaging is not configured. Selecting **New Route** will show a setup reminder and a link to Messaging settings.
+
+## Create a dial code
+
+<Steps>
+  <Step title="Open Telephone Entry">
+    Go to <strong>Location Settings → Telephone Entry</strong>.
+  </Step>
+  <Step title="Add a route">
+    Select <strong>New Route</strong> and enter the short code visitors will dial, such as
+    <code>101</code>.
+  </Step>
+  <Step title="Choose a recipient">
+    Search by display name or username. The selector only includes eligible organization members.
+  </Step>
+  <Step title="Save">
+    Select <strong>Add route</strong>. The route appears in the table immediately.
+  </Step>
+</Steps>
+
+Dial codes must be unique within the location, and a user can only have one route per location.
+
+## Manage and test routes
+
+Use the route actions to:
+
+- Edit the dial code or recipient.
+- Enable or disable calls for the route.
+- Place a test call.
+- Delete the route.
+
+### Test a route
+
+Select the phone action beside an enabled route, then choose **Place test call**. The progress dialog shows whether the call is ringing, answered, completed, or unsuccessful.
+
+On the receiving phone, press **1** to test a grant response or **2** to test a denial response. A test call does not unlock an access point.
+
+<Callout type="warning">
+  Test calls and visitor calls may create charges with your telephone.
+</Callout>
+
+### Remove a route
+
+A route without call history can be deleted. A route with call history is disabled instead, preserving its historical record.
+
+XCS automatically removes a route if its recipient:
+
+- Leaves the organization or is no longer marked present.
+- Changes or removes their verified phone number.
+
+Past call and event history remains available after automatic removal.
+
+If a recipient turns off **Allow phone calls**, XCS keeps the route but switches it off. Its status control remains locked until the recipient opts in again. Opting in again unlocks the control but leaves the route off until an administrator deliberately enables it.
+
+If the recipient's email becomes unverified, XCS also switches the route off and locks its status control. Verifying the email again unlocks the control but does not reactivate the route.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The Telephone Entry tab is missing">
+    <p>
+      Confirm that you have permission to manage the location. If so, Telephone Entry may not be
+      enabled for your organization yet.
+    </p>
+  </Accordion>
+  <Accordion title="Creating a route opens a setup reminder">
+    <p>
+      Configure the location's Roblox universe and Open Cloud API key under
+      <strong>Location Settings → Messaging</strong>.
+    </p>
+  </Accordion>
+  <Accordion title="A recipient is missing from the selector">
+    <p>Confirm that the user:</p>
+    <ul>
+      <li>Is a present member of the organization</li>
+      <li>Has a verified email address</li>
+      <li>Has a verified phone number</li>
+      <li>Enabled Allow phone calls</li>
+      <li>Is not already assigned at this location</li>
+      <li>Has access to the Telephone Entry feature</li>
+    </ul>
+  </Accordion>
+  <Accordion title="The verification call does not arrive">
+    <p>
+      Check the country code and number, save any changes, and make sure the phone can receive
+      calls. Carrier spam filtering may block the call. Wait one minute before requesting another
+      call.
+    </p>
+  </Accordion>
+  <Accordion title="A route disappeared">
+    <p>
+      The recipient may have left the organization, lost present status, or changed their verified
+      number.
+    </p>
+  </Accordion>
+  <Accordion title="Calls work, but live transcripts do not appear in Roblox">
+    <p>
+      Confirm that a live server is running with the current XCS integration and that the location's
+      Open Cloud key still has MessagingService publish permission.
+    </p>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+Next up: use the [Callbox API](/api/callbox) to connect your Roblox callbox model, or see [Remote Unlock Setup](/guides/remote-unlock-setup) for the shared Roblox MessagingService configuration.

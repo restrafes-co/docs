@@ -1,0 +1,54 @@
+---
+title: 'API Reference'
+description: 'Reference documentation for the XCS Consumer API and platform APIs — authentication, endpoints, and integration patterns.'
+icon: 'square-terminal'
+---
+
+XCS provides a REST API for programmatic access-control integrations and a server-side Roblox API for in-experience devices. The **Consumer API v1** supports health checks, organization listing, and remote unlock. The **Callbox API** connects Roblox Telephone Entry models through the stock XCS package without requiring your scripts to call HTTP endpoints directly.
+
+## Available APIs
+
+<CardGroup cols={2}>
+  <Card title="Consumer API" icon="code" href="/api/consumer-overview">
+    The Consumer API provides programmatic access to XCS access control features. Use it to check
+    service health, verify authentication, and trigger remote unlocks.
+  </Card>
+  <Card title="Remote Unlock" icon="door-open" href="/api/remote-unlock">
+    Trigger door unlocks programmatically with universe-scoped or player-scoped commands delivered
+    through Roblox MessagingService.
+  </Card>
+  <Card title="Callbox API" icon="phone-call" href="/api/callbox">
+    Build a Roblox Telephone Entry callbox with two-way speech, live transcripts, call state, and
+    automatic access decisions.
+  </Card>
+</CardGroup>
+
+## Consumer API authentication
+
+The Consumer API uses API key authentication. Pass your API key in the `X-API-Key` header:
+
+```bash
+curl -H "X-API-Key: your-api-key-here" \
+  https://api.restrafes.co/api/consumer/v1/
+```
+
+<Callout type="warning">
+  Use the `X-API-Key` header, not the `Authorization: Bearer` header. The platform API (v3 routes)
+  uses session-based authentication via browser cookies.
+</Callout>
+
+## Consumer API base URL
+
+```
+https://api.restrafes.co/api/consumer/v1
+```
+
+All Consumer API endpoints are relative to this base URL.
+
+## Rate Limiting
+
+Rate limits are enforced per API key. Exceeding the limit returns a `429 Too Many Requests` response. If you encounter rate limiting, reduce your request frequency.
+
+## API Key Management
+
+Organization API keys are generated from the organization management page on the XCS dashboard. Only organization Owners and Admins can generate and revoke API keys.

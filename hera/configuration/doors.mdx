@@ -1,0 +1,72 @@
+---
+title: 'Doors'
+description: 'Configure door movement, timing, sensors, and nudging.'
+icon: 'panel-left-open'
+---
+
+Hera opens the car door and the matching landing door together. Each opening is identified by a numeric door group.
+
+## Door movement
+
+`DOORS.METHOD` selects the movement style:
+
+| Value | Movement style            |
+| ----- | ------------------------- |
+| `1`   | Simple linear movement    |
+| `2`   | Eased movement            |
+| `3`   | Custom cubic Bezier curve |
+
+Car and landing doors can use separate speeds and delays:
+
+```lua
+DOORS = {
+    METHOD = 3,
+
+    CAR_OPEN_SPEED = 0.8,
+    FLOOR_OPEN_SPEED = 0.8,
+    CAR_CLOSE_SPEED = 1.5,
+    FLOOR_CLOSE_SPEED = 1.5,
+    CAR_CLOSE_NUDGE_SPEED = 3,
+    FLOOR_CLOSE_NUDGE_SPEED = 3,
+
+    CAR_OPEN_DELAY = 0,
+    FLOOR_OPEN_DELAY = 0,
+    CAR_CLOSE_DELAY = 0,
+    FLOOR_CLOSE_DELAY = 0,
+}
+```
+
+For methods 2 and 3, a lower speed value produces a faster door cycle.
+
+## Door timers
+
+| Setting                            | Purpose                                   |
+| ---------------------------------- | ----------------------------------------- |
+| `TIMER_LENGTH`                     | Normal open time                          |
+| `REOPEN_TIMER_LENGTH`              | Open time after a door reopens            |
+| `ACCESSIBILITY_TIMER_LENGTH`       | Extended open time for an accessible call |
+| `NUDGE_TIMER_LENGTH`               | Time before nudge closing begins          |
+| `ACCESSIBILITY_NUDGE_TIMER_LENGTH` | Nudge time for an accessible call         |
+| `OPEN_DELAY`                       | Delay before opening on arrival           |
+| `REOPEN_DELAY`                     | Delay before reversing a closing door     |
+| `NUDGE_CLOSE_DELAY`                | Delay before the nudge close starts       |
+
+## Sensors and nudging
+
+When `SENSOR_ENABLED` is true, an obstruction during a normal close reopens the door. If the obstruction remains until the nudge timer expires, Hera closes at the configured nudge speed and plays the nudge sound.
+
+Place sensors under `CAR/.DOORSENSORS/<group>`. Test every sensor across the full entrance width.
+
+## Custom curves
+
+Method 3 accepts separate open and close curves:
+
+```lua
+CUBIC_BEZIER = {
+    OPEN = { PLOTTING_POINTS = {0.65, 0, 0.35, 1} },
+    CLOSE = { PLOTTING_POINTS = {0.65, 0, 0.35, 1} },
+    REOPEN_CURVE_CORRECTION = true,
+}
+```
+
+The four values describe the two curve control points. Adjust them in small steps and test opening, closing, and reopening from a partly closed position.

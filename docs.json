@@ -1,0 +1,145 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "aspen",
+  "name": "Restrafes Documentation",
+  "description": "Documentation for Restrafes products and services.",
+  "colors": {
+    "primary": "#000000",
+    "light": "#FFFFFF",
+    "dark": "#364252"
+  },
+  "favicon": "/favicon.svg",
+  "icons": {
+    "library": "lucide"
+  },
+  "logo": {
+    "light": "/logo/brand-logo-black.png",
+    "dark": "/logo/brand-logo.png",
+    "href": "/"
+  },
+  "api": {
+    "playground": {
+      "display": "interactive"
+    },
+    "examples": {
+      "languages": ["curl", "python", "javascript", "go"],
+      "prefill": true,
+      "autogenerate": true
+    },
+    "mdx": {
+      "server": "https://api.restrafes.co",
+      "auth": {
+        "method": "key",
+        "name": "X-API-Key"
+      }
+    }
+  },
+  "styling": {
+    "eyebrows": "breadcrumbs"
+  },
+  "contextual": {
+    "options": ["copy", "view", "assistant", "mcp", "add-mcp"]
+  },
+  "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Home",
+          "icon": "house",
+          "href": "/"
+        }
+      ]
+    },
+    "tabs": [
+      {
+        "tab": "XCS",
+        "icon": "shield-check",
+        "groups": [
+          {
+            "group": "Fundamentals",
+            "icon": "compass",
+            "pages": ["guides/platform-overview", "guides/core-concepts"]
+          },
+          {
+            "group": "Guides",
+            "icon": "book-open",
+            "pages": [
+              "guides/getting-started",
+              "guides/creating-an-account",
+              "guides/linking-your-accounts",
+              "guides/setting-up-your-organization",
+              "guides/exploring-the-dashboard",
+              "guides/location-setup"
+            ]
+          },
+          {
+            "group": "Integration",
+            "icon": "radio",
+            "pages": ["guides/security", "guides/remote-unlock-setup", "guides/telephone-entry"]
+          },
+          {
+            "group": "API Reference",
+            "icon": "square-terminal",
+            "pages": ["api/overview", "api/consumer-overview", "api/remote-unlock", "api/callbox"]
+          }
+        ]
+      },
+      {
+        "tab": "Hera",
+        "icon": "building-2",
+        "groups": [
+          {
+            "group": "Start here",
+            "icon": "rocket",
+            "pages": ["hera/overview", "hera/getting-started", "hera/model-structure"]
+          },
+          {
+            "group": "Configuration",
+            "icon": "settings-2",
+            "pages": [
+              "hera/configuration/overview",
+              "hera/configuration/motion",
+              "hera/configuration/doors",
+              "hera/configuration/buttons",
+              "hera/configuration/sound-and-voice",
+              "hera/configuration/indicators"
+            ]
+          },
+          {
+            "group": "Operation",
+            "icon": "between-vertical-start",
+            "pages": [
+              "hera/operation/dispatch-and-calls",
+              "hera/operation/door-operation",
+              "hera/operation/parking-and-welding"
+            ]
+          },
+          {
+            "group": "Integration",
+            "icon": "blocks",
+            "pages": [
+              "hera/integration/controller-api",
+              "hera/integration/group-control-and-displays"
+            ]
+          },
+          {
+            "group": "Reference",
+            "icon": "book-marked",
+            "pages": ["hera/reference/configuration", "hera/reference/troubleshooting"]
+          }
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [],
+    "primary": {
+      "type": "button",
+      "label": "XCS Dashboard",
+      "href": "https://xcs.restrafes.co"
+    }
+  },
+  "footer": {
+    "socials": {}
+  }
+}

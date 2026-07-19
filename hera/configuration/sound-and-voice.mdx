@@ -1,0 +1,84 @@
+---
+title: 'Sound and voice'
+description: 'Configure chimes, sound effects, motor audio, and announcements.'
+icon: 'volume-2'
+---
+
+Sound settings are stored under `SOUNDS`. Most sound entries use the same basic properties:
+
+| Setting        | Purpose                         |
+| -------------- | ------------------------------- |
+| `ENABLED`      | Turns the sound on or off       |
+| `SOUND`        | Roblox audio asset ID           |
+| `VOLUME`       | Playback volume                 |
+| `PITCH`        | Playback pitch                  |
+| `LOOP`         | Repeats the sound until stopped |
+| `EMITTER_SIZE` | Size of the 3D sound source     |
+| `MAX_DISTANCE` | Maximum audible distance        |
+
+## Available sounds
+
+Hera can play sounds for:
+
+- arrival chimes
+- button presses and rejected calls
+- floor changes
+- door opening and closing
+- door obstructions and nudging
+- the alarm button
+- car, counterweight, and door motors
+- door interlocks
+
+Test volume and distance from both inside and outside the car.
+
+## Chimes
+
+Chimes can use different sounds for up and down travel and for the car and landing.
+
+```lua
+CHIME = {
+    INTERNAL_ENABLED = true,
+    API_ENABLED = true,
+    DATA_CAR = {
+        UP = { SOUND = 5195361817 },
+        DOWN = { SOUND = 5195362131 },
+    },
+    DATA_FLOOR = {
+        UP = { SOUND = 5195361817 },
+        DOWN = { SOUND = 5195362131 },
+    },
+}
+```
+
+## Voice announcements
+
+Set `VOICE.ENABLED` to `true` and select a supplied preset, or provide your own vocabulary audio and timestamps.
+
+Event cues can announce door movement, obstructions, travel direction, and other controller events. Floor cues can be set separately for each floor.
+
+```lua
+VOICE = {
+    ENABLED = true,
+    PRESET = "sample",
+    VOLUME = 0.15,
+    DATA = {
+        CUES = {
+            EVENTS = {
+                DOORS_OPENING = {
+                    ENABLED = true,
+                    CUSTOM_CUE = "DOORS-OPENING",
+                },
+                QUEUE_UP = {
+                    ENABLED = true,
+                    CUSTOM_CUE = "{wait-1} GOING-UP",
+                },
+            },
+            FLOOR = {
+                [1] = { ENABLED = true, CUSTOM_CUE = "LOBBY" },
+            },
+        },
+    },
+}
+```
+
+Custom cue words must exist in the selected vocabulary. Use the supplied wait tokens to add short pauses between words.

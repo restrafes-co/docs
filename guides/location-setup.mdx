@@ -1,0 +1,78 @@
+---
+title: "Setting Up a Location"
+description: "How to create a location and download the XCS starter kit to integrate access control into your Roblox experience."
+icon: "map-pin"
+---
+
+This guide covers creating a location on the XCS dashboard and using the download kit to integrate access control into your Roblox experience with minimal setup.
+
+## Prerequisites
+
+- An XCS account with an organization created
+- Owner or Admin role in that organization
+
+## Create a Location
+
+<Steps>
+  <Step title="Go to your organization">
+    From the dashboard, select your organization from the Organizations list.
+  </Step>
+  <Step title="Navigate to Locations">
+    Click the **Locations** section within your organization.
+  </Step>
+  <Step title="Create Location">
+    Click "Create Location," give it a name (e.g., "Main Game Server"), and
+    optionally add a description. Click "Save."
+  </Step>
+</Steps>
+
+## Download the Starter Kit
+
+Once your location is created, open its **Settings** page. You will see a **Download kit** button.
+
+Clicking this button downloads a `starter-kit.rbxmx` file — a pre-configured Roblox place file that includes:
+
+- **XCS integration code** — The stock XCS package, including the MainModule loader and reader models
+- **Auto-generated API key** — A new organization API key is created and pre-configured into the file, no manual configuration is needed
+- **Your location ID** — Pre-configured into the code, no manual configuration is needed
+
+For details on how the in-game module is built, signed, and verified at runtime, see the [Security](/guides/security) guide.
+
+### Using the Starter Kit
+
+1. Open the downloaded `.rbxmx` file in **Roblox Studio**.
+2. Review the included scripts and configuration in `ServerScriptService`.
+3. Publish the place to your Roblox experience, or merge the relevant scripts into your existing place.
+4. Your game server will now automatically subscribe to unlock commands from XCS.
+
+<Callout type="info">
+  The starter kit handles the MessagingService subscription and acknowledgment
+  system automatically. If you prefer to implement the integration manually, see
+  the <a href="/guides/remote-unlock-setup">Remote Unlock Setup</a> guide.
+</Callout>
+
+## Add Access Points
+
+Once your location and starter kit are set up, you can add access points — doors, gates, or checkpoints that XCS controls.
+
+1. From your location's page, go to the **Access Points** section and click "Create Access Point."
+2. Give it a name (e.g., "Main Gate", "VIP Room").
+3. Add access rules by assigning **access groups** or **specific identities**.
+4. Copy the access point's ID from its dashboard page.
+5. In Roblox Studio, open the reader model's configuration script and set **`accessPointId`** to the ID you copied. The reader will then enforce the rules you've configured.
+
+<Callout type="tip">
+  The stock XCS package comes with a built-in reader model that handles scanning and
+  access evaluation in-game. See the <a href="/guides/security">Security</a> guide
+  for how the module is built, signed, and delivered.
+</Callout>
+
+## Configure Remote Unlock (Optional)
+
+If you want to use the remote unlock feature, you'll also need to configure your Roblox Open Cloud credentials in the location settings. See [Remote Unlock Setup](/guides/remote-unlock-setup) for detailed steps.
+
+## Next Steps
+
+- Add [access points and rules](/guides/core-concepts#access-points) to your location
+- Try [remote unlocking](/api/remote-unlock) from the dashboard or API
+- Invite members to your organization to manage the location together

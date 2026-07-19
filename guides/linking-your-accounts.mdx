@@ -1,0 +1,87 @@
+---
+title: "Linking Your Accounts"
+description: "How to connect your Discord and Roblox accounts to XCS for identity verification and access control."
+icon: "link"
+---
+
+This guide covers linking your Discord and Roblox accounts to XCS, managing linked accounts, and troubleshooting common issues.
+
+## Why Link Accounts?
+
+Linking accounts serves different purposes depending on the platform:
+
+- **Discord** -- Links your Discord identity to your XCS account. This enables role synchronization in the R&C Community Discord server. It also provides a second factor for account recovery.
+- **Roblox** -- Links your Roblox identity to your XCS account. This lets access points recognize you across the platform: when you belong to an access group in any organization, your linked Roblox account is used to grant or deny entry at that organization's access points.
+
+<Callout type="info">
+  You must verify your email address before you can link accounts. If you do not
+  see the link buttons, go back and complete email verification first.
+</Callout>
+
+## Link Your Accounts
+
+Both Discord and Roblox accounts are linked through the same authorization flow. The steps are identical — just choose the platform you want to link.
+
+<Steps>
+  <Step title="Go to Settings > Accounts">
+    From the dashboard, click your profile icon and select{" "}
+    <strong>Settings</strong>. Navigate to the <strong>Accounts</strong> tab.
+  </Step>
+  <Step title="Start the linking process">
+    Click "Link Discord Account" or "Add Roblox Account." A dialog explains you
+    will be redirected to the platform's authorization page.
+  </Step>
+  <Step title="Authorize">
+    Click "Continue." You will be redirected to the platform's authorization
+    page. Make sure you are logged into the correct account before authorizing.
+  </Step>
+  <Step title="Confirm and verify">
+    Click "Authorize" on the platform page. You will be redirected back to XCS,
+    and your account will appear under the Accounts section.
+  </Step>
+</Steps>
+
+On Roblox, XCS requests access to your user ID and username. You can link multiple Roblox accounts. On Discord, XCS requests your username, avatar, and email, and you will see a "Sync XCS Role" button after linking.
+
+## Manage Linked Accounts
+
+All linked accounts are visible under **Settings > Accounts**.
+
+**Discord section:**
+
+- Shows your Discord username and linked date
+- "Sync XCS Role" button -- Manually triggers role synchronization with the Discord server
+- "Unlink Discord Account" -- Removes the Discord link. You must confirm this action.
+
+**Roblox section:**
+
+- Shows a list of all linked Roblox accounts with usernames and dates
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Linked the wrong Discord account">
+    <p>First, unlink the current Discord account in <strong>Settings > Accounts</strong> by clicking "Unlink Discord Account" and confirming. Then repeat the linking process, making sure you are logged into the correct Discord account before authorizing.</p>
+  </Accordion>
+  <Accordion title="Roblox authorization fails">
+    <p>Roblox authorization requires third-party cookies to be enabled in your browser. If you see an error during the redirect:</p>
+    <ol>
+      <li>Enable third-party cookies in your browser settings</li>
+      <li>Try using a private or incognito window</li>
+      <li>If it still fails, try a different browser</li>
+    </ol>
+  </Accordion>
+  <Accordion title="Linked the wrong Roblox account">
+    <p>Unlink the current Roblox account in <strong>Settings > Accounts</strong> by clicking the trash icon next to that account and confirming. Then repeat the linking process.</p>
+  </Accordion>
+  <Accordion title="Cannot see the link buttons">
+    <p>The link buttons are disabled until your email is verified. Check your inbox for the verification email from <strong>noreply@xcs.restrafes.co</strong> and click the verification link.</p>
+  </Accordion>
+  <Accordion title="Need help?">
+    <p>Email <strong>xcs@restrafes.co</strong> with your account email and a description of the issue.</p>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+Next up: [Setting Up Your Organization](/guides/setting-up-your-organization).

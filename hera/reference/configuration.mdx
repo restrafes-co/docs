@@ -1,0 +1,96 @@
+---
+title: 'Configuration reference'
+description: 'Find the main Hera configuration settings.'
+icon: 'list-tree'
+---
+
+This page lists the settings most often changed during setup. Keep the complete configuration supplied with Hera and use the related guide for examples.
+
+## General
+
+| Setting              | Purpose                                       |
+| -------------------- | --------------------------------------------- |
+| `NAME.ID`            | Elevator name used by the controller          |
+| `ENABLE_DEBUGGING`   | Shows additional messages in Output           |
+| `MAIN.PRIMARY_FLOOR` | Main floor used by supported service features |
+
+## Motion
+
+| Setting                                               | Purpose                              |
+| ----------------------------------------------------- | ------------------------------------ |
+| `MOVE.METHOD`                                         | Motion profile                       |
+| `MOVE.ENGINE`                                         | Movement engine                      |
+| `MOVE.MOTOR_SPEED`                                    | Top travel speed                     |
+| `MOVE.MOTOR_START_SETTINGS.UP_DELAY/DOWN_DELAY`       | Start delay by direction             |
+| `MOVE.MOTOR_START_SETTINGS.ACCELERATION_RATE_UP/DOWN` | Acceleration by direction            |
+| `MOVE.MOTOR_STOP_SETTINGS.DECELERATION_RATE_UP/DOWN`  | Deceleration by direction            |
+| `MOVE.LEVELING_OFFSET`                                | Distance where final leveling begins |
+| `MOVE.LEVELING_SPEED`                                 | Final leveling speed                 |
+| `MOVE.PREDOORS_ENABLED`                               | Enables pre-opening                  |
+| `MOVE.PREDOORS_OFFSET`                                | Distance where pre-opening begins    |
+| `MOVE.COUNTERWEIGHT`                                  | Counterweight and sheave movement    |
+
+See [Motion](/hera/configuration/motion).
+
+## Doors
+
+| Setting                                               | Purpose                                   |
+| ----------------------------------------------------- | ----------------------------------------- |
+| `DOORS.METHOD`                                        | Door movement style                       |
+| `DOORS.CAR_OPEN_SPEED/FLOOR_OPEN_SPEED`               | Car and landing opening speed             |
+| `DOORS.CAR_CLOSE_SPEED/FLOOR_CLOSE_SPEED`             | Car and landing closing speed             |
+| `DOORS.CAR_CLOSE_NUDGE_SPEED/FLOOR_CLOSE_NUDGE_SPEED` | Nudge closing speed                       |
+| `DOORS.CAR_OPEN_DELAY/FLOOR_OPEN_DELAY`               | Opening delay by side                     |
+| `DOORS.CAR_CLOSE_DELAY/FLOOR_CLOSE_DELAY`             | Closing delay by side                     |
+| `DOORS.TIMER_LENGTH`                                  | Normal door-open time                     |
+| `DOORS.REOPEN_TIMER_LENGTH`                           | Door-open time after a reopen             |
+| `DOORS.ACCESSIBILITY_TIMER_LENGTH`                    | Extended door-open time                   |
+| `DOORS.NUDGE_TIMER_LENGTH`                            | Time before nudging                       |
+| `DOORS.ACCESSIBILITY_NUDGE_TIMER_LENGTH`              | Extended time before nudging              |
+| `DOORS.SENSOR_ENABLED`                                | Enables obstruction sensors               |
+| `DOORS.CUBIC_BEZIER`                                  | Custom open and close curves for method 3 |
+
+See [Doors](/hera/configuration/doors).
+
+## Buttons and sound
+
+| Setting                                 | Purpose                      |
+| --------------------------------------- | ---------------------------- |
+| `BUTTONS.CAR`                           | Car-call lamp appearance     |
+| `BUTTONS.HALL`                          | Hall-call lamp appearance    |
+| `BUTTONS.DOOR_CONTROL`                  | Door-control lamp appearance |
+| `BUTTONS.ALARM`                         | Alarm lamp appearance        |
+| `SOUNDS.CHIME`                          | Arrival chimes               |
+| `SOUNDS.ON_BUTTON_PRESS`                | Button-press sounds          |
+| `SOUNDS.ON_FLOOR_CHANGE`                | Floor-change sound           |
+| `SOUNDS.ON_DOOR_OPEN/CLOSE/OBSTRUCTION` | Door event sounds            |
+| `SOUNDS.ALARM`                          | Alarm sound                  |
+| `SOUNDS.NUDGE`                          | Nudge warning                |
+| `SOUNDS.CAR_MOTOR/DOOR_MOTOR`           | Motor sounds                 |
+
+See [Buttons and fixtures](/hera/configuration/buttons) and [Sound and voice](/hera/configuration/sound-and-voice).
+
+## Indicators and calls
+
+| Setting                                   | Purpose                            |
+| ----------------------------------------- | ---------------------------------- |
+| `API.FLOOR.FLOOR_CHANGE_TIME`             | When the displayed floor changes   |
+| `API.FLOOR.FLOOR_CHANGE_ON_ACCELERATION`  | Allows changes during acceleration |
+| `API.FLOOR_LABELS`                        | Display labels for floors          |
+| `API.CHIME`                               | Chime event timing                 |
+| `API.INDICATOR`                           | Car and landing indicator timing   |
+| `QUEUE.PROCESS_DELAY`                     | Delay before processing a call     |
+| `QUEUE.RESET_DIRECTION_ON_FINAL_CAR_CALL` | Direction after the final car call |
+
+## Voice and miscellaneous
+
+| Setting                              | Purpose                             |
+| ------------------------------------ | ----------------------------------- |
+| `VOICE.ENABLED`                      | Enables announcements               |
+| `VOICE.PRESET`                       | Selects a supplied vocabulary       |
+| `VOICE.DATA.CUES.EVENTS`             | Announcements for controller events |
+| `VOICE.DATA.CUES.FLOOR`              | Announcements for floors            |
+| `MISCELLANEOUS.DOOR_GROUP_ALIASES`   | Maps fixture letters to door groups |
+| `MISCELLANEOUS.PARKING`              | Idle parking floor and delay        |
+| `MISCELLANEOUS.WELD.PLAYERS_ENABLED` | Passenger stabilization             |
+| `MISCELLANEOUS.WELD.UNWELD_TIME`     | Passenger release point             |

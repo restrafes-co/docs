@@ -1,0 +1,37 @@
+---
+title: 'Door operation'
+description: 'Understand normal opening, closing, reopening, and nudging.'
+icon: 'door-open'
+---
+
+Each door group operates independently. A front and rear opening can therefore have different states and serve different floors.
+
+## Normal sequence
+
+1. The car arrives and levels at the floor.
+2. The arrival chime and direction indicators operate at their configured times.
+3. The matching car and landing doors open.
+4. The doors remain open for the configured dwell time.
+5. The doors close and Hera continues to the next call.
+
+Pre-opening may begin the opening sequence shortly before leveling is complete.
+
+## Door controls
+
+- Door open reverses a normal closing door or opens a closed door at the current floor.
+- Door close ends the normal dwell time and releases door hold.
+- Door hold keeps that door group open until door close is pressed.
+
+Door controls apply only during normal operation.
+
+## Obstructions
+
+When a sensor detects a player during a normal close, the doors reopen. The reopened doors use `REOPEN_TIMER_LENGTH` before trying to close again.
+
+The nudge timer continues while the entrance is obstructed. When it expires, Hera sounds the nudge warning and closes at the configured nudge speed. Sensors do not reverse a nudge close.
+
+<Callout type="warning">
+  Test each sensor and door group after changing the entrance geometry, timers, or closing speed.
+</Callout>
+
+See [Doors](/hera/configuration/doors) for the related settings.

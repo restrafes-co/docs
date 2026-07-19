@@ -1,0 +1,356 @@
+---
+title: 'Callbox API'
+description: 'Server-side Roblox API for placing Telephone Entry calls, exchanging speech in both directions, reading call state, and handling access decisions.'
+icon: 'phone-call'
+---
+
+The Callbox API connects an in-experience intercom to XCS Telephone Entry. It is a **Roblox server API** exposed by the stock XCS package through a `BindableFunction` and `BindableEvent`; your experience does not need to call the XCS HTTP API directly.
+
+Use the API to:
+
+- Place a call from an access point to a configured dial code.
+- Send filtered Roblox text or speech-to-text output to the phone call.
+- Receive the phone participant's transcribed speech in Roblox.
+- Read the call's status, decision, and durable transcript.
+- Unlock the access point automatically when the phone participant grants access.
+
+<Callout type="warning">
+  Call the Callbox API only from server scripts. Never pass the XCS organization API key to a
+  `LocalScript`, `RemoteEvent`, or object in `ReplicatedStorage`. Validate and rate-limit any client
+  input before passing it to XCS.
+</Callout>
+
+## Prerequisites
+
+Before using the API:
+
+- Install and configure the stock XCS package in the experience.
+- Enable HTTP requests in the experience settings.
+- Configure the location's Roblox universe and Open Cloud API key under **Location Settings → Messaging**.
+- Create and enable at least one Telephone Entry dial route.
+- Use an access point belonging to the configured location.
+
+See [Telephone Entry](/guides/telephone-entry) for route setup.
+
+## Roblox objects
+
+The XCS package creates two server-only global objects:
+
+| Object            | Class              | Purpose                                                  |
+| ----------------- | ------------------ | -------------------------------------------------------- |
+| `_G.xcsApi`       | `BindableFunction` | Place calls, read status, and send speech to the phone.  |
+| `_G.xcsMessaging` | `BindableEvent`    | Receive typed XCS messages, including phone transcripts. |
+
+It also fires `_G.xcsRemoteUnlock`, an existing `BindableEvent`, when a call is granted. The stock access-point integration handles this event automatically.
+
+The objects are created while XCS initializes. A server script that starts earlier should wait for them:
+
+```lua
+while not _G.xcsApi or not _G.xcsMessaging do
+	task.wait()
+end
+
+local XCS = _G.xcsApi
+local XCSMessaging = _G.xcsMessaging
+```
+
+## Result format
+
+Every Callbox API request returns one of these result envelopes.
+
+```lua
+-- Success
+{
+	response = "callbox",
+	data = { ... },
+}
+
+-- Request rejected by XCS
+{
+	response = "callbox-error",
+	statusCode = 404,
+	message = "Dial number is not configured",
+}
+```
+
+Check `response` before reading `data`. Invalid local arguments, such as an unknown access point or a non-`Player` value, raise a Luau error instead of returning `callbox-error`; use `pcall` around calls when the input does not come entirely from trusted server code.
+
+## Place a call
+
+Invoke `callboxCall` with the access point, the visitor's dial code, and the `Player` making the call.
+
+```lua
+local result = XCS:Invoke({
+	request = "callboxCall",
+	accessPoint = "front-door-access-point-id",
+	dialNumber = "101",
+	player = player,
+})
+
+if result.response ~= "callbox" then
+	warn(("Call failed (%s): %s"):format(result.statusCode, result.message))
+	return
+end
+
+local sessionId = result.data.sessionId
+print("Call is ringing:", sessionId)
+```
+
+### Request fields
+
+<ParamField body="request" type="string" required>
+  Must be `"callboxCall"`.
+</ParamField>
+
+<ParamField body="accessPoint" type="string" required>
+  XCS access point ID where the visitor is requesting entry.
+</ParamField>
+
+<ParamField body="dialNumber" type="string | number" required>
+  A dial code configured for this location. XCS accepts 1–12 digits after removing spaces,
+  parentheses, and hyphens.
+</ParamField>
+
+<ParamField body="player" type="Player" required>
+  The live Roblox `Player` making the call. XCS uses the player's user ID for rate limiting and a
+  player-scoped unlock if access is granted. The opening phone prompt announces the player's Roblox
+  display name to the recipient.
+</ParamField>
+
+### Response data
+
+<ResponseField name="sessionId" type="string" required>
+  Unique ID for the call. Retain it for status and speech requests.
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Initial call state. A successfully placed call returns `RINGING`.
+</ResponseField>
+
+<ResponseField name="expiresAt" type="string" required>
+  ISO 8601 expiration timestamp. Visitor calls have a 60-second call limit.
+</ResponseField>
+
+XCS permits at most three placement attempts per player per location in a 60-second window. Further attempts return `callbox-error` with `statusCode = 429`.
+
+## Two-way communication
+
+### Phone to Roblox
+
+XCS transcribes the phone participant and fires `_G.xcsMessaging` with the message type `phone_transcript` and a payload. Subscribe once from a server script, then filter by `sessionId` because the event also carries transcripts for other active callboxes at the location.
+
+```lua
+local connections = {}
+
+local function listenToPhone(sessionId, onTranscript)
+	connections[sessionId] = XCSMessaging.Event:Connect(function(messageType, payload)
+		if messageType ~= "phone_transcript" then
+			return
+		end
+
+		if payload.sessionId ~= sessionId then
+			return
+		end
+
+		onTranscript(payload.text, payload)
+	end)
+end
+
+local function stopListening(sessionId)
+	local connection = connections[sessionId]
+	if connection then
+		connection:Disconnect()
+		connections[sessionId] = nil
+	end
+end
+```
+
+The `phone_transcript` payload contains:
+
+<ResponseField name="sessionId" type="string" required>
+  Call session that produced the transcript.
+</ResponseField>
+
+<ResponseField name="accessPointId" type="string" required>
+  Access point associated with the call.
+</ResponseField>
+
+<ResponseField name="speaker" type="string" required>
+  Always `phone` for this live message.
+</ResponseField>
+
+<ResponseField name="text" type="string" required>
+  Transcribed phone audio, sanitized by XCS.
+</ResponseField>
+
+<ResponseField name="at" type="string" required>
+  ISO 8601 timestamp for the transcript entry.
+</ResponseField>
+
+MessagingService delivery is best-effort. Use `callboxStatus` to recover the stored transcript after a missed live message.
+
+### Roblox to phone
+
+Pass filtered TextChatService text or Roblox speech-to-text output to `callboxSpeak`. XCS converts it to audio for the phone participant.
+
+```lua
+local speakResult = XCS:Invoke({
+	request = "callboxSpeak",
+	accessPoint = "front-door-access-point-id",
+	sessionId = sessionId,
+	text = filteredText,
+})
+
+if speakResult.response ~= "callbox" then
+	warn("Could not speak into call:", speakResult.message)
+end
+```
+
+<ParamField body="request" type="string" required>
+  Must be `"callboxSpeak"`.
+</ParamField>
+
+<ParamField body="accessPoint" type="string" required>
+  The same access point used to place the call.
+</ParamField>
+
+<ParamField body="sessionId" type="string" required>
+  Session ID returned by `callboxCall`.
+</ParamField>
+
+<ParamField body="text" type="string" required>
+  Filtered, non-empty text of at most 500 characters. Control characters are removed and whitespace
+  is normalized before speech generation.
+</ParamField>
+
+A successful request returns `{ success = true }` in `result.data`. Speaking is accepted only while the call is `IN_PROGRESS`; inactive calls or invalid text return `callbox-error` with `statusCode = 409`.
+
+<Callout type="warning">
+  Do not send unfiltered player-authored text to `callboxSpeak`. Apply Roblox's current text safety
+  requirements before forwarding chat input. Keep any client-to-server remote narrowly scoped to the
+  caller's own active session.
+</Callout>
+
+## Read call state
+
+Invoke `callboxStatus` to read the authoritative state and complete transcript.
+
+```lua
+local result = XCS:Invoke({
+	request = "callboxStatus",
+	accessPoint = "front-door-access-point-id",
+	sessionId = sessionId,
+})
+
+if result.response == "callbox" then
+	local call = result.data
+	print(call.status, call.decision)
+
+	for _, entry in ipairs(call.transcript) do
+		print(entry.speaker, entry.text, entry.at)
+	end
+end
+```
+
+The response contains:
+
+| Field                   | Type       | Description                                                                                                                                                                    |
+| ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `sessionId`             | `string`   | Call session ID.                                                                                                                                                               |
+| `status`                | `string`   | `QUEUED`, `RINGING`, `IN_PROGRESS`, `COMPLETED`, or `FAILED`.                                                                                                                  |
+| `decision`              | `string?`  | `GRANTED`, `DENIED`, or `nil` while undecided.                                                                                                                                 |
+| `transcript`            | `table`    | Ordered entries with `speaker` (`phone` or `roblox`), `text`, and ISO 8601 `at`.                                                                                               |
+| `expiresAt`             | `string`   | ISO 8601 session expiration timestamp.                                                                                                                                         |
+| `remoteUnlockTriggered` | `boolean?` | `true` only on the local poll that first observes a grant and triggers the unlock. The controller's automatic poll usually consumes this signal, so do not use it as UI state. |
+
+The stock controller polls automatically after `callboxCall`, so you do not need to poll merely to make granted calls unlock. Poll only when your UI needs durable state, and stop when the status is `COMPLETED` or `FAILED`.
+
+## Grant and denial behavior
+
+When the phone participant presses **1**, XCS records `decision = "GRANTED"`. The stock controller detects the grant once and fires `_G.xcsRemoteUnlock` for the call's access point and player. It will not unlock the same session twice, even if your script also requests status.
+
+Pressing **2**, no answer, hanging up, an error, or reaching the call limit results in `DENIED` and never fires the callbox unlock.
+
+If your custom access-point model listens to `_G.xcsRemoteUnlock` itself, the callbox payload includes `source = "callbox"`, `scope = "player"`, `accessPointId`, `robloxUserId`, `sessionId`, and the configured `unlockTime` when available.
+
+## Complete server example
+
+This example places a call, renders phone transcripts through a callback, sends already-filtered Roblox text to the phone, and watches for a terminal state.
+
+```lua
+while not _G.xcsApi or not _G.xcsMessaging do
+	task.wait()
+end
+
+local XCS = _G.xcsApi
+local XCSMessaging = _G.xcsMessaging
+
+local ACCESS_POINT_ID = "front-door-access-point-id"
+
+local function startCall(player, dialNumber, showPhoneText)
+	local placed = XCS:Invoke({
+		request = "callboxCall",
+		accessPoint = ACCESS_POINT_ID,
+		dialNumber = dialNumber,
+		player = player,
+	})
+
+	if placed.response ~= "callbox" then
+		return nil, placed.message
+	end
+
+	local sessionId = placed.data.sessionId
+	local transcriptConnection
+	transcriptConnection = XCSMessaging.Event:Connect(function(messageType, payload)
+		if messageType == "phone_transcript" and payload.sessionId == sessionId then
+			showPhoneText(payload.text)
+		end
+	end)
+
+	task.spawn(function()
+		while true do
+			task.wait(1)
+			local result = XCS:Invoke({
+				request = "callboxStatus",
+				accessPoint = ACCESS_POINT_ID,
+				sessionId = sessionId,
+			})
+
+			if result.response ~= "callbox" then
+				break
+			end
+
+			local status = result.data.status
+			if status == "COMPLETED" or status == "FAILED" then
+				break
+			end
+		end
+
+		transcriptConnection:Disconnect()
+	end)
+
+	return sessionId
+end
+
+local function speakToPhone(sessionId, filteredText)
+	return XCS:Invoke({
+		request = "callboxSpeak",
+		accessPoint = ACCESS_POINT_ID,
+		sessionId = sessionId,
+		text = filteredText,
+	})
+end
+```
+
+Roblox text-to-speech, speech-to-text, and client UI are intentionally left to your callbox model. The XCS API owns call placement, phone audio transport, transcripts, state, and the access decision.
+
+## Common errors
+
+| `statusCode` | Meaning                                                 | What to check                                                                                  |
+| ------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `400`        | Invalid dial number or player user ID.                  | Pass a live `Player` and a 1–12 digit route.                                                   |
+| `401`        | The integration is not authorized for the access point. | Check the organization API key, location, feature access, and Messaging configuration.         |
+| `404`        | The dial route or call session is unavailable.          | Confirm the route is enabled and eligible, and reuse the original access point and session ID. |
+| `409`        | The call cannot currently accept speech.                | Wait for `IN_PROGRESS`, keep text within 500 characters, and stop after the call ends.         |
+| `429`        | The player placed too many calls.                       | Wait for the 60-second rate-limit window to pass.                                              |
+| `502`        | XCS could not start or communicate with the phone call. | Try again later or check the Telephone Entry service configuration.                            |

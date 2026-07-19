@@ -1,0 +1,83 @@
+---
+title: 'Getting Started'
+description: 'A step-by-step tutorial that takes you from zero to managing an access point on XCS in under 10 minutes.'
+icon: 'rocket'
+---
+
+This tutorial walks you through your first end-to-end XCS experience: creating an account, setting up your organization, linking your accounts, and exploring the dashboard.
+
+## Prerequisites
+
+Before you begin, make sure you have:
+
+- A valid email address
+- A Roblox account
+- An invitation link
+
+## Step 1 -- Create Your Account
+
+1. Obtain an invitation link from your XCS provider.
+2. Enter the required information and choose a password.
+3. Click "Create Account."
+
+You will receive a verification email at the address you provided.
+
+<Callout type="tip">
+  If you don't see the email, check your spam folder. You can request a new verification email from
+  the login page.
+</Callout>
+
+## Step 2 -- Create Your Organization
+
+1. Log in to **https://xcs.restrafes.co**.
+2. You will be prompted to create your first organization.
+3. Enter a name for your organization (for example, your group name).
+4. Add an optional description.
+5. Click "Create Organization."
+
+You are now the owner of your organization.
+
+## Step 4 -- Link Your Accounts
+
+1. Go to **Settings > Accounts**.
+2. Click "Link Discord Account." Review the authorization dialog and authorize XCS on Discord.
+3. Click "Add Roblox Account." Review the authorization dialog and authorize XCS on Roblox.
+4. Both accounts are now linked to your XCS profile.
+
+## Step 6 -- Create a Location
+
+1. From the dashboard, click on your organization name.
+2. Go to the **Locations** section.
+3. Click "Create Location."
+4. Give your location a name (for example, "Restrafes Headquarters").
+5. Configure the Roblox integration (optional — only needed for remote unlock):
+   - **Roblox Universe ID** -- Your experience's universe ID from the Roblox Creator Dashboard
+   - **Open Cloud API Key** -- A valid Roblox Open Cloud API key with MessagingService permissions
+6. Click "Save."
+
+## Step 7 -- Add an Access Point
+
+1. From your location's page, go to the **Access Points** section.
+2. Click "Create Access Point."
+3. Give your access point a name (for example, "Main Gate").
+4. Add access rules. You can grant access by assigning:
+   - **Access groups** -- Select a pre-configured group of identities (e.g., "Staff", "VIPs")
+   - **Specific identities** -- Add individual XCS users, Roblox users, groups, cards, or PINs directly
+5. Click "Save."
+
+## What's Next
+
+Once you have an access point configured, try the following:
+
+- **Remote unlock from the dashboard** -- Click the unlock button on your access point to test the MessagingService integration
+- **Integrate with your Roblox game** -- Use the XCS package or subscribe to the shared `xcs-location-{locationId}` topic to receive typed live messages such as remote unlock commands
+- **Trigger unlocks via API** -- Use the [Remote Unlock API](/api/remote-unlock) to trigger unlocks programmatically
+
+<CardGroup cols={2}>
+  <Card title="Core Concepts" icon="book-open" href="/guides/core-concepts">
+    Deepen your understanding of organizations, locations, access points, and rules.
+  </Card>
+  <Card title="Consumer API Reference" icon="code" href="/api/consumer-overview">
+    Explore the full Consumer API for programmatic access control.
+  </Card>
+</CardGroup>

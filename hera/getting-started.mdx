@@ -1,0 +1,47 @@
+---
+title: 'Getting started'
+description: 'Install Hera and complete a first test run.'
+icon: 'rocket'
+---
+
+Start with a complete Hera elevator model. It should include the elevator assembly, a `CONFIGURATION` ModuleScript, and the Hera loader.
+
+## Set up the model
+
+1. Place the complete elevator model in `Workspace`.
+2. Keep `CONFIGURATION`, `CAR`, and `FLOORS` inside the elevator model.
+3. Check that each floor has a numeric name and a `LEVEL_MAIN` part.
+4. Check that the car has a `.PLATFORM` part.
+5. Make sure each car door group has a matching door group at every floor it serves.
+6. Run the experience and watch Output for any errors.
+
+<Callout type="warning">
+  Make a backup before changing the model or configuration. Missing parts and incorrect names can
+  prevent Hera from starting.
+</Callout>
+
+See [Model structure](/hera/model-structure) for the expected names and hierarchy.
+
+## First test
+
+Before changing detailed settings:
+
+1. Press a car button for another floor.
+2. Confirm that the button lights and the doors close.
+3. Confirm that the car starts, slows, levels at the floor, and stops.
+4. Confirm that the car and landing doors open together.
+5. Place an object in the door sensor while the doors close and confirm that they reopen.
+6. Test the up and down hall buttons.
+7. Repeat the test for every floor and door opening.
+
+If the car does not start or stop correctly, check [Troubleshooting](/hera/reference/troubleshooting) before changing several settings at once.
+
+## Continue setup
+
+Configure one system at a time:
+
+- [Motion](/hera/configuration/motion)
+- [Doors](/hera/configuration/doors)
+- [Buttons and fixtures](/hera/configuration/buttons)
+- [Sound and voice](/hera/configuration/sound-and-voice)
+- [Indicators](/hera/configuration/indicators)

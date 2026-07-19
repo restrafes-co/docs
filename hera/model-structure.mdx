@@ -1,0 +1,66 @@
+---
+title: 'Model structure'
+description: 'Set up the parts and folders Hera expects.'
+icon: 'folder-tree'
+---
+
+Hera finds elevator equipment by name. Use the following structure as the starting point for a new model.
+
+```text
+Elevator
+├── CONFIGURATION
+├── CAR
+│   ├── .PLATFORM
+│   ├── .DOORS
+│   │   └── 1
+│   │       ├── LEVEL
+│   │       └── DOORS
+│   ├── .DOORSENSORS
+│   │   └── 1
+│   └── .BUTTONS
+├── FLOORS
+│   ├── 1
+│   │   ├── LEVEL_MAIN
+│   │   ├── .DOORS
+│   │   │   └── 1
+│   │   └── .BUTTONS
+│   └── 2
+└── COUNTERWEIGHT (optional)
+```
+
+## Car and floors
+
+- `CAR/.PLATFORM` is the reference part used to move and level the car.
+- Each child of `FLOORS` must have a numeric name, such as `1`, `2`, or `-1`.
+- Each floor requires a `LEVEL_MAIN` part at the intended stopping height.
+- Door groups use numbers. Group `1` is normally the front opening and group `2` may be used for a rear opening.
+- A door group must exist under both the car and each floor where that opening is available.
+
+## Door leaves
+
+Place each moving leaf inside the door group's `DOORS` model. Name leaves by their movement direction:
+
+| Prefix | Movement |
+| ------ | -------- |
+| `DL`   | Left     |
+| `DR`   | Right    |
+| `DU`   | Up       |
+| `DD`   | Down     |
+
+A center-opening pair is commonly named `DL1` and `DR1`. Each leaf needs a `SCALE` part, which Hera uses to move the door.
+
+## Buttons
+
+Car fixtures belong under `.BUTTONS` and contain a `BUTTON` part. Common names include:
+
+| Name    | Function              |
+| ------- | --------------------- |
+| `F5`    | Front call to floor 5 |
+| `FDO`   | Front door open       |
+| `FDC`   | Front door close      |
+| `FDH`   | Front door hold       |
+| `ALARM` | Alarm                 |
+
+At each floor, place hall buttons under `.BUTTONS`, grouped by the door alias. Use `U` for up and `D` for down.
+
+See [Buttons and fixtures](/hera/configuration/buttons) to configure aliases and lamps.

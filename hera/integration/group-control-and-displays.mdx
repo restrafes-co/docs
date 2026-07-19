@@ -1,0 +1,52 @@
+---
+title: 'Group control and displays'
+description: 'Connect shared hall calls, lanterns, and floor indicators.'
+icon: 'panels-top-left'
+---
+
+Hera can be used with a group controller and with accessories that listen to the controller API.
+
+## ERSA group control
+
+ERSA assigns shared hall calls to one elevator in a group. A typical model contains:
+
+```text
+GroupController
+├── CONFIGURATION
+├── ELEVATORS
+│   ├── ElevatorA
+│   └── ElevatorB
+└── CALLBUTTONS
+    ├── 1
+    │   └── .BUTTONS
+    └── 2
+```
+
+Each child of `ELEVATORS` is a complete Hera elevator. Shared hall buttons follow the same floor, door-group, and direction names used by a single elevator.
+
+ERSA compares the available cars and normally favors a car that is already at the floor, approaching in the requested direction, or idle nearby. It sends the call to the selected Hera controller and clears the shared lamp after arrival.
+
+Test every shared call after adding a car, changing a served floor, or changing a door-group alias.
+
+## Hall lanterns
+
+A hall-lantern controller listens for the `indicator` event. Fixtures are arranged by floor, door group, and direction:
+
+```text
+Lanterns
+└── 1
+    └── F
+        └── LANTERNS
+            ├── U
+            │   └── LED
+            └── D
+                └── LED
+```
+
+The selected `LED` becomes visible when Hera sends a lit command and hides when Hera sends an unlit command.
+
+## Floor indicators
+
+A floor display should listen for `onFloorChanged` and use the returned label. Direction arrows should listen for `onMoveDirectionChanged` or `onQueueDirectionChanged`, depending on whether the display represents car travel or the next service direction.
+
+Use `getStates` when an accessory starts so it can display the current state before the next event occurs. See [Controller API](/hera/integration/controller-api) for examples.

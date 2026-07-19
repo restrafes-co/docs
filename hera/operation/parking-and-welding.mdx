@@ -1,0 +1,44 @@
+---
+title: 'Parking and passenger movement'
+description: 'Configure idle parking and passenger stabilization.'
+icon: 'square-parking'
+---
+
+## Idle parking
+
+Hera can move the car to a chosen floor after it has been idle.
+
+```lua
+MISCELLANEOUS = {
+    PARKING = {
+        ENABLED = true,
+        FLOOR = 1,
+        REQUIRED_IDLE_TIME = 60,
+    },
+}
+```
+
+When the timer expires, Hera moves to the parking floor without opening the doors. A new call interrupts the parking wait.
+
+## Passenger stabilization
+
+Player welding can keep passengers aligned with the car while it moves.
+
+```lua
+WELD = {
+    PLAYERS_ENABLED = true,
+    UNWELD_TIME = 2,
+}
+```
+
+`UNWELD_TIME` controls when passengers are released:
+
+| Value | Release point                                                             |
+| ----- | ------------------------------------------------------------------------- |
+| `1`   | When leveling begins                                                      |
+| `2`   | When the car stops                                                        |
+| `3`   | When pre-opening begins, or when the car stops if pre-opening is disabled |
+
+Test jumping, seats, respawning, and high-latency players after enabling this feature.
+
+Automatic welding of loose objects is not available through the normal configuration.

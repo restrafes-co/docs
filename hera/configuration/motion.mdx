@@ -1,0 +1,69 @@
+---
+title: 'Motion'
+description: 'Configure travel speed, acceleration, deceleration, and leveling.'
+icon: 'move-vertical'
+---
+
+Motion settings are stored under `MOVE`.
+
+```lua
+MOVE = {
+    METHOD = 2,
+    ENGINE = 1,
+    MOTOR_SPEED = 8,
+
+    MOTOR_START_SETTINGS = {
+        UP_DELAY = 0,
+        DOWN_DELAY = 0,
+        ACCELERATION_RATE_UP = 0.05,
+        ACCELERATION_RATE_DOWN = 0.05,
+    },
+
+    MOTOR_STOP_SETTINGS = {
+        DECELERATION_RATE_UP = 0.025,
+        DECELERATION_RATE_DOWN = 0.025,
+    },
+
+    LEVELING_OFFSET = 4,
+    LEVELING_SPEED = 0.1,
+}
+```
+
+## Main settings
+
+| Setting                                          | Purpose                                             |
+| ------------------------------------------------ | --------------------------------------------------- |
+| `MOTOR_SPEED`                                    | Top travel speed                                    |
+| `UP_DELAY`, `DOWN_DELAY`                         | Delay before starting in each direction             |
+| `ACCELERATION_RATE_UP`, `ACCELERATION_RATE_DOWN` | How quickly the car reaches speed                   |
+| `DECELERATION_RATE_UP`, `DECELERATION_RATE_DOWN` | How quickly the car slows for a stop                |
+| `LEVELING_OFFSET`                                | Distance from the floor where final leveling begins |
+| `LEVELING_SPEED`                                 | Speed used during final leveling                    |
+
+Use positive values for acceleration, deceleration, and leveling speed.
+
+## Tuning order
+
+1. Confirm that every `LEVEL_MAIN` part is at the correct height.
+2. Set the desired `MOTOR_SPEED`.
+3. Tune acceleration for up and down travel.
+4. Tune deceleration so the car enters leveling smoothly.
+5. Adjust `LEVELING_SPEED` for a short, smooth final approach.
+
+Change only one value between test runs. Test both directions and trips of different lengths.
+
+## Pre-opening
+
+Pre-opening begins to open the doors shortly before the car finishes leveling.
+
+```lua
+PREDOORS_ENABLED = true,
+PREDOORS_OFFSET = 0.05,
+PREDOORS_IGNORE_DOOR_OPEN_DELAY = true,
+```
+
+Set up and align all car and landing doors before enabling pre-opening.
+
+## Counterweight
+
+Hera can animate an optional `COUNTERWEIGHT` model. Enable it under `MOVE.COUNTERWEIGHT`, then set its movement axis and multiplier. The counterweight should move in the opposite direction from the car.

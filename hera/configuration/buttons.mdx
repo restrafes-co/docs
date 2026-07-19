@@ -1,0 +1,68 @@
+---
+title: 'Buttons and fixtures'
+description: 'Set up car buttons, hall buttons, door controls, and lamps.'
+icon: 'circle-dot'
+---
+
+Each fixture model needs a `BUTTON` part. If the fixture contains parts whose names begin with `LED`, Hera uses those parts as its lamp; otherwise it changes the appearance of `BUTTON`.
+
+## Door aliases
+
+Aliases make fixture names easy to read:
+
+```lua
+MISCELLANEOUS = {
+    DOOR_GROUP_ALIASES = {
+        F = 1, -- front
+        R = 2, -- rear
+    },
+}
+```
+
+Each alias must point to a different door group.
+
+## Car buttons
+
+Place car fixtures under a model whose name begins with `.BUTTONS`.
+
+| Name    | Function                               |
+| ------- | -------------------------------------- |
+| `F5`    | Call floor 5 and use the front opening |
+| `R2`    | Call floor 2 and use the rear opening  |
+| `FDO`   | Open the front doors                   |
+| `FDC`   | Close the front doors                  |
+| `FDH`   | Hold the front doors open              |
+| `ALARM` | Sound the alarm while pressed          |
+
+Pressing an already registered floor button does not cancel the call. Pressing the current floor opens or reopens the selected door group.
+
+## Hall buttons
+
+At each floor, place hall fixtures under `.BUTTONS`. Add a model for the alias, such as `F`, then add:
+
+- `U` for an up call
+- `D` for a down call
+- `N` for a call without a preferred direction
+
+Terminal floors normally need only the direction that leaves the terminal.
+
+## Lamp appearance
+
+The `BUTTONS` section contains separate settings for car calls, hall calls, door controls, and the alarm. Each section can define an `UNLIT` and `LIT` color, material, and texture.
+
+```lua
+CAR = {
+    LIT_ON_CLICK_DURATION = 0.75,
+    TRANSITION_DURATION = 0.1,
+    UNLIT = {
+        COLOR = Color3.fromRGB(236, 240, 255),
+        MATERIAL = Enum.Material.SmoothPlastic,
+    },
+    LIT = {
+        COLOR = Color3.fromRGB(236, 240, 255),
+        MATERIAL = Enum.Material.Neon,
+    },
+}
+```
+
+Car and hall call lamps remain lit while their calls are registered. Door controls may also remain lit while their door is moving.
