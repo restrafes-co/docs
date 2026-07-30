@@ -89,6 +89,8 @@
               "api/consumer-overview",
               "api/access-points",
               "api/access-point-permissions",
+              "api/add-access-point-permissions",
+              "api/remove-access-point-permissions",
               "api/remote-unlock",
               "api/callbox"
             ]

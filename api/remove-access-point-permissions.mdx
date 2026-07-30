@@ -1,0 +1,84 @@
+---
+title: "Remove access-point permissions"
+description: "Remove selected access groups and identities from an access point."
+icon: "key-square"
+api: "DELETE /api/consumer/v1/access-points/{id}/permissions"
+playground: "interactive"
+---
+
+## Authentication
+
+Set `X-API-Key` to an organization API key. The key must belong to the access point's organization and include the access point's location when the key has location restrictions.
+
+## Path parameter
+
+<ParamField path="id" type="string" required>
+  Access-point ID.
+</ParamField>
+
+## Request body
+
+<ParamField body="accessGroupIds" type="string[]" required={false}>
+  Unique access-group IDs to remove.
+</ParamField>
+
+<ParamField body="identityIds" type="string[]" required={false}>
+  Unique organization-member IDs to remove. These are not user IDs or Roblox
+  user IDs.
+</ParamField>
+
+At least one array must contain an ID.
+
+```json
+{
+  "identityIds": ["ebcb6cc9-f088-4976-a071-69003e371051"]
+}
+```
+
+## Behavior
+
+- Grants omitted from the request remain unchanged.
+- Removing an ID that is not currently granted does not change other grants.
+- A successful mutation invalidates the location's in-game access-point cache.
+
+## Response
+
+A successful request returns `200` with the complete permission state. The response uses the schema documented by [List access-point permissions](/api/access-point-permissions#response).
+
+```json
+{
+  "permissions": {
+    "accessGroups": [
+      {
+        "id": "3f8b480b-323d-4d28-a2af-79ca79456549",
+        "name": "Employees"
+      }
+    ],
+    "identities": []
+  }
+}
+```
+
+## Example request
+
+```bash
+curl -X DELETE \
+  "https://api.restrafes.co/api/consumer/v1/access-points/76094322-c72f-4aca-bb25-4c2dc2964e37/permissions" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $XCS_API_KEY" \
+  --data '{
+    "identityIds": [
+      "ebcb6cc9-f088-4976-a071-69003e371051"
+    ]
+  }'
+```
+
+## Errors
+
+| Status | Cause                                                                            | Recovery                                              |
+| ------ | -------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `400`  | Neither array contains an ID.                                                    | Supply at least one access-group ID or identity ID.   |
+| `401`  | `X-API-Key` is missing or invalid, or the organization is inactive or archived.  | Send an active organization API key.                  |
+| `403`  | The key belongs to another organization or excludes the access point's location. | Use a key authorized for the access point's location. |
+| `404`  | No access point has the supplied `id`.                                           | Check the access-point ID.                            |
+| `422`  | The JSON body is missing or does not match the request schema.                   | Send a JSON object containing unique string arrays.   |

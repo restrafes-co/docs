@@ -4,8 +4,6 @@ description: "Reference for Consumer API authentication, service checks, access-
 icon: "code"
 ---
 
-The Consumer API exposes organization-scoped access-point operations over HTTP. Access-point requests use an organization API key and may be limited to specific locations.
-
 ## Base URL
 
 ```
@@ -30,15 +28,15 @@ Store API keys in server-side secret storage. Do not include them in Roblox `Loc
 
 ## Endpoints
 
-| Method   | Path                                                                                  | Operation                                         |
-| -------- | ------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| `GET`    | `/`                                                                                   | Check whether the Consumer API is reachable       |
-| `GET`    | `/ping`                                                                               | Read the current Consumer API version             |
-| `PATCH`  | [`/access-points/{id}`](/api/access-points)                                           | Partially update an access point                  |
-| `GET`    | [`/access-points/{id}/permissions`](/api/access-point-permissions#list-permissions)   | List directly granted permissions                 |
-| `POST`   | [`/access-points/{id}/permissions`](/api/access-point-permissions#add-permissions)    | Add permissions without replacing existing grants |
-| `DELETE` | [`/access-points/{id}/permissions`](/api/access-point-permissions#remove-permissions) | Remove selected permissions                       |
-| `POST`   | [`/access-points/{id}/remote-unlock`](/api/remote-unlock)                             | Send a remote-unlock command                      |
+| Method   | Path                                                                      | Operation                                         |
+| -------- | ------------------------------------------------------------------------- | ------------------------------------------------- |
+| `GET`    | `/`                                                                       | Check whether the Consumer API is reachable       |
+| `GET`    | `/ping`                                                                   | Read the current Consumer API version             |
+| `PATCH`  | [`/access-points/{id}`](/api/access-points)                               | Partially update an access point                  |
+| `GET`    | [`/access-points/{id}/permissions`](/api/access-point-permissions)        | List directly granted permissions                 |
+| `POST`   | [`/access-points/{id}/permissions`](/api/add-access-point-permissions)    | Add permissions without replacing existing grants |
+| `DELETE` | [`/access-points/{id}/permissions`](/api/remove-access-point-permissions) | Remove selected permissions                       |
+| `POST`   | [`/access-points/{id}/remote-unlock`](/api/remote-unlock)                 | Send a remote-unlock command                      |
 
 ## Service check
 
@@ -79,4 +77,4 @@ Endpoint errors return a JSON object with an `error` string:
 }
 ```
 
-Some configuration errors include a machine-readable `code`. Each endpoint page lists the errors produced by that endpoint.
+Some configuration errors include a machine-readable `code`.
