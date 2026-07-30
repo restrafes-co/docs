@@ -2,19 +2,13 @@
 title: "Get an access point"
 description: "Get an individual access point and its operational configuration through the Consumer API."
 icon: "door-closed"
-api: "GET /api/consumer/v1/access-points/{id}"
+openapi: "/openapi/consumer-access-points.json GET /api/consumer/v1/access-points/{id}"
 playground: "interactive"
 ---
 
 ## Authentication
 
 Set `X-API-Key` to an organization API key. The key must belong to the access point's organization and include the access point's location when the key has location restrictions.
-
-## Path parameter
-
-<ParamField path="id" type="string" required>
-  Access-point ID.
-</ParamField>
 
 ## Response
 

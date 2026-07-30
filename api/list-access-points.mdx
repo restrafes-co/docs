@@ -2,19 +2,13 @@
 title: "List access points in a location"
 description: "List every access point in a location through the Consumer API."
 icon: "list"
-api: "GET /api/consumer/v1/locations/{id}/access-points"
+openapi: "/openapi/consumer-access-points.json GET /api/consumer/v1/locations/{id}/access-points"
 playground: "interactive"
 ---
 
 ## Authentication
 
 Set `X-API-Key` to an organization API key. The key must belong to the location's organization and include the location when the key has location restrictions.
-
-## Path parameter
-
-<ParamField path="id" type="string" required>
-  Location ID.
-</ParamField>
 
 ## Response
 

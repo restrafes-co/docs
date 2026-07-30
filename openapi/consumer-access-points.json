@@ -1,0 +1,449 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "XCS Consumer Access Point API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.restrafes.co"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    },
+    "parameters": {
+      "AccessPointId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Access-point ID.",
+        "example": "76094322-c72f-4aca-bb25-4c2dc2964e37",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "LocationId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Location ID.",
+        "example": "598f41c2-b931-4819-89b7-555d5371314a",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "schemas": {
+      "AccessPointPatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Non-empty access-point name. Names are trimmed and must be unique within the location.",
+            "example": "North entrance"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Access-point description. Send null to clear it.",
+            "example": "Public lobby doors"
+          },
+          "configuration": {
+            "type": "object",
+            "additionalProperties": false,
+            "minProperties": 1,
+            "properties": {
+              "active": {
+                "type": "boolean",
+                "description": "Enables or disables the access point.",
+                "example": true
+              },
+              "armed": {
+                "type": "string",
+                "description": "Operational armed state.",
+                "enum": ["ARMED", "DISARMED", "AUTO"],
+                "example": "ARMED"
+              },
+              "armedScheduleId": {
+                "type": "string",
+                "format": "uuid",
+                "nullable": true,
+                "description": "Schedule ID, or null to remove the armed schedule.",
+                "example": "1cdb12d5-7620-4fb0-bef5-7d781f504aae"
+              },
+              "offlineMode": {
+                "type": "string",
+                "description": "Access-point behavior while offline.",
+                "enum": ["LOCKED", "UNLOCKED"],
+                "example": "LOCKED"
+              },
+              "unlockTime": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Configured unlock duration in seconds.",
+                "example": 8
+              }
+            }
+          }
+        },
+        "example": {
+          "name": "North entrance",
+          "description": "Public lobby doors",
+          "configuration": {
+            "active": true,
+            "armed": "AUTO",
+            "armedScheduleId": "1cdb12d5-7620-4fb0-bef5-7d781f504aae",
+            "offlineMode": "LOCKED",
+            "unlockTime": 8
+          }
+        }
+      },
+      "AccessPointPermissionsMutation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "accessGroupIds": {
+            "type": "array",
+            "description": "Unique access-group IDs.",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": ["3f8b480b-323d-4d28-a2af-79ca79456549"]
+          },
+          "identityIds": {
+            "type": "array",
+            "description": "Unique organization-member IDs.",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": ["ebcb6cc9-f088-4976-a071-69003e371051"]
+          }
+        },
+        "example": {
+          "accessGroupIds": ["3f8b480b-323d-4d28-a2af-79ca79456549"],
+          "identityIds": ["ebcb6cc9-f088-4976-a071-69003e371051"]
+        }
+      },
+      "RemoteUnlock": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["scope"],
+        "properties": {
+          "scope": {
+            "type": "string",
+            "description": "Whether to unlock for the universe or one player.",
+            "enum": ["universe", "player"],
+            "example": "universe"
+          },
+          "robloxUserId": {
+            "type": "string",
+            "description": "Roblox user ID for a player-scoped unlock.",
+            "example": "156"
+          },
+          "robloxUsername": {
+            "type": "string",
+            "description": "Roblox username for a player-scoped unlock.",
+            "example": "builderman"
+          },
+          "unlockTime": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 60,
+            "description": "Unlock duration in seconds.",
+            "example": 8
+          }
+        },
+        "example": {
+          "scope": "universe",
+          "unlockTime": 8
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/consumer/v1/locations/{id}/access-points": {
+      "get": {
+        "summary": "List access points in a location",
+        "operationId": "listAccessPoints",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/LocationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Every access point in the location."
+          },
+          "401": {
+            "description": "Invalid or missing API key."
+          },
+          "403": {
+            "description": "The API key is not authorized for this location."
+          },
+          "404": {
+            "description": "Location not found."
+          }
+        }
+      }
+    },
+    "/api/consumer/v1/access-points/{id}": {
+      "get": {
+        "summary": "Get an access point",
+        "operationId": "getAccessPoint",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AccessPointId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The access point and its configuration."
+          },
+          "401": {
+            "description": "Invalid or missing API key."
+          },
+          "403": {
+            "description": "The API key is not authorized for this access point."
+          },
+          "404": {
+            "description": "Access point not found."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update an access point",
+        "description": "Partially update access-point metadata and operational configuration.",
+        "operationId": "updateAccessPoint",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AccessPointId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccessPointPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated access point and its configuration."
+          },
+          "400": {
+            "description": "Invalid update."
+          },
+          "401": {
+            "description": "Invalid or missing API key."
+          },
+          "403": {
+            "description": "The API key is not authorized for this access point."
+          },
+          "404": {
+            "description": "Access point not found."
+          },
+          "409": {
+            "description": "An access point with the requested name already exists."
+          },
+          "422": {
+            "description": "The request body does not match the schema."
+          }
+        }
+      }
+    },
+    "/api/consumer/v1/access-points/{id}/permissions": {
+      "get": {
+        "summary": "List access-point permissions",
+        "operationId": "listAccessPointPermissions",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AccessPointId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The complete direct permission state."
+          },
+          "401": {
+            "description": "Invalid or missing API key."
+          },
+          "403": {
+            "description": "The API key is not authorized for this access point."
+          },
+          "404": {
+            "description": "Access point not found."
+          }
+        }
+      },
+      "post": {
+        "summary": "Add access-point permissions",
+        "operationId": "addAccessPointPermissions",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AccessPointId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccessPointPermissionsMutation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The complete direct permission state."
+          },
+          "400": {
+            "description": "The request contains no IDs or IDs from another organization."
+          },
+          "401": {
+            "description": "Invalid or missing API key."
+          },
+          "403": {
+            "description": "The API key is not authorized for this access point."
+          },
+          "404": {
+            "description": "Access point not found."
+          },
+          "422": {
+            "description": "The request body does not match the schema."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove access-point permissions",
+        "operationId": "removeAccessPointPermissions",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AccessPointId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccessPointPermissionsMutation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The complete direct permission state."
+          },
+          "400": {
+            "description": "The request contains no IDs."
+          },
+          "401": {
+            "description": "Invalid or missing API key."
+          },
+          "403": {
+            "description": "The API key is not authorized for this access point."
+          },
+          "404": {
+            "description": "Access point not found."
+          },
+          "422": {
+            "description": "The request body does not match the schema."
+          }
+        }
+      }
+    },
+    "/api/consumer/v1/access-points/{id}/remote-unlock": {
+      "post": {
+        "summary": "Remote unlock",
+        "operationId": "remoteUnlockAccessPoint",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AccessPointId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemoteUnlock"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The remote-unlock request was published."
+          },
+          "400": {
+            "description": "The scope, player, or unlock duration is invalid."
+          },
+          "401": {
+            "description": "Invalid or missing API key."
+          },
+          "403": {
+            "description": "The API key is not authorized for this access point."
+          },
+          "404": {
+            "description": "Access point not found."
+          }
+        }
+      }
+    }
+  }
+}

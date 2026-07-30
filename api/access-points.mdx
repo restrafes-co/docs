@@ -2,7 +2,7 @@
 title: "Update an access point"
 description: "Partially update access-point metadata and operational configuration through the Consumer API."
 icon: "pencil"
-api: "PATCH /api/consumer/v1/access-points/{id}"
+openapi: "/openapi/consumer-access-points.json PATCH /api/consumer/v1/access-points/{id}"
 playground: "interactive"
 ---
 
@@ -10,58 +10,14 @@ playground: "interactive"
 
 Set `X-API-Key` to an organization API key. The key must belong to the access point's organization and include the access point's location when the key has location restrictions.
 
-## Path parameter
-
-<ParamField path="id" type="string" required>
-  Access-point ID.
-</ParamField>
-
 ## Request body
 
 All fields are optional, but the body must contain at least one supported top-level field. If `configuration` is present, it must contain at least one supported configuration field.
-
-<ParamField body="name" type="string" required={false}>
-  Non-empty access-point name. Names are trimmed and must be unique within the
-  location.
-</ParamField>
-
-<ParamField body="description" type="string | null" required={false}>
-  Access-point description. Send `null` to clear it.
-</ParamField>
-
-<ParamField body="type" type="string" required={false}>
-  Access-point type: `REGULAR` or `ELEVATOR`.
-</ParamField>
-
-<ParamField body="configuration.active" type="boolean" required={false}>
-  Enables or disables the access point.
-</ParamField>
-
-<ParamField body="configuration.armed" type="string" required={false}>
-  Armed state: `ARMED`, `DISARMED`, or `AUTO`.
-</ParamField>
-
-<ParamField
-  body="configuration.armedScheduleId"
-  type="string | null"
-  required={false}
->
-  Schedule ID, or `null` to remove the armed schedule.
-</ParamField>
-
-<ParamField body="configuration.offlineMode" type="string" required={false}>
-  Offline behavior: `LOCKED` or `UNLOCKED`.
-</ParamField>
-
-<ParamField body="configuration.unlockTime" type="number" required={false}>
-  Configured unlock duration in seconds. Must be finite and at least `0`.
-</ParamField>
 
 | Field                           | Type             | Accepted values or behavior                                                                                         |
 | ------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------- |
 | `name`                          | string           | Non-empty after trimming. The trimmed name must be unique within the location, using a case-insensitive comparison. |
 | `description`                   | string or `null` | `null` clears the description. An empty string is stored as an empty string.                                        |
-| `type`                          | string           | `REGULAR` or `ELEVATOR`.                                                                                            |
 | `configuration.active`          | boolean          | Enables or disables the access point.                                                                               |
 | `configuration.armed`           | string           | `ARMED`, `DISARMED`, or `AUTO`.                                                                                     |
 | `configuration.armedScheduleId` | string or `null` | Schedule ID, or `null` to remove the armed schedule.                                                                |
@@ -137,14 +93,14 @@ The mutation invalidates the location's in-game access-point cache after the dat
 
 ## Errors
 
-| Status | Cause                                                                                                                                                       | Recovery                                                                              |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `400`  | The body or `configuration` object is empty, `name` or `armedScheduleId` contains only whitespace, or the armed schedule is not available to this location. | Send at least one supported field and correct the value named by the `error` message. |
-| `401`  | `X-API-Key` is missing or invalid, or the organization is inactive or archived.                                                                             | Send an active organization API key.                                                  |
-| `403`  | The key belongs to another organization or excludes the access point's location.                                                                            | Use a key authorized for the access point's location.                                 |
-| `404`  | No access point has the supplied `id`.                                                                                                                      | Check the access-point ID.                                                            |
-| `409`  | Another access point in the location has the requested name.                                                                                                | Use a name that is unique within the location.                                        |
-| `422`  | The JSON body does not match the request schema, including unknown fields, missing bodies, or incorrect JSON types.                                         | Correct the body shape and field types.                                               |
+| Status | Cause                                                                                                                                                                                      | Recovery                                                                              |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `400`  | The body or `configuration` object is empty, contains an unsupported field, `name` or `armedScheduleId` contains only whitespace, or the armed schedule is not available to this location. | Send at least one supported field and correct the value named by the `error` message. |
+| `401`  | `X-API-Key` is missing or invalid, or the organization is inactive or archived.                                                                                                            | Send an active organization API key.                                                  |
+| `403`  | The key belongs to another organization or excludes the access point's location.                                                                                                           | Use a key authorized for the access point's location.                                 |
+| `404`  | No access point has the supplied `id`.                                                                                                                                                     | Check the access-point ID.                                                            |
+| `409`  | Another access point in the location has the requested name.                                                                                                                               | Use a name that is unique within the location.                                        |
+| `422`  | The JSON body is missing or does not match the request schema.                                                                                                                             | Correct the body shape and field types.                                               |
 
 Example duplicate-name response:
 

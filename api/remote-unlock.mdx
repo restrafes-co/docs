@@ -2,7 +2,7 @@
 title: "Remote Unlock"
 description: "Comprehensive reference for the Consumer API remote unlock endpoint — scope options, Roblox MessagingService integration, the polling acknowledgment system, and error codes."
 icon: "door-open"
-api: "POST /api/consumer/v1/access-points/{id}/remote-unlock"
+openapi: "/openapi/consumer-access-points.json POST /api/consumer/v1/access-points/{id}/remote-unlock"
 playground: "interactive"
 ---
 
@@ -11,10 +11,6 @@ The remote unlock endpoint triggers an access point to open programmatically. Th
 ## Authentication
 
 Set `X-API-Key` to an organization API key. The key must belong to the access point's organization and include the access point's location when the key has location restrictions.
-
-<ParamField path="id" type="string" required>
-  The ID of the access point to unlock.
-</ParamField>
 
 ---
 
@@ -28,33 +24,12 @@ An unlock with `"scope": "universe"` broadcasts the unlock to **everyone** in th
 
 An unlock with `"scope": "player"` targets a **specific player** identified by their Roblox user ID or username.
 
-<ParamField body="scope" type="string" required>
-  Either `"universe"` or `"player"`. Universe unlocks for everyone; player
-  unlocks for a specific user.
-</ParamField>
-
-<ParamField body="robloxUserId" type="string" required={false}>
-  The Roblox user ID for player-scoped unlocks. Required when `scope` is
-  `"player"` and `robloxUsername` is not provided.
-</ParamField>
-
-<ParamField body="robloxUsername" type="string" required={false}>
-  An alternative to `robloxUserId`. The Roblox username for player-scoped
-  unlocks. Resolved to a numeric user ID server-side. Required when `scope` is
-  `"player"` and `robloxUserId` is not provided.
-</ParamField>
-
 <Callout type="info">
   For player scope, you only need to provide one of `robloxUserId` or
   `robloxUsername`. If both are provided, `robloxUserId` takes precedence.
 </Callout>
 
 ## Unlock Time
-
-<ParamField body="unlockTime" type="integer" required={false} default="8">
-  How long the door stays unlocked, in seconds. If supplied, it must be between
-  2 and 60.
-</ParamField>
 
 | Condition                                           | Behavior                                                   |
 | --------------------------------------------------- | ---------------------------------------------------------- |
