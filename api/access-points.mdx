@@ -1,7 +1,7 @@
 ---
 title: "Update an access point"
 description: "Partially update access-point metadata and operational configuration through the Consumer API."
-icon: "door-closed"
+icon: "pencil"
 api: "PATCH /api/consumer/v1/access-points/{id}"
 playground: "interactive"
 ---
@@ -19,6 +19,43 @@ Set `X-API-Key` to an organization API key. The key must belong to the access po
 ## Request body
 
 All fields are optional, but the body must contain at least one supported top-level field. If `configuration` is present, it must contain at least one supported configuration field.
+
+<ParamField body="name" type="string" required={false}>
+  Non-empty access-point name. Names are trimmed and must be unique within the
+  location.
+</ParamField>
+
+<ParamField body="description" type="string | null" required={false}>
+  Access-point description. Send `null` to clear it.
+</ParamField>
+
+<ParamField body="type" type="string" required={false}>
+  Access-point type: `REGULAR` or `ELEVATOR`.
+</ParamField>
+
+<ParamField body="configuration.active" type="boolean" required={false}>
+  Enables or disables the access point.
+</ParamField>
+
+<ParamField body="configuration.armed" type="string" required={false}>
+  Armed state: `ARMED`, `DISARMED`, or `AUTO`.
+</ParamField>
+
+<ParamField
+  body="configuration.armedScheduleId"
+  type="string | null"
+  required={false}
+>
+  Schedule ID, or `null` to remove the armed schedule.
+</ParamField>
+
+<ParamField body="configuration.offlineMode" type="string" required={false}>
+  Offline behavior: `LOCKED` or `UNLOCKED`.
+</ParamField>
+
+<ParamField body="configuration.unlockTime" type="number" required={false}>
+  Configured unlock duration in seconds. Must be finite and at least `0`.
+</ParamField>
 
 | Field                           | Type             | Accepted values or behavior                                                                                         |
 | ------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------- |

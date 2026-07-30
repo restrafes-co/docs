@@ -32,6 +32,8 @@ Store API keys in server-side secret storage. Do not include them in Roblox `Loc
 | -------- | ------------------------------------------------------------------------- | ------------------------------------------------- |
 | `GET`    | `/`                                                                       | Check whether the Consumer API is reachable       |
 | `GET`    | `/ping`                                                                   | Read the current Consumer API version             |
+| `GET`    | [`/locations/{id}/access-points`](/api/list-access-points)                | List every access point in a location             |
+| `GET`    | [`/access-points/{id}`](/api/get-access-point)                            | Get an individual access point                    |
 | `PATCH`  | [`/access-points/{id}`](/api/access-points)                               | Partially update an access point                  |
 | `GET`    | [`/access-points/{id}/permissions`](/api/access-point-permissions)        | List directly granted permissions                 |
 | `POST`   | [`/access-points/{id}/permissions`](/api/add-access-point-permissions)    | Add permissions without replacing existing grants |

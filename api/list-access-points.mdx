@@ -1,0 +1,76 @@
+---
+title: "List access points in a location"
+description: "List every access point in a location through the Consumer API."
+icon: "list"
+api: "GET /api/consumer/v1/locations/{id}/access-points"
+playground: "interactive"
+---
+
+## Authentication
+
+Set `X-API-Key` to an organization API key. The key must belong to the location's organization and include the location when the key has location restrictions.
+
+## Path parameter
+
+<ParamField path="id" type="string" required>
+  Location ID.
+</ParamField>
+
+## Response
+
+A successful request returns `200` with every access point in the location and each access point's operational configuration. Results are ordered by name in ascending order, then by ID. The list is not paginated.
+
+```json
+{
+  "accessPoints": [
+    {
+      "id": "76094322-c72f-4aca-bb25-4c2dc2964e37",
+      "organizationId": "29051f68-1b77-414f-92a7-2cc209070f24",
+      "locationId": "598f41c2-b931-4819-89b7-555d5371314a",
+      "name": "North entrance",
+      "description": "Public lobby doors",
+      "areaId": null,
+      "type": "REGULAR",
+      "createdAt": "2026-07-29T18:10:00.000Z",
+      "updatedAt": "2026-07-29T18:14:22.000Z",
+      "scheduleId": null,
+      "configuration": {
+        "id": "8c996a81-9175-463b-b9f7-9003b0963086",
+        "accessPointId": "76094322-c72f-4aca-bb25-4c2dc2964e37",
+        "active": true,
+        "armed": "ARMED",
+        "offlineMode": "LOCKED",
+        "armedScheduleId": null,
+        "unlockTime": 8,
+        "webhookUrl": null,
+        "webhookEnabled": false,
+        "webhookRunDenied": true,
+        "webhookRunGranted": true,
+        "scanDataDisarmed": {},
+        "scanDataArmed": {},
+        "scanDataDenied": {},
+        "scanDataGranted": {},
+        "customData": {}
+      }
+    }
+  ]
+}
+```
+
+An empty location returns `"accessPoints": []`.
+
+## Example request
+
+```bash
+curl \
+  "https://api.restrafes.co/api/consumer/v1/locations/598f41c2-b931-4819-89b7-555d5371314a/access-points" \
+  -H "X-API-Key: $XCS_API_KEY"
+```
+
+## Errors
+
+| Status | Cause                                                                           | Recovery                               |
+| ------ | ------------------------------------------------------------------------------- | -------------------------------------- |
+| `401`  | `X-API-Key` is missing or invalid, or the organization is inactive or archived. | Send an active organization API key.   |
+| `403`  | The key belongs to another organization or excludes the requested location.     | Use a key authorized for the location. |
+| `404`  | No location has the supplied `id`.                                              | Check the location ID.                 |

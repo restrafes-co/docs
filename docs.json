@@ -87,6 +87,8 @@
             "pages": [
               "api/overview",
               "api/consumer-overview",
+              "api/list-access-points",
+              "api/get-access-point",
               "api/access-points",
               "api/access-point-permissions",
               "api/add-access-point-permissions",
