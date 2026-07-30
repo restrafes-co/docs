@@ -84,18 +84,41 @@
           {
             "group": "API Reference",
             "icon": "square-terminal",
+            "pages": ["api/overview", "api/callbox"]
+          }
+        ]
+      },
+      {
+        "tab": "Consumer API",
+        "icon": "code",
+        "groups": [
+          {
+            "group": "API Documentation",
+            "icon": "book-open",
+            "pages": ["api/consumer-overview"]
+          },
+          {
+            "group": "Access Points",
+            "icon": "door-closed",
             "pages": [
-              "api/overview",
-              "api/consumer-overview",
               "api/list-access-points",
               "api/get-access-point",
-              "api/access-points",
+              "api/access-points"
+            ]
+          },
+          {
+            "group": "Access Point Permissions",
+            "icon": "key-round",
+            "pages": [
               "api/access-point-permissions",
               "api/add-access-point-permissions",
-              "api/remove-access-point-permissions",
-              "api/remote-unlock",
-              "api/callbox"
+              "api/remove-access-point-permissions"
             ]
+          },
+          {
+            "group": "Actions",
+            "icon": "zap",
+            "pages": ["api/remote-unlock"]
           }
         ]
       },
