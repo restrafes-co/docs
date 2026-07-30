@@ -1,0 +1,132 @@
+---
+title: "Access-point permissions"
+description: "List, add, and remove access groups and identities granted direct access to an access point."
+icon: "key-round"
+---
+
+These endpoints manage direct access-point grants. Add and remove operations change only the IDs supplied in the request.
+
+## Authentication
+
+Set `X-API-Key` to an organization API key. The key must belong to the access point's organization and include the access point's location when the key has location restrictions.
+
+All three endpoints use this path:
+
+```
+/api/consumer/v1/access-points/{id}/permissions
+```
+
+<ParamField path="id" type="string" required>
+  Access-point ID.
+</ParamField>
+
+## Permission types
+
+- `accessGroupIds` contains access-group IDs from the access point's organization.
+- `identityIds` contains organization-member IDs. An identity ID is not a user ID or Roblox user ID.
+
+The response uses `accessGroups` and `identities`. Access groups are ordered by name in ascending order. Identities are ordered by creation time in ascending order. The endpoint does not paginate either list.
+
+## List permissions
+
+Send a `GET` request:
+
+```bash
+curl \
+  -H "X-API-Key: $XCS_API_KEY" \
+  "https://api.restrafes.co/api/consumer/v1/access-points/76094322-c72f-4aca-bb25-4c2dc2964e37/permissions"
+```
+
+A successful request returns `200`:
+
+```json
+{
+  "permissions": {
+    "accessGroups": [
+      {
+        "id": "3f8b480b-323d-4d28-a2af-79ca79456549",
+        "name": "Employees"
+      }
+    ],
+    "identities": [
+      {
+        "id": "ebcb6cc9-f088-4976-a071-69003e371051",
+        "type": "USER",
+        "status": "PRESENT",
+        "alias": "Alex Chen",
+        "userId": "d8aee34a-4f5b-4c21-ab95-cf8053051a97",
+        "robloxId": null,
+        "robloxGroupId": null,
+        "user": {
+          "username": "alex.chen",
+          "displayName": "Alex Chen"
+        }
+      }
+    ]
+  }
+}
+```
+
+`alias`, `userId`, `robloxId`, and `robloxGroupId` may be `null`. `user` is `null` when the identity is not linked to an XCS user. The identity `type` is one of `USER`, `ROBLOX`, `ROBLOX_GROUP`, `CARD`, or `PIN`. The identity `status` is one of `NOT_INVITED`, `INVITED`, `PSUEDO`, `PRESENT`, `LEFT`, `REVOKED`, or `SUSPENDED`.
+
+## Add permissions
+
+Send a `POST` request with `accessGroupIds`, `identityIds`, or both:
+
+```bash
+curl -X POST \
+  "https://api.restrafes.co/api/consumer/v1/access-points/76094322-c72f-4aca-bb25-4c2dc2964e37/permissions" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $XCS_API_KEY" \
+  --data '{
+    "accessGroupIds": [
+      "3f8b480b-323d-4d28-a2af-79ca79456549"
+    ],
+    "identityIds": [
+      "ebcb6cc9-f088-4976-a071-69003e371051"
+    ]
+  }'
+```
+
+Both fields are arrays of unique, non-empty strings. At least one array must contain an ID. Every supplied ID must belong to the access point's organization.
+
+The operation retains grants omitted from the request. Adding an already granted ID does not create a duplicate and returns `200`. The response contains the complete permission state in the same format as the list endpoint.
+
+## Remove permissions
+
+Send a `DELETE` request with the IDs to remove. The request body uses the same fields and array constraints as the add operation.
+
+```bash
+curl -X DELETE \
+  "https://api.restrafes.co/api/consumer/v1/access-points/76094322-c72f-4aca-bb25-4c2dc2964e37/permissions" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $XCS_API_KEY" \
+  --data '{
+    "identityIds": [
+      "ebcb6cc9-f088-4976-a071-69003e371051"
+    ]
+  }'
+```
+
+The operation retains grants omitted from the request. Removing an ID that is not currently granted returns `200` without changing other grants. The response contains the complete permission state after removal.
+
+Successful add and remove operations invalidate the location's in-game access-point cache after the database update completes.
+
+## Errors
+
+| Status | Cause                                                                            | Recovery                                              |
+| ------ | -------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `400`  | Neither array contains an ID.                                                    | Supply at least one access-group ID or identity ID.   |
+| `400`  | An add request contains an unknown ID or an ID owned by another organization.    | Use IDs from the access point's organization.         |
+| `401`  | `X-API-Key` is missing or invalid, or the organization is inactive or archived.  | Send an active organization API key.                  |
+| `403`  | The key belongs to another organization or excludes the access point's location. | Use a key authorized for the access point's location. |
+| `404`  | No access point has the supplied `id`.                                           | Check the access-point ID.                            |
+| `422`  | The JSON body is missing or does not match the add/remove request schema.        | Send a JSON object containing unique string arrays.   |
+
+Example organization-mismatch response from an add request:
+
+```json
+{
+  "error": "One or more permissions do not belong to this organization"
+}
+```

@@ -75,12 +75,23 @@
           {
             "group": "Integration",
             "icon": "radio",
-            "pages": ["guides/security", "guides/remote-unlock-setup", "guides/telephone-entry"]
+            "pages": [
+              "guides/security",
+              "guides/remote-unlock-setup",
+              "guides/telephone-entry"
+            ]
           },
           {
             "group": "API Reference",
             "icon": "square-terminal",
-            "pages": ["api/overview", "api/consumer-overview", "api/remote-unlock", "api/callbox"]
+            "pages": [
+              "api/overview",
+              "api/consumer-overview",
+              "api/access-points",
+              "api/access-point-permissions",
+              "api/remote-unlock",
+              "api/callbox"
+            ]
           }
         ]
       },
@@ -91,7 +102,11 @@
           {
             "group": "Start here",
             "icon": "rocket",
-            "pages": ["hera/overview", "hera/getting-started", "hera/model-structure"]
+            "pages": [
+              "hera/overview",
+              "hera/getting-started",
+              "hera/model-structure"
+            ]
           },
           {
             "group": "Configuration",
@@ -125,7 +140,10 @@
           {
             "group": "Reference",
             "icon": "book-marked",
-            "pages": ["hera/reference/configuration", "hera/reference/troubleshooting"]
+            "pages": [
+              "hera/reference/configuration",
+              "hera/reference/troubleshooting"
+            ]
           }
         ]
       }

@@ -1,7 +1,7 @@
 ---
-title: 'Remote Unlock Setup'
-description: 'How to configure your Roblox experience for XCS remote unlock — Open Cloud API key, Universe ID, and MessagingService integration.'
-icon: 'radio'
+title: "Remote Unlock Setup"
+description: "How to configure your Roblox experience for XCS remote unlock — Open Cloud API key, Universe ID, and MessagingService integration."
+icon: "radio"
 ---
 
 This guide covers the technical setup required to connect your Roblox experience to XCS. After completing this setup, your game server can receive and acknowledge unlock commands from the XCS platform.
@@ -15,9 +15,10 @@ Before you begin, make sure you have:
 - Access to the Roblox Creator Dashboard
 
 <Callout type="tip">
-  MessagingService is currently in beta. To use it, you must be enrolled in the XCS beta program and
-  enable the
-  <code>rblx-messaging_service-transport</code> flag in the <strong>Experiments</strong>
+  MessagingService is currently in beta. To use it, you must be enrolled in the
+  XCS beta program and enable the
+  <code>rblx-messaging_service-transport</code> flag in the{" "}
+  <strong>Experiments</strong>
   tab of your Roblox experience's settings.
 </Callout>
 
@@ -36,26 +37,26 @@ The Roblox Open Cloud API key allows XCS to publish messages to your experience'
 
 1. Go to the **Roblox Creator Dashboard**.
 2. Navigate to **Open Cloud > API Keys** (https://create.roblox.com/dashboard/credentials?page=apikeys).
-3. Click "Create API Key."
+3. Select **Create API Key**.
 4. Configure the key with at least the following permission:
    - **MessagingService** -- `publish` permission (required for sending unlock commands)
 5. Copy the generated API key and store it securely. You will not be able to see it again.
 
 <Callout type="warning">
-  Treat your Open Cloud API key like a password. Anyone with this key can publish messages to your
-  experience's MessagingService topics. If the key is compromised, revoke it immediately from the
-  Creator Dashboard.
+  Treat your Open Cloud API key like a password. Anyone with this key can
+  publish messages to your experience's MessagingService topics. If the key is
+  compromised, revoke it immediately from the Creator Dashboard.
 </Callout>
 
 ## Step 3 -- Configure Roblox Integration on XCS
 
 1. Log in to the **XCS Dashboard** (https://xcs.restrafes.co).
-2. Navigate to your organization and select the location you want to configure.
-3. Go to the location's **Settings** section.
-4. Enter the following:
-   - **Roblox Universe ID** -- The numeric Universe ID from Step 1
-   - **Open Cloud API Key** -- The API key from Step 2
-5. Click "Save."
+2. Open each location's **Settings → Messaging** page and link its Roblox Universe ID.
+3. Store the Open Cloud API key in one of these locations:
+   - **Organization Settings → Messaging** sets the default for every location without an override. The key must have MessagingService publish permission for every Roblox universe currently linked to the organization.
+   - **Location Settings → Messaging** stores an override for that location. Select **Use organization key** to remove the override and restore inheritance.
+
+XCS validates the organization key against every distinct universe currently linked to the organization before saving it. XCS validates a location override against that location's universe.
 
 ## Step 4 -- Implement the MessagingService Listener in Your Game
 
@@ -112,9 +113,9 @@ print("Listening for XCS unlock commands on topic:", topic)
 For Where I am and player-scoped unlocks, the XCS API polls for acknowledgment from your game server for up to 5 seconds. To enable acknowledgment, your game server must write back to the Redis-backed status key or call an acknowledgment endpoint after processing the unlock command.
 
 <Callout type="info">
-  The acknowledgment mechanism ensures that your game server has actually received and processed the
-  unlock command. If your server does not acknowledge within 5 seconds, the API returns a 504
-  timeout response.
+  The acknowledgment mechanism ensures that your game server has actually
+  received and processed the unlock command. If your server does not acknowledge
+  within 5 seconds, the API returns a 504 timeout response.
 </Callout>
 
 ## Troubleshooting
@@ -122,44 +123,53 @@ For Where I am and player-scoped unlocks, the XCS API polls for acknowledgment f
 <AccordionGroup>
   <Accordion title="Remote unlock returns 422 (missing Universe ID or API key)">
     <p>
-      Go to the location's settings on the XCS dashboard and verify that the Universe ID and Open
-      Cloud API Key are filled in and correct. Make sure the API key has MessagingService publish
-      permissions.
+      Verify the location's Universe ID. Then verify that the location has
+      either an organization default key or a location override with
+      MessagingService publish permission for that universe.
     </p>
   </Accordion>
   <Accordion title="Remote unlock returns 502 (Roblox MessagingService error)">
-    <p>This indicates that Roblox Open Cloud rejected the message. Check that:</p>
+    <p>
+      This indicates that Roblox Open Cloud rejected the message. Check that:
+    </p>
     <ul>
       <li>The Open Cloud API key has not been revoked or expired</li>
       <li>The API key has MessagingService publish permission</li>
       <li>The Universe ID is correct and the experience is published</li>
-      <li>The API key belongs to the same Roblox account that owns the experience</li>
+      <li>
+        The API key belongs to the same Roblox account that owns the experience
+      </li>
     </ul>
   </Accordion>
   <Accordion title="Game server does not receive unlock messages">
     <p>
-      Verify that your game server has a <code>MessagingService:SubscribeAsync</code> call for the
-      correct topic: <code>xcs-location-{locationId}</code>. The <code>locationId</code> must match
-      exactly (case-sensitive).
+      Verify that your game server has a{" "}
+      <code>MessagingService:SubscribeAsync</code> call for the correct topic:{" "}
+      <code>xcs-location-{locationId}</code>. The <code>locationId</code> must
+      match exactly (case-sensitive).
     </p>
     <p>
-      Also ensure that your game server is running and has an active Roblox server instance.
-      MessagingService only delivers messages to running server instances.
+      Also ensure that your game server is running and has an active Roblox
+      server instance. MessagingService only delivers messages to running server
+      instances.
     </p>
   </Accordion>
   <Accordion title="Remote unlock times out (504)">
     <p>
-      This means the unlock command was sent to Roblox MessagingService but your game server did not
-      acknowledge it within 5 seconds. This is expected if:
+      This means the unlock command was sent to Roblox MessagingService but your
+      game server did not acknowledge it within 5 seconds. This is expected if:
     </p>
     <ul>
       <li>Your game server is not currently running (no active instances)</li>
       <li>The MessagingService subscription is not set up correctly</li>
-      <li>The acknowledgment mechanism is not implemented in your game script</li>
+      <li>
+        The acknowledgment mechanism is not implemented in your game script
+      </li>
     </ul>
     <p>
-      The unlock command was still delivered to any running server instances, even though the API
-      returned a timeout. Universe-scoped unlocks are acknowledged immediately and never time out.
+      The unlock command was still delivered to any running server instances,
+      even though the API returned a timeout. Universe-scoped unlocks are
+      acknowledged immediately and never time out.
     </p>
   </Accordion>
 </AccordionGroup>

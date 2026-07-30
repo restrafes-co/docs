@@ -1,12 +1,10 @@
 ---
 title: "Consumer API"
-description: "Reference for the XCS Consumer API v1 — endpoints, authentication, error codes, and usage examples."
+description: "Reference for Consumer API authentication, service checks, access-point management, permissions, and remote unlock."
 icon: "code"
-api: "GET /api/consumer/v1/"
-playground: "simple"
 ---
 
-The Consumer API provides programmatic access to XCS access control features. It is designed for automated systems that need to interact with the platform without a browser-based session.
+The Consumer API exposes organization-scoped access-point operations over HTTP. Access-point requests use an organization API key and may be limited to specific locations.
 
 ## Base URL
 
@@ -16,108 +14,69 @@ https://api.restrafes.co/api/consumer/v1
 
 ## Authentication
 
-All Consumer API requests require an API key passed in the `X-API-Key` header:
+Send the organization API key in the `X-API-Key` header:
 
 ```bash
-curl -H "X-API-Key: your-api-key-here" \
-  https://api.restrafes.co/api/consumer/v1/
-```
-
-Organization API keys are generated from the organization management page on the XCS dashboard. The API key must be authorized for the organization and resource you are trying to access.
-
-<Callout type="warning">
-Keep your API key secure. Do not share it in client-side code, version control, or public channels. If a key is compromised, revoke it from the dashboard and generate a new one.
-</Callout>
-
-## Endpoints
-
-| Method | Path | Description |
-|---|---|---|
-| GET | `/` | Root health check — returns API status |
-| GET | `/ping` | Ping with version information |
-| GET | `/organizations` | List organizations authorized for this API key |
-| POST | `/access-points/{id}/remote-unlock` | Trigger a remote unlock on an access point |
-
-## Health Check
-
-Verify that the API is reachable and your API key is valid.
-
-```bash
-curl -H "X-API-Key: your-api-key-here" \
-  https://api.restrafes.co/api/consumer/v1/
-```
-
-**Example response:**
-```json
-{
-  "status": "ok",
-  "service": "consumer-api"
-}
-```
-
-## Ping
-
-Check API version and connectivity.
-
-```bash
-curl -H "X-API-Key: your-api-key-here" \
+curl \
+  -H "X-API-Key: $XCS_API_KEY" \
   https://api.restrafes.co/api/consumer/v1/ping
 ```
 
-**Example response:**
+The access-point endpoints require this header. The API returns `401` when the key is missing, unknown, belongs to an inactive organization, or belongs to an archived organization.
+
+An organization API key may be restricted to selected locations. A location-scoped key receives `403` when it targets an access point outside those locations. A key without location restrictions may target any access point owned by its organization.
+
+Store API keys in server-side secret storage. Do not include them in Roblox `LocalScript` code, browser code, source control, logs, or client-visible configuration.
+
+## Endpoints
+
+| Method   | Path                                                                                  | Operation                                         |
+| -------- | ------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `GET`    | `/`                                                                                   | Check whether the Consumer API is reachable       |
+| `GET`    | `/ping`                                                                               | Read the current Consumer API version             |
+| `PATCH`  | [`/access-points/{id}`](/api/access-points)                                           | Partially update an access point                  |
+| `GET`    | [`/access-points/{id}/permissions`](/api/access-point-permissions#list-permissions)   | List directly granted permissions                 |
+| `POST`   | [`/access-points/{id}/permissions`](/api/access-point-permissions#add-permissions)    | Add permissions without replacing existing grants |
+| `DELETE` | [`/access-points/{id}/permissions`](/api/access-point-permissions#remove-permissions) | Remove selected permissions                       |
+| `POST`   | [`/access-points/{id}/remote-unlock`](/api/remote-unlock)                             | Send a remote-unlock command                      |
+
+## Service check
+
+`GET /` does not require authentication.
+
+```bash
+curl https://api.restrafes.co/api/consumer/v1/
+```
+
 ```json
 {
-  "status": "ok",
+  "message": "ok"
+}
+```
+
+## Version
+
+`GET /ping` does not require authentication.
+
+```bash
+curl https://api.restrafes.co/api/consumer/v1/ping
+```
+
+```json
+{
+  "success": true,
   "version": "2.0.0"
 }
 ```
 
-## List Organizations
+## Error format
 
-Retrieve the organizations that your API key is authorized to access.
-
-```bash
-curl -H "X-API-Key: your-api-key-here" \
-  https://api.restrafes.co/api/consumer/v1/organizations
-```
-
-**Example response:**
-```json
-[
-  {
-    "id": "org-uuid-here",
-    "name": "My Studio",
-    "role": "owner"
-  }
-]
-```
-
-## Remote Unlock
-
-See the [Remote Unlock](/api/remote-unlock) page for the complete reference, including request parameters, scope options, error handling, and the Roblox MessagingService integration.
-
-## Error Response Format
-
-When an API request fails, the response includes:
+Endpoint errors return a JSON object with an `error` string:
 
 ```json
 {
-  "error": "Description of what went wrong"
+  "error": "API key not authorized for this access point"
 }
 ```
 
-Some error responses also include a `requestId` field for debugging.
-
-### Common HTTP Status Codes
-
-| Code | Meaning |
-|---|---|
-| 200 | Success |
-| 400 | Bad request -- invalid parameters or missing required fields |
-| 401 | Unauthorized -- invalid or missing API key |
-| 403 | Forbidden -- API key not authorized for this resource |
-| 404 | Resource not found |
-| 422 | Unprocessable entity -- configuration issue (e.g., missing Roblox Universe ID) |
-| 429 | Too many requests -- rate limit exceeded |
-| 502 | Bad gateway -- upstream service error (e.g., Roblox MessagingService failure) |
-| 504 | Gateway timeout -- upstream service did not respond in time |
+Some configuration errors include a machine-readable `code`. Each endpoint page lists the errors produced by that endpoint.

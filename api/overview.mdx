@@ -1,40 +1,51 @@
 ---
-title: 'API Reference'
-description: 'Reference documentation for the XCS Consumer API and platform APIs — authentication, endpoints, and integration patterns.'
-icon: 'square-terminal'
+title: "API Reference"
+description: "Reference documentation for the XCS Consumer API and platform APIs — authentication, endpoints, and integration patterns."
+icon: "square-terminal"
 ---
 
-XCS provides a REST API for programmatic access-control integrations and a server-side Roblox API for in-experience devices. The **Consumer API v1** supports health checks, organization listing, and remote unlock. The **Callbox API** connects Roblox Telephone Entry models through the stock XCS package without requiring your scripts to call HTTP endpoints directly.
+XCS provides a REST API for programmatic access-control integrations and a server-side Roblox API for in-experience devices. The Consumer API v1 manages access-point settings, direct grants, and remote-unlock commands.
 
 ## Available APIs
 
 <CardGroup cols={2}>
   <Card title="Consumer API" icon="code" href="/api/consumer-overview">
-    The Consumer API provides programmatic access to XCS access control features. Use it to check
-    service health, verify authentication, and trigger remote unlocks.
+    Manage access-point settings and direct grants with an organization API key.
+  </Card>
+  <Card title="Access points" icon="door-closed" href="/api/access-points">
+    Partially update access-point metadata, armed state, schedule, active state,
+    offline mode, and unlock duration.
+  </Card>
+  <Card
+    title="Access-point permissions"
+    icon="key-round"
+    href="/api/access-point-permissions"
+  >
+    List, add, and remove direct access-group and identity grants.
   </Card>
   <Card title="Remote Unlock" icon="door-open" href="/api/remote-unlock">
-    Trigger door unlocks programmatically with universe-scoped or player-scoped commands delivered
-    through Roblox MessagingService.
+    Trigger door unlocks programmatically with universe-scoped or player-scoped
+    commands delivered through Roblox MessagingService.
   </Card>
   <Card title="Callbox API" icon="phone-call" href="/api/callbox">
-    Build a Roblox Telephone Entry callbox with two-way speech, live transcripts, call state, and
-    automatic access decisions.
+    Build a Roblox Telephone Entry callbox with two-way speech, live
+    transcripts, call state, and automatic access decisions.
   </Card>
 </CardGroup>
 
 ## Consumer API authentication
 
-The Consumer API uses API key authentication. Pass your API key in the `X-API-Key` header:
+Consumer API access-point endpoints use API key authentication. Pass the organization API key in the `X-API-Key` header:
 
 ```bash
-curl -H "X-API-Key: your-api-key-here" \
-  https://api.restrafes.co/api/consumer/v1/
+curl -H "X-API-Key: $XCS_API_KEY" \
+  https://api.restrafes.co/api/consumer/v1/access-points/76094322-c72f-4aca-bb25-4c2dc2964e37/permissions
 ```
 
 <Callout type="warning">
-  Use the `X-API-Key` header, not the `Authorization: Bearer` header. The platform API (v3 routes)
-  uses session-based authentication via browser cookies.
+  Use the `X-API-Key` header, not the `Authorization: Bearer` header. The
+  platform API (v3 routes) uses session-based authentication via browser
+  cookies.
 </Callout>
 
 ## Consumer API base URL
@@ -45,10 +56,6 @@ https://api.restrafes.co/api/consumer/v1
 
 All Consumer API endpoints are relative to this base URL.
 
-## Rate Limiting
-
-Rate limits are enforced per API key. Exceeding the limit returns a `429 Too Many Requests` response. If you encounter rate limiting, reduce your request frequency.
-
 ## API Key Management
 
-Organization API keys are generated from the organization management page on the XCS dashboard. Only organization Owners and Admins can generate and revoke API keys.
+Create and revoke organization API keys from the organization management page in the XCS dashboard.
