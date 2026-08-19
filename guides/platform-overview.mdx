@@ -1,35 +1,12 @@
 ---
 title: "Platform Overview"
-description: "An introduction to XCS — what it is, dashboard vs API, and who it's for."
+description: "An introduction to XCS and the core resources it manages."
 icon: "compass"
 ---
 
-XCS is a web platform that manages physical and in-game access control for Roblox experiences. It provides a dashboard for configuring access rules and a REST API for programmatic control.
+XCS manages access control for Roblox experiences. Organizations contain locations, and each location contains the access points, rules, and integrations used by a game.
 
-The platform is designed for Roblox developers who need to manage who can enter specific areas in their games.
-
-## Dashboard vs API
-
-XCS provides two interfaces for managing access control:
-
-- **Dashboard** (`https://xcs.restrafes.co`) -- A web UI for managing organizations, locations, access points, rules, and members. Requires a user account with session authentication.
-- **Consumer API** (`https://api.restrafes.co/api/consumer/v1`) -- A REST API for programmatic access control. Uses API key authentication. Supports health checks, organization listing, and remote unlock.
-
-The Consumer API is designed for automated systems that need to trigger unlocks without human intervention, such as backend services or integration platforms.
-
-## Who Is This For?
-
-| Role               | How You Use XCS                                                                                 |
-| ------------------ | ----------------------------------------------------------------------------------------------- |
-| Roblox group owner | Create organizations, invite members, configure access points for your games                    |
-| Roblox developer   | Integrate the MessagingService listener in your game scripts, use the API for automated unlocks |
-| Security team      | Monitor access events, configure rules, audit who enters restricted areas                       |
-
-## What You Need to Get Started
-
-- A valid email address
-- A Roblox account (for identity verification in-game)
-- An invitation link from an XCS provider
+Use the dashboard to configure XCS. Use the Consumer API when a server-side integration needs to manage access points or trigger supported actions programmatically.
 
 <CardGroup cols={2}>
   <Card
@@ -37,13 +14,20 @@ The Consumer API is designed for automated systems that need to trigger unlocks 
     icon="book-open"
     href="/guides/core-concepts"
   >
-    Deep dive into organizations, locations, access points, rules, and access groups.
+    Understand organizations, locations, access points, rules, and access groups.
   </Card>
   <Card
     title="Getting Started"
     icon="rocket"
     href="/guides/getting-started"
   >
-    Step-by-step tutorial from zero to your first access point.
+    Create an organization, location, and first access point.
+  </Card>
+  <Card
+    title="Consumer API"
+    icon="code"
+    href="/api/consumer-overview"
+  >
+    Authenticate a server-side integration and explore the supported endpoints.
   </Card>
 </CardGroup>

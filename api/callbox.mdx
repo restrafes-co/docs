@@ -275,7 +275,7 @@ If your custom access-point model listens to `_G.xcsRemoteUnlock` itself, the ca
 
 ## Complete server example
 
-This example places a call, renders phone transcripts through a callback, sends already-filtered Roblox text to the phone, and watches for a terminal state.
+This server-side helper combines call placement, live transcripts, terminal-state polling, cleanup, and already-filtered speech.
 
 ```lua
 while not _G.xcsApi or not _G.xcsMessaging do
@@ -284,10 +284,9 @@ end
 
 local XCS = _G.xcsApi
 local XCSMessaging = _G.xcsMessaging
-
 local ACCESS_POINT_ID = "front-door-access-point-id"
 
-local function startCall(player, dialNumber, showPhoneText)
+local function startCall(player, dialNumber, onPhoneText)
 	local placed = XCS:Invoke({
 		request = "callboxCall",
 		accessPoint = ACCESS_POINT_ID,
@@ -300,15 +299,27 @@ local function startCall(player, dialNumber, showPhoneText)
 	end
 
 	local sessionId = placed.data.sessionId
+	local stopped = false
 	local transcriptConnection
+
+	local function stop()
+		if stopped then
+			return
+		end
+		stopped = true
+		if transcriptConnection then
+			transcriptConnection:Disconnect()
+		end
+	end
+
 	transcriptConnection = XCSMessaging.Event:Connect(function(messageType, payload)
 		if messageType == "phone_transcript" and payload.sessionId == sessionId then
-			showPhoneText(payload.text)
+			onPhoneText(payload.text)
 		end
 	end)
 
 	task.spawn(function()
-		while true do
+		while not stopped do
 			task.wait(1)
 			local result = XCS:Invoke({
 				request = "callboxStatus",
@@ -317,32 +328,35 @@ local function startCall(player, dialNumber, showPhoneText)
 			})
 
 			if result.response ~= "callbox" then
-				break
+				stop()
+				return
 			end
 
 			local status = result.data.status
 			if status == "COMPLETED" or status == "FAILED" then
-				break
+				stop()
 			end
 		end
-
-		transcriptConnection:Disconnect()
 	end)
 
-	return sessionId
-end
+	local function speak(filteredText)
+		return XCS:Invoke({
+			request = "callboxSpeak",
+			accessPoint = ACCESS_POINT_ID,
+			sessionId = sessionId,
+			text = filteredText,
+		})
+	end
 
-local function speakToPhone(sessionId, filteredText)
-	return XCS:Invoke({
-		request = "callboxSpeak",
-		accessPoint = ACCESS_POINT_ID,
+	return {
 		sessionId = sessionId,
-		text = filteredText,
-	})
+		speak = speak,
+		stop = stop,
+	}
 end
 ```
 
-Roblox text-to-speech, speech-to-text, and client UI are intentionally left to your callbox model. The XCS API owns call placement, phone audio transport, transcripts, state, and the access decision.
+Call `startCall` with a live `Player`, a configured dial code, and a callback that renders sanitized phone transcripts. Pass only text that already meets Roblox’s current filtering requirements to the returned `speak` function.
 
 ## Common errors
 

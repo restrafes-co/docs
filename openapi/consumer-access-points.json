@@ -72,7 +72,11 @@
               "armed": {
                 "type": "string",
                 "description": "Operational armed state.",
-                "enum": ["ARMED", "DISARMED", "AUTO"],
+                "enum": [
+                  "ARMED",
+                  "DISARMED",
+                  "AUTO"
+                ],
                 "example": "ARMED"
               },
               "armedScheduleId": {
@@ -85,7 +89,10 @@
               "offlineMode": {
                 "type": "string",
                 "description": "Access-point behavior while offline.",
-                "enum": ["LOCKED", "UNLOCKED"],
+                "enum": [
+                  "LOCKED",
+                  "UNLOCKED"
+                ],
                 "example": "LOCKED"
               },
               "unlockTime": {
@@ -121,7 +128,10 @@
               "type": "string",
               "format": "uuid"
             },
-            "example": ["3f8b480b-323d-4d28-a2af-79ca79456549"]
+            "example": [
+              "3f8b480b-323d-4d28-a2af-79ca79456549"
+            ],
+            "minItems": 1
           },
           "identityIds": {
             "type": "array",
@@ -131,23 +141,47 @@
               "type": "string",
               "format": "uuid"
             },
-            "example": ["ebcb6cc9-f088-4976-a071-69003e371051"]
+            "example": [
+              "ebcb6cc9-f088-4976-a071-69003e371051"
+            ],
+            "minItems": 1
           }
         },
         "example": {
-          "accessGroupIds": ["3f8b480b-323d-4d28-a2af-79ca79456549"],
-          "identityIds": ["ebcb6cc9-f088-4976-a071-69003e371051"]
-        }
+          "accessGroupIds": [
+            "3f8b480b-323d-4d28-a2af-79ca79456549"
+          ],
+          "identityIds": [
+            "ebcb6cc9-f088-4976-a071-69003e371051"
+          ]
+        },
+        "anyOf": [
+          {
+            "required": [
+              "accessGroupIds"
+            ]
+          },
+          {
+            "required": [
+              "identityIds"
+            ]
+          }
+        ]
       },
       "RemoteUnlock": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["scope"],
+        "required": [
+          "scope"
+        ],
         "properties": {
           "scope": {
             "type": "string",
             "description": "Whether to unlock for the universe or one player.",
-            "enum": ["universe", "player"],
+            "enum": [
+              "universe",
+              "player"
+            ],
             "example": "universe"
           },
           "robloxUserId": {
@@ -171,6 +205,396 @@
         "example": {
           "scope": "universe",
           "unlockTime": 8
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "scope": {
+                "enum": [
+                  "universe"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "scope": {
+                "enum": [
+                  "player"
+                ]
+              }
+            },
+            "anyOf": [
+              {
+                "required": [
+                  "robloxUserId"
+                ]
+              },
+              {
+                "required": [
+                  "robloxUsername"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "AccessPointConfiguration": {
+        "type": "object",
+        "required": [
+          "id",
+          "accessPointId",
+          "active",
+          "armed",
+          "offlineMode",
+          "unlockTime"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accessPointId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "armed": {
+            "type": "string",
+            "enum": [
+              "ARMED",
+              "DISARMED",
+              "AUTO"
+            ]
+          },
+          "offlineMode": {
+            "type": "string",
+            "enum": [
+              "LOCKED",
+              "UNLOCKED"
+            ]
+          },
+          "armedScheduleId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "unlockTime": {
+            "type": "number",
+            "minimum": 0
+          },
+          "webhookUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "webhookEnabled": {
+            "type": "boolean"
+          },
+          "webhookRunDenied": {
+            "type": "boolean"
+          },
+          "webhookRunGranted": {
+            "type": "boolean"
+          },
+          "scanDataDisarmed": {
+            "type": "object"
+          },
+          "scanDataArmed": {
+            "type": "object"
+          },
+          "scanDataDenied": {
+            "type": "object"
+          },
+          "scanDataGranted": {
+            "type": "object"
+          },
+          "customData": {
+            "type": "object"
+          }
+        }
+      },
+      "AccessPoint": {
+        "type": "object",
+        "required": [
+          "id",
+          "organizationId",
+          "locationId",
+          "name",
+          "type",
+          "createdAt",
+          "updatedAt",
+          "configuration"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "organizationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "areaId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "example": "REGULAR"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/AccessPointConfiguration"
+          }
+        },
+        "example": {
+          "id": "76094322-c72f-4aca-bb25-4c2dc2964e37",
+          "organizationId": "29051f68-1b77-414f-92a7-2cc209070f24",
+          "locationId": "598f41c2-b931-4819-89b7-555d5371314a",
+          "name": "North entrance",
+          "description": "Public lobby doors",
+          "areaId": null,
+          "type": "REGULAR",
+          "createdAt": "2026-07-29T18:10:00.000Z",
+          "updatedAt": "2026-07-29T18:14:22.000Z",
+          "scheduleId": null,
+          "configuration": {
+            "id": "8c996a81-9175-463b-b9f7-9003b0963086",
+            "accessPointId": "76094322-c72f-4aca-bb25-4c2dc2964e37",
+            "active": true,
+            "armed": "ARMED",
+            "offlineMode": "LOCKED",
+            "armedScheduleId": null,
+            "unlockTime": 8,
+            "webhookUrl": null,
+            "webhookEnabled": false,
+            "webhookRunDenied": true,
+            "webhookRunGranted": true,
+            "scanDataDisarmed": {},
+            "scanDataArmed": {},
+            "scanDataDenied": {},
+            "scanDataGranted": {},
+            "customData": {}
+          }
+        }
+      },
+      "AccessPointResponse": {
+        "type": "object",
+        "required": [
+          "accessPoint"
+        ],
+        "properties": {
+          "accessPoint": {
+            "$ref": "#/components/schemas/AccessPoint"
+          }
+        }
+      },
+      "AccessPointListResponse": {
+        "type": "object",
+        "required": [
+          "accessPoints"
+        ],
+        "properties": {
+          "accessPoints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccessPoint"
+            }
+          }
+        }
+      },
+      "AccessGroupPermission": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "PermissionUser": {
+        "type": "object",
+        "required": [
+          "username",
+          "displayName"
+        ],
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          }
+        }
+      },
+      "IdentityPermission": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "ROBLOX",
+              "ROBLOX_GROUP",
+              "CARD",
+              "PIN"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "description": "Identity status returned by XCS."
+          },
+          "alias": {
+            "type": "string",
+            "nullable": true
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "robloxId": {
+            "type": "string",
+            "nullable": true
+          },
+          "robloxGroupId": {
+            "type": "string",
+            "nullable": true
+          },
+          "user": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PermissionUser"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "PermissionState": {
+        "type": "object",
+        "required": [
+          "accessGroups",
+          "identities"
+        ],
+        "properties": {
+          "accessGroups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccessGroupPermission"
+            }
+          },
+          "identities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IdentityPermission"
+            }
+          }
+        }
+      },
+      "PermissionResponse": {
+        "type": "object",
+        "required": [
+          "permissions"
+        ],
+        "properties": {
+          "permissions": {
+            "$ref": "#/components/schemas/PermissionState"
+          }
+        },
+        "example": {
+          "permissions": {
+            "accessGroups": [
+              {
+                "id": "3f8b480b-323d-4d28-a2af-79ca79456549",
+                "name": "Employees"
+              }
+            ],
+            "identities": [
+              {
+                "id": "ebcb6cc9-f088-4976-a071-69003e371051",
+                "type": "USER",
+                "status": "PRESENT",
+                "alias": "Alex Chen",
+                "userId": "d8aee34a-4f5b-4c21-ab95-cf8053051a97",
+                "robloxId": null,
+                "robloxGroupId": null,
+                "user": {
+                  "username": "alex.chen",
+                  "displayName": "Alex Chen"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "description": "Machine-readable code included for some configuration errors."
+          }
+        }
+      },
+      "RemoteUnlockResponse": {
+        "type": "object",
+        "required": [
+          "acknowledged"
+        ],
+        "properties": {
+          "acknowledged": {
+            "type": "boolean",
+            "example": true
+          }
         }
       }
     }
@@ -192,16 +616,44 @@
         ],
         "responses": {
           "200": {
-            "description": "Every access point in the location."
+            "description": "Every access point in the location.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessPointListResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Invalid or missing API key."
+            "description": "Invalid or missing API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403": {
-            "description": "The API key is not authorized for this location."
+            "description": "The API key is not authorized for this location.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Location not found."
+            "description": "Location not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -222,16 +674,44 @@
         ],
         "responses": {
           "200": {
-            "description": "The access point and its configuration."
+            "description": "The access point and its configuration.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessPointResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Invalid or missing API key."
+            "description": "Invalid or missing API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403": {
-            "description": "The API key is not authorized for this access point."
+            "description": "The API key is not authorized for this access point.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Access point not found."
+            "description": "Access point not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       },
@@ -261,25 +741,74 @@
         },
         "responses": {
           "200": {
-            "description": "The updated access point and its configuration."
+            "description": "The updated access point and its configuration.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessPointResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid update."
+            "description": "Invalid update.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Invalid or missing API key."
+            "description": "Invalid or missing API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403": {
-            "description": "The API key is not authorized for this access point."
+            "description": "The API key is not authorized for this access point.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Access point not found."
+            "description": "Access point not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "409": {
-            "description": "An access point with the requested name already exists."
+            "description": "An access point with the requested name already exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "422": {
-            "description": "The request body does not match the schema."
+            "description": "The request body does not match the schema.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -300,16 +829,44 @@
         ],
         "responses": {
           "200": {
-            "description": "The complete direct permission state."
+            "description": "The complete direct permission state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Invalid or missing API key."
+            "description": "Invalid or missing API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403": {
-            "description": "The API key is not authorized for this access point."
+            "description": "The API key is not authorized for this access point.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Access point not found."
+            "description": "Access point not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       },
@@ -338,22 +895,64 @@
         },
         "responses": {
           "200": {
-            "description": "The complete direct permission state."
+            "description": "The complete direct permission state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "The request contains no IDs or IDs from another organization."
+            "description": "The request contains no IDs or IDs from another organization.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Invalid or missing API key."
+            "description": "Invalid or missing API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403": {
-            "description": "The API key is not authorized for this access point."
+            "description": "The API key is not authorized for this access point.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Access point not found."
+            "description": "Access point not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "422": {
-            "description": "The request body does not match the schema."
+            "description": "The request body does not match the schema.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       },
@@ -382,22 +981,64 @@
         },
         "responses": {
           "200": {
-            "description": "The complete direct permission state."
+            "description": "The complete direct permission state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "The request contains no IDs."
+            "description": "The request contains no IDs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Invalid or missing API key."
+            "description": "Invalid or missing API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403": {
-            "description": "The API key is not authorized for this access point."
+            "description": "The API key is not authorized for this access point.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Access point not found."
+            "description": "Access point not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "422": {
-            "description": "The request body does not match the schema."
+            "description": "The request body does not match the schema.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -428,19 +1069,145 @@
         },
         "responses": {
           "200": {
-            "description": "The remote-unlock request was published."
+            "description": "The remote-unlock request was published.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoteUnlockResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "The scope, player, or unlock duration is invalid."
+            "description": "The scope, player, or unlock duration is invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Invalid or missing API key."
+            "description": "Invalid or missing API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403": {
-            "description": "The API key is not authorized for this access point."
+            "description": "The API key is not authorized for this access point.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Access point not found."
+            "description": "Access point not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The location is missing a Roblox Universe ID or effective Open Cloud API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Roblox MessagingService rejected the publish request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "The player-scoped unlock was not acknowledged before the timeout.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/consumer/v1/": {
+      "get": {
+        "summary": "Check Consumer API availability",
+        "operationId": "checkConsumerApi",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The Consumer API is reachable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "ok"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/consumer/v1/ping": {
+      "get": {
+        "summary": "Read the Consumer API service version",
+        "operationId": "getConsumerApiVersion",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The running Consumer API service version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "version"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "version": {
+                      "type": "string",
+                      "example": "2.0.0"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

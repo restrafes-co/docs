@@ -6,7 +6,7 @@
   "colors": {
     "primary": "#000000",
     "light": "#FFFFFF",
-    "dark": "#364252"
+    "dark": "#64748B"
   },
   "favicon": "/favicon.svg",
   "icons": {
@@ -66,8 +66,8 @@
             "pages": [
               "guides/getting-started",
               "guides/creating-an-account",
-              "guides/linking-your-accounts",
               "guides/setting-up-your-organization",
+              "guides/linking-your-accounts",
               "guides/exploring-the-dashboard",
               "guides/location-setup"
             ]
@@ -82,7 +82,7 @@
             ]
           },
           {
-            "group": "API Reference",
+            "group": "Developer APIs",
             "icon": "square-terminal",
             "pages": ["api/overview", "api/callbox"]
           }
@@ -177,14 +177,10 @@
     ]
   },
   "navbar": {
-    "links": [],
     "primary": {
       "type": "button",
       "label": "XCS Dashboard",
       "href": "https://xcs.restrafes.co"
     }
-  },
-  "footer": {
-    "socials": {}
   }
 }

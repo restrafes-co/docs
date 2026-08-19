@@ -1,69 +1,38 @@
 ---
-title: "Exploring the Dashboard"
-description: "A guide to every section of the XCS web platform — from the home screen to settings."
+title: "Dashboard Tasks"
+description: "Find the XCS dashboard area for common account and access-control tasks."
 icon: "layout-dashboard"
 ---
 
-This page explains each section of the XCS dashboard so you can navigate the platform confidently.
+Use the dashboard navigation to open the resource you want to manage. Available actions depend on your organization role.
 
-## Home
+| Task | Where to go |
+| --- | --- |
+| Manage members or organization settings | Select an organization, then open its member or settings area |
+| Create or manage a location | Select an organization, then open **Locations** |
+| Create or manage an access point | Open a location, then select **Access Points** |
+| Create or revoke an API key | Open the organization’s API-key management area |
+| Link a Roblox or Discord account | Open your profile, then select **Settings > Accounts** |
 
-The home page is your starting point after logging in. It shows:
+<Callout type="info">
+  If an action is unavailable, ask an organization Owner or Admin to confirm your role.
+</Callout>
 
-- **Recent activity** -- Recent unlocks, member changes, and other events across your organizations
-- **Organization summary** -- A quick overview of your organizations, their locations, and access points
-- **Quick links** -- Shortcuts to common tasks like creating a location or inviting a member
+<CardGroup cols={2}>
+  <Card title="Set Up a Location" icon="map-pin" href="/guides/location-setup">
+    Create a location, install the starter kit, and configure an access point.
+  </Card>
+  <Card title="Manage Your Organization" icon="building" href="/guides/setting-up-your-organization">
+    Review roles, members, and invitations.
+  </Card>
+  <Card title="Link Accounts" icon="link" href="/guides/linking-your-accounts">
+    Connect Roblox and Discord identities.
+  </Card>
+  <Card title="Consumer API" icon="code" href="/api/consumer-overview">
+    Create a server-side integration with an organization API key.
+  </Card>
+</CardGroup>
 
-## Organizations
+---
 
-The Organizations page lists every organization you belong to. Each entry shows the organization name and your role (Owner, Admin, or Member). Click an organization to open its management page, where you can:
-
-- View and manage members
-- Create and manage locations
-- Generate API keys
-- Edit organization settings
-
-## Locations
-
-Locations (sometimes called sites) represent places where access control is enforced. Each location belongs to an organization and contains its own access points.
-
-From a location page, you can:
-
-- View and manage access points
-- Configure the Roblox integration (Universe ID and Open Cloud API key)
-- View access events and history
-- Edit location name and description
-
-## Access Points
-
-Access Points are the doors, gates, or checkpoints that XCS controls. Each access point belongs to a location and has its own set of rules.
-
-From an access point page, you can:
-
-- **View and edit access point details** -- Name, location, status, and configuration
-- **Manage rules** -- Add, edit, or remove access rules (by Roblox user ID, group membership, or card number)
-- **Remote unlock** -- Trigger an immediate unlock from the dashboard
-
-## Troubleshooting
-
-<AccordionGroup>
-  <Accordion title="Cannot see a section or button">
-    <p>
-      Some dashboard sections require specific roles. If you cannot see a
-      management option, you may not have sufficient permissions. Contact your
-      organization owner to request a role change.
-    </p>
-  </Accordion>
-  <Accordion title="Settings are not saving">
-    <p>
-      Make sure you have a stable internet connection. Refresh the page and try
-      again. If the issue persists, try logging out and logging back in.
-    </p>
-  </Accordion>
-  <Accordion title="Need help?">
-    <p>
-      Join the R&C Community Discord server for community support, or email{" "}
-      <strong>xcs@restrafes.co</strong> for direct assistance.
-    </p>
-  </Accordion>
-</AccordionGroup>
+Next up: [Setting Up a Location](/guides/location-setup).

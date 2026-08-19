@@ -6,74 +6,13 @@ openapi: "/openapi/consumer-access-points.json GET /api/consumer/v1/access-point
 playground: "interactive"
 ---
 
-## Authentication
+Access groups are ordered by name in ascending order. Identities are ordered by creation time in ascending order. Neither list is paginated.
 
-Set `X-API-Key` to an organization API key. The key must belong to the access point's organization and include the access point's location when the key has location restrictions.
+## Identity values
 
-## Response
+| Field | Values |
+| --- | --- |
+| `type` | `USER`, `ROBLOX`, `ROBLOX_GROUP`, `CARD`, or `PIN` |
+| `status` | `NOT_INVITED`, `INVITED`, `PSUEDO`, `PRESENT`, `LEFT`, `REVOKED`, or `SUSPENDED` |
 
-A successful request returns `200`. Access groups are ordered by name in ascending order. Identities are ordered by creation time in ascending order. Neither list is paginated.
-
-```json
-{
-  "permissions": {
-    "accessGroups": [
-      {
-        "id": "3f8b480b-323d-4d28-a2af-79ca79456549",
-        "name": "Employees"
-      }
-    ],
-    "identities": [
-      {
-        "id": "ebcb6cc9-f088-4976-a071-69003e371051",
-        "type": "USER",
-        "status": "PRESENT",
-        "alias": "Alex Chen",
-        "userId": "d8aee34a-4f5b-4c21-ab95-cf8053051a97",
-        "robloxId": null,
-        "robloxGroupId": null,
-        "user": {
-          "username": "alex.chen",
-          "displayName": "Alex Chen"
-        }
-      }
-    ]
-  }
-}
-```
-
-### Access-group fields
-
-| Field  | Type   | Value              |
-| ------ | ------ | ------------------ |
-| `id`   | string | Access-group ID.   |
-| `name` | string | Access-group name. |
-
-### Identity fields
-
-| Field           | Type             | Value                                                                             |
-| --------------- | ---------------- | --------------------------------------------------------------------------------- |
-| `id`            | string           | Organization-member ID.                                                           |
-| `type`          | string           | `USER`, `ROBLOX`, `ROBLOX_GROUP`, `CARD`, or `PIN`.                               |
-| `status`        | string           | `NOT_INVITED`, `INVITED`, `PSUEDO`, `PRESENT`, `LEFT`, `REVOKED`, or `SUSPENDED`. |
-| `alias`         | string or `null` | Identity alias.                                                                   |
-| `userId`        | string or `null` | Linked XCS user ID.                                                               |
-| `robloxId`      | string or `null` | Roblox user ID for a `ROBLOX` identity.                                           |
-| `robloxGroupId` | string or `null` | Roblox group ID for a `ROBLOX_GROUP` identity.                                    |
-| `user`          | object or `null` | Linked XCS user. The object contains `username` and `displayName`.                |
-
-## Example request
-
-```bash
-curl \
-  -H "X-API-Key: $XCS_API_KEY" \
-  "https://api.restrafes.co/api/consumer/v1/access-points/76094322-c72f-4aca-bb25-4c2dc2964e37/permissions"
-```
-
-## Errors
-
-| Status | Cause                                                                            | Recovery                                              |
-| ------ | -------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `401`  | `X-API-Key` is missing or invalid, or the organization is inactive or archived.  | Send an active organization API key.                  |
-| `403`  | The key belongs to another organization or excludes the access point's location. | Use a key authorized for the access point's location. |
-| `404`  | No access point has the supplied `id`.                                           | Check the access-point ID.                            |
+`user` is present only when the identity is linked to an XCS user. It contains `username` and `displayName`.
