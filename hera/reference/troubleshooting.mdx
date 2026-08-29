@@ -22,6 +22,18 @@ Start with the first Hera warning or error in Output. Later errors may be caused
 - Check whether the call is locked or the controller is out of service.
 - Try a car call and a hall call to determine whether the issue affects one fixture or all calls.
 
+## A call is rejected during special service
+
+- Read `states.service` through `getStates`.
+- Listen for `onFireServiceCommandRejected` and `onIndependentServiceCommandRejected`.
+- Phase I does not accept normal calls.
+- Phase II and independent service accept car calls only.
+- Independent service requires the doors to be fully closed before a car call.
+- Each controlled mode accepts one destination at a time.
+- Fire and independent service cannot be active together.
+
+See [Fire and independent service](/hera/operation/fire-and-independent-service) for every rejection reason.
+
 ## The car overshoots or levels poorly
 
 1. Check the height of every `LEVEL_MAIN` part.
@@ -44,6 +56,7 @@ Start with the first Hera warning or error in Output. Later errors may be caused
 - Check whether a sensor is continuously obstructed.
 - Press the matching door-close button to release door hold.
 - Confirm that the sensor is under the correct door group.
+- Check whether Phase I recall, Phase II hold, or independent service is holding the doors open.
 
 ## Buttons do not register
 

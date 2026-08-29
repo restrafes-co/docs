@@ -1,0 +1,243 @@
+---
+title: 'Fire and independent service'
+description: 'Configure and operate Hera emergency and car-controlled service modes.'
+icon: 'siren'
+---
+
+Hera 26.8.28 adds Phase I fire recall, Phase II firefighter control, and independent service. These modes replace normal collective operation while active.
+
+<Callout type="warning">
+  These controls simulate elevator operating modes in Roblox. The source-level contracts do not prove
+  operation in a live experience. Test the complete elevator in Roblox Studio before release.
+</Callout>
+
+## Configure the modes
+
+```lua
+FIRE_SERVICE = {
+    ENABLED = true,
+    RECALL_FLOOR = 1,
+    ALTERNATE_RECALL_FLOOR = 2,
+    DOOR_GROUP = 1,
+},
+
+INDEPENDENT_SERVICE = {
+    ENABLED = true,
+    DOOR_GROUP = 1,
+},
+```
+
+`FIRE_SERVICE.RECALL_FLOOR` uses `MAIN.PRIMARY_FLOOR` when it is `nil`. Configure an alternate recall floor before sending a Phase I request with `recallFloorUnavailable = true`.
+
+The configured door group must exist in the car and at each landing where the mode opens the doors. If it is invalid, Hera uses the first available car door group.
+
+## Phase I fire recall
+
+Start main-floor recall:
+
+```lua
+api:Fire({
+    request = "fireServicePhaseOne",
+    data = {
+        enabled = true,
+        recallFloorUnavailable = false,
+    },
+})
+```
+
+Set `recallFloorUnavailable` to `true` to use `ALTERNATE_RECALL_FLOOR`.
+
+When Phase I starts, Hera:
+
+1. Sets `states.service` to `fire_phase_1`.
+2. Rejects normal car, hall, parking, and remote calls.
+3. Cancels registered normal calls.
+4. Closes open doors.
+5. Recalls the car with pre-opening disabled.
+6. Opens and holds the configured doors at the recall floor.
+
+If the car is already moving, Hera keeps its active movement target until the car reaches a safe committed stop. The doors stay closed there. Hera then removes the remaining calls and starts recall. This prevents the movement engine from losing its stop target.
+
+The stop switch and an out-of-service state still block movement. Hera sends `onFireServiceCommandRejected` with `reason = "recall_blocked"` if it cannot add the recall trip.
+
+Turn Phase I off only after the car is stationary at the recall floor, Phase II is off, and recall is complete:
+
+```lua
+api:Fire({
+    request = "fireServicePhaseOne",
+    data = { enabled = false },
+})
+```
+
+## Phase II firefighter control
+
+Phase II requires a completed Phase I recall.
+
+```lua
+api:Fire({
+    request = "fireServicePhaseTwo",
+    data = { mode = "on" },
+})
+```
+
+The modes are:
+
+| Mode   | Behavior |
+| ------ | -------- |
+| `on`   | Allows one car call and constant-pressure door control |
+| `hold` | Holds the stationary car at its landing with the doors open |
+| `off`  | Returns to Phase I and recalls the car again when needed |
+
+Send a Phase II car call:
+
+```lua
+api:Fire({
+    request = "fireServiceCarCall",
+    data = {
+        floor = 5,
+        doorGroup = 1,
+    },
+})
+```
+
+Hera accepts one destination at a time. Hall calls and normal remote calls remain disabled. The doors stay closed when the car arrives until an operator opens them.
+
+### Phase II door control
+
+Door commands use press and release messages. Keep sending the pressed state through the full physical button hold.
+
+```lua
+-- Press Door Open.
+api:Fire({
+    request = "fireServiceDoorControl",
+    data = { action = "open", pressed = true, doorGroup = 1 },
+})
+
+-- Release Door Open.
+api:Fire({
+    request = "fireServiceDoorControl",
+    data = { action = "open", pressed = false, doorGroup = 1 },
+})
+```
+
+If Door Open is released before the doors fully open, the doors reclose. If Door Close is released before the doors fully close, the doors reopen. The physical car Door Open and Door Close buttons use the same behavior.
+
+## Independent service
+
+Independent service is available only while the car is stationary and fire service is off.
+
+```lua
+api:Fire({
+    request = "independentService",
+    data = { enabled = true },
+})
+```
+
+When independent service starts, Hera:
+
+1. Sets `states.service` to `independent`.
+2. Cancels registered calls and rejects hall, parking, and remote calls.
+3. Opens and holds the configured doors.
+4. Requires Door Close to remain pressed until the doors fully close.
+5. Accepts one car destination after the doors are closed.
+6. Opens the doors automatically at arrival and holds them open.
+
+Operate Door Close through the API:
+
+```lua
+api:Fire({
+    request = "independentServiceDoorControl",
+    data = { action = "close", pressed = true, doorGroup = 1 },
+})
+
+api:Fire({
+    request = "independentServiceDoorControl",
+    data = { action = "close", pressed = false, doorGroup = 1 },
+})
+```
+
+Releasing Door Close before full closure reopens the doors. After the doors close, use a physical car button or `queueAdd` with `source = "car"` to select the destination.
+
+Turn the mode off while the car is stationary:
+
+```lua
+api:Fire({
+    request = "independentService",
+    data = { enabled = false },
+})
+```
+
+## Observe state and events
+
+The `getStates` response includes:
+
+- `states.service`
+- `states.fireService.phaseOne`, `phaseTwo`, `recallFloor`, `targetFloor`, `recallFloorUnavailable`, and `recalled`
+- `states.independentService.enabled` and `targetFloor`
+
+Mode transitions, accepted calls, door controls, cancellations, arrivals, and rejections publish events through the same `API` `BindableEvent`. Listen before sending a request.
+
+```lua
+api.Event:Connect(function(message)
+    if message.event == "onFireServiceCommandRejected"
+        or message.event == "onIndependentServiceCommandRejected" then
+        warn(message.data.command, message.data.reason)
+    end
+end)
+```
+
+### Fire-service events
+
+| Event | Meaning |
+| ----- | ------- |
+| `onFireServiceChanged` | Fire-service state snapshot changed |
+| `onFireServicePhaseOneChanged` | Phase I was enabled or disabled |
+| `onFireServiceCallsCancelled` | Existing calls were removed |
+| `onFireServiceRecallStarted` | A recall trip entered the queue |
+| `onFireServiceRecallComplete` | The car reached recall and the doors were commanded open |
+| `onFireServicePhaseTwoChanged` | Phase II mode changed |
+| `onFireServicePhaseTwoCallAccepted` | A Phase II destination was accepted |
+| `onFireServicePhaseTwoArrival` | The car reached its Phase II destination |
+| `onFireServiceDoorControl` | A Phase II door press or release was processed |
+| `onFireServiceCommandRejected` | A request or call was rejected |
+
+### Independent-service events
+
+| Event | Meaning |
+| ----- | ------- |
+| `onIndependentServiceChanged` | Independent-service state changed |
+| `onIndependentServiceCallsCancelled` | Existing calls were removed |
+| `onIndependentServiceCallAccepted` | A car destination was accepted |
+| `onIndependentServiceArrival` | The car reached its destination |
+| `onIndependentServiceDoorControl` | A door press or release was processed |
+| `onIndependentServiceCommandRejected` | A request or call was rejected |
+
+Mode-state events include the current mode snapshot in `message.data`. Door-control events also include `action`, `pressed`, and `doorGroup`. Call and arrival events include `floor`. A rejected queue call includes `command`, `reason`, `floor`, and `source`.
+
+## Rejection reasons
+
+Use the `reason` field from rejection events for operator feedback and logs.
+
+| Reason | Meaning |
+| ------ | ------- |
+| `disabled` | The configured mode is disabled |
+| `fire_service_active` | Independent service cannot start during fire service |
+| `independent_service_active` | Fire service cannot start during independent service |
+| `car_operating` | The requested key-switch transition requires a stationary car |
+| `car_not_recalled` | Phase I recall is not complete |
+| `phase_one_inactive` | Phase II requires Phase I |
+| `phase_two_active` | Phase I cannot be reset while Phase II is active |
+| `phase_two_inactive` | The requested call requires Phase II `on` |
+| `phase_two_not_available` | The requested Phase II mode or door action is not available |
+| `service_not_available` | Independent door control is unavailable or the car is moving |
+| `hall_and_remote_calls_disabled` | The active mode accepts car calls only |
+| `single_call_only` | Another controlled-service destination is active |
+| `doors_not_closed` | Independent service requires full door closure before a call |
+| `invalid_recall_floor` | The main recall floor does not exist |
+| `invalid_alternate_recall_floor` | The alternate recall floor does not exist |
+| `invalid_floor` | A requested destination does not exist |
+| `invalid_door_group` or `no_recall_door_group` | Hera cannot use the requested doors |
+| `invalid_mode` or `invalid_command` | The request value is not supported |
+| `recall_blocked` | A safety or out-of-service state prevented recall movement |
+
+See [Controller API](/hera/integration/controller-api) for the base message format.

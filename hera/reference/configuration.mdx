@@ -14,6 +14,19 @@ This page lists the settings most often changed during setup. Keep the complete 
 | `ENABLE_DEBUGGING`   | Shows additional messages in Output           |
 | `MAIN.PRIMARY_FLOOR` | Main floor used by supported service features |
 
+## Service modes
+
+| Setting                                     | Purpose |
+| ------------------------------------------- | ------- |
+| `FIRE_SERVICE.ENABLED`                      | Allows Phase I and Phase II fire service |
+| `FIRE_SERVICE.RECALL_FLOOR`                 | Main Phase I recall landing; falls back to `MAIN.PRIMARY_FLOOR` |
+| `FIRE_SERVICE.ALTERNATE_RECALL_FLOOR`       | Recall landing used when the main landing is unavailable |
+| `FIRE_SERVICE.DOOR_GROUP`                   | Door group opened at recall and used by default in Phase II |
+| `INDEPENDENT_SERVICE.ENABLED`               | Allows independent service |
+| `INDEPENDENT_SERVICE.DOOR_GROUP`            | Door group opened and controlled in independent service |
+
+See [Fire and independent service](/hera/operation/fire-and-independent-service).
+
 ## Motion
 
 | Setting                                               | Purpose                              |

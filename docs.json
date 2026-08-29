@@ -153,6 +153,7 @@
             "pages": [
               "hera/operation/dispatch-and-calls",
               "hera/operation/door-operation",
+              "hera/operation/fire-and-independent-service",
               "hera/operation/parking-and-welding"
             ]
           },

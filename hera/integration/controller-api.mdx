@@ -74,6 +74,23 @@ Connect the event listener before firing the request.
 | `riotService` | Prevent new calls to the configured primary floor |
 | `playerWelds` | Enable or disable passenger stabilization         |
 
+## Service-mode requests
+
+Hera 26.8.28 adds these requests:
+
+| Request | Data | Purpose |
+| ------- | ---- | ------- |
+| `fireServicePhaseOne` | `enabled`, `recallFloorUnavailable` | Start main or alternate recall, or reset Phase I |
+| `fireServicePhaseTwo` | `mode` (`on`, `hold`, or `off`) | Change the Phase II key-switch mode |
+| `fireServiceCarCall` | `floor`, optional `doorGroup` | Select the one Phase II destination |
+| `fireServiceDoorControl` | `action`, `pressed`, optional `doorGroup` | Send a Phase II Door Open or Door Close press or release |
+| `independentService` | `enabled` | Enable or disable independent service |
+| `independentServiceDoorControl` | `action`, `pressed`, optional `doorGroup` | Send an independent-service door press or release |
+
+The service modes are mutually exclusive. Key-switch transitions that require a stationary or recalled car publish a rejection event when their preconditions are not met.
+
+See [Fire and independent service](/hera/operation/fire-and-independent-service) for complete payloads, state transitions, and rejection reasons.
+
 ## Events
 
 Common events include:
@@ -89,5 +106,26 @@ Common events include:
 | `moveStart`, `moveRun`, `moveLeveling` | Travel phase changed                  |
 | `indicator`, `indicatorCar`            | Landing or car indicator command      |
 | `chime`, `chimeCar`                    | Landing or car chime command          |
+
+Service-mode events include:
+
+| Event | Use |
+| ----- | --- |
+| `onFireServiceChanged` | Read the current fire-service snapshot |
+| `onFireServicePhaseOneChanged` | Observe Phase I activation or reset |
+| `onFireServiceCallsCancelled` | Record calls removed for recall |
+| `onFireServiceRecallStarted` | Observe an accepted recall trip |
+| `onFireServiceRecallComplete` | Observe completed recall |
+| `onFireServicePhaseTwoChanged` | Observe a Phase II mode change |
+| `onFireServicePhaseTwoCallAccepted` | Observe an accepted firefighter destination |
+| `onFireServicePhaseTwoArrival` | Observe arrival at that destination |
+| `onFireServiceDoorControl` | Observe a fire-service door press or release |
+| `onFireServiceCommandRejected` | Handle a rejected fire-service request or call |
+| `onIndependentServiceChanged` | Read the current independent-service state |
+| `onIndependentServiceCallsCancelled` | Record calls removed at activation or reset |
+| `onIndependentServiceCallAccepted` | Observe an accepted independent destination |
+| `onIndependentServiceArrival` | Observe arrival in independent service |
+| `onIndependentServiceDoorControl` | Observe an independent door press or release |
+| `onIndependentServiceCommandRejected` | Handle a rejected independent-service request or call |
 
 Each message stores its payload in `message.data`.

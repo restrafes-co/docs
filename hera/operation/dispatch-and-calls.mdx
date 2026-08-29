@@ -17,6 +17,16 @@ Hera uses collective operation:
 
 This is similar to the way a conventional passenger elevator answers several calls without reversing for every new request.
 
+## Calls during special service
+
+Normal collective operation stops while fire or independent service is active.
+
+- Phase I rejects normal calls and recalls the car.
+- Phase II accepts one in-car destination and rejects hall and normal remote calls.
+- Independent service accepts one in-car destination after the doors fully close and rejects hall and remote calls.
+
+Rejected calls publish a fire-service or independent-service rejection event. See [Fire and independent service](/hera/operation/fire-and-independent-service) for the mode sequence and reason values.
+
 ## Car and hall calls
 
 - A car call selects a destination from inside the car.
