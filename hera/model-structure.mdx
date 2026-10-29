@@ -1,70 +1,125 @@
 ---
 title: 'Model structure'
-description: 'Set up the parts and folders Hera expects.'
+description: 'Find the car, floors, doors, sensors, and buttons in Explorer.'
 icon: 'folder-tree'
 ---
 
-Hera finds elevator equipment by name. Use the following structure as the starting point for a new model.
+Hera locates equipment by its name and position in the model. Keep the capitalization, punctuation, and nesting shown here. `CAR/.DOORS/1` means the object named `1` inside `.DOORS`, inside `CAR`.
+
+Use this page to understand or repair a supplied elevator. For the steps to extend it, see [Floors and door openings](/hera/adding-floors).
+
+## A two-floor elevator
+
+The following tree shows one front entrance at two floors. Repeat the landing door structure at each served floor. The loader is included with your supplied model; its name may differ.
 
 ```text
-Elevator
-├── CONFIGURATION
-├── CAR
-│   ├── .PLATFORM
-│   ├── .DOORS
-│   │   └── 1
-│   │       ├── LEVEL
-│   │       └── DOORS
-│   ├── .DOORSENSORS
-│   │   └── 1
-│   └── .BUTTONS
-├── FLOORS
-│   ├── 1
-│   │   ├── LEVEL_MAIN
-│   │   ├── .DOORS
-│   │   │   └── 1
-│   │   └── .BUTTONS
-│   └── 2
-│       ├── LEVEL_MAIN
-│       ├── .DOORS
-│       │   └── 1
-│       └── .BUTTONS
-└── COUNTERWEIGHT (optional)
+Elevator (Model)
+├── Loader (supplied Script)
+├── CONFIGURATION (ModuleScript)
+├── CAR (Model)
+│   ├── .PLATFORM (BasePart)
+│   ├── .DOORS (Model)
+│   │   └── 1 (Model: front door group)
+│   │       ├── LEVEL (BasePart)
+│   │       └── DOORS (Model)
+│   │           ├── DL1 (Model)
+│   │           │   └── SCALE (BasePart)
+│   │           └── DR1 (Model)
+│   │               └── SCALE (BasePart)
+│   ├── .DOORSENSORS (Model)
+│   │   └── 1 (Model)
+│   │       └── Sensor (BasePart)
+│   └── .BUTTONS (Model)
+│       ├── F1 (Model)
+│       │   └── BUTTON (BasePart)
+│       ├── F2 (Model)
+│       │   └── BUTTON (BasePart)
+│       ├── FDO (Model)
+│       │   └── BUTTON (BasePart)
+│       └── FDC (Model)
+│           └── BUTTON (BasePart)
+└── FLOORS (Model)
+    ├── 1 (Model)
+    │   ├── LEVEL_MAIN (BasePart)
+    │   ├── .DOORS (Model)
+    │   │   └── 1 (Model)
+    │   │       ├── LEVEL (BasePart)
+    │   │       └── DOORS (Model)
+    │   │           ├── DL1 (Model)
+    │   │           │   └── SCALE (BasePart)
+    │   │           └── DR1 (Model)
+    │   │               └── SCALE (BasePart)
+    │   └── .BUTTONS (Model)
+    │       └── F (Model)
+    │           └── U (Model)
+    │               └── BUTTON (BasePart)
+    └── 2 (Model)
+        ├── LEVEL_MAIN (BasePart)
+        ├── .DOORS (same structure as floor 1)
+        └── .BUTTONS (Model)
+            └── F (Model)
+                └── D (Model)
+                    └── BUTTON (BasePart)
 ```
 
-## Car and floors
+A `BasePart` is a physical part, such as a `Part`, `MeshPart`, or union. A `Model` groups objects; it does not substitute for a required reference part.
 
-- `CAR/.PLATFORM` is the reference part used to move and level the car.
-- Each child of `FLOORS` must have a numeric name, such as `1`, `2`, or `-1`.
-- Each floor requires a `LEVEL_MAIN` part at the intended stopping height.
-- Door groups use numbers. Group `1` is normally the front opening and group `2` may be used for a rear opening.
-- A door group must exist under both the car and each floor where that opening is available.
+## Car and floor reference parts
 
-## Door leaves
+| Object | Purpose |
+| --- | --- |
+| `CONFIGURATION` | Returns the settings used by the loader. Keep it directly inside the elevator model. |
+| `CAR` | Contains everything that travels with the car, including its entrances and controls. |
+| `CAR/.PLATFORM` | The movement reference. Hera stops with this part at the destination `LEVEL_MAIN` height. |
+| `FLOORS/<number>` | Contains the equipment fixed at one landing. |
+| `FLOORS/<number>/LEVEL_MAIN` | Marks that floor's stopping height. |
+| A door group's `LEVEL` | The reference part for that entrance's moving door leaves. This is separate from `LEVEL_MAIN`. |
 
-Place each moving leaf inside the door group's `DOORS` model. Name leaves by their movement direction:
+Floor names must be whole numbers, such as `-1`, `0`, `1`, or `2`. Use `1`, not `01` or `1.0`. Numbers and `LEVEL_MAIN` heights must increase together. Floors can skip numbers: `1`, `2`, and `4` is valid if that is the order from bottom to top.
 
-| Prefix | Movement |
-| ------ | -------- |
-| `DL`   | Left     |
-| `DR`   | Right    |
-| `DU`   | Up       |
-| `DD`   | Down     |
+Use a [floor label](/hera/configuration/indicators) to display `B`, `G`, or `L`. Keep the actual floor model name numeric.
 
-A center-opening pair is commonly named `DL1` and `DR1`. Each leaf needs a `SCALE` part, which Hera uses to move the door.
+## Door groups
 
-## Buttons
+A **door group** is one entrance, including the car doors and the matching landing doors. Group `1` commonly means front and group `2` rear, but those meanings come from your model and aliases.
 
-Car fixtures belong under `.BUTTONS` and contain a `BUTTON` part. Common names include:
+Use positive whole-number group names for new entrances. Groups `0` and `-1` are reserved. Use the same group name in the car, at the landing, and under `.DOORSENSORS`. A car entrance can serve some floors without serving every floor. Only add its landing group where that entrance exists.
 
-| Name    | Function              |
-| ------- | --------------------- |
-| `F5`    | Front call to floor 5 |
-| `FDO`   | Front door open       |
-| `FDC`   | Front door close      |
-| `FDH`   | Front door hold       |
-| `ALARM` | Alarm                 |
+Do not place the landing doors inside `CAR`. They must remain with their floor when the car travels.
 
-At each floor, place hall buttons under `.BUTTONS`, grouped by the door alias. Use `U` for up and `D` for down.
+## Door leaves and travel distance
 
-See [Buttons and fixtures](/hera/configuration/buttons) to configure aliases and lamps.
+A **leaf** is one moving door panel. Place each leaf model directly inside the group's `DOORS` model, then put its `SCALE` part and decorative parts inside that leaf.
+
+| Prefix | Opening direction, relative to the door assembly | Dimension used for travel |
+| --- | --- | --- |
+| `DL` | Left | `SCALE.Size.X` |
+| `DR` | Right | `SCALE.Size.X` |
+| `DU` | Up | `SCALE.Size.Y` |
+| `DD` | Down | `SCALE.Size.Y` |
+
+The number after the prefix multiplies the travel distance. `DL1` travels one scaler width to the left; `DR2` travels two scaler widths to the right. Use whole-number suffixes: the active door indexing in 26.9.6 does not recognize a fractional name such as `DL0.5`. The number is a distance multiplier, not a panel identifier.
+
+For a center-opening pair, start with `DL1` and `DR1`. Keep the scaler's orientation aligned with the assembly. If a panel travels too far, check its scaler size and name before changing door speed.
+
+## Sensors
+
+Put sensor parts under `CAR/.DOORSENSORS/<group>`. Use non-colliding sensor parts across the entrance, with touch detection enabled. Keep the group name numeric and match it to the entrance being monitored.
+
+Standard sensors detect player characters touching their parts. They do not treat every loose part as an obstruction. Test sensors with an avatar during normal operation.
+
+## Buttons and lights
+
+Place car panels directly under `CAR`, using names that start with `.BUTTONS`, such as `.BUTTONS` and `.BUTTONS_REAR`. Each fixture model needs a direct child part named `BUTTON`.
+
+Optional direct child parts whose names start with `LED` act as button lights. If no LED part exists, Hera lights the `BUTTON` part itself. A `TextLabel` named `.LABEL` can show a configured floor label on a car floor button.
+
+Landing panels belong under their floor model. Within the panel, group buttons by alias (`F` or `R`), then use `U`, `D`, or `N` for direction. The complete naming table is in [Buttons](/hera/configuration/buttons).
+
+## Optional counterweight
+
+A `COUNTERWEIGHT` model can sit beside `CAR` and `FLOORS`. It needs a `.MAIN` reference part. Enable its movement separately in [Movement settings](/hera/configuration/motion#counterweight-and-sheaves).
+
+## Objects Hera creates
+
+During startup, Hera creates `API`, welds, motor parts, and other working objects. Keep the supplied permanent parts in edit mode; let Hera recreate its working objects on the next run. Do not copy a running elevator's generated welds into a new floor or model.

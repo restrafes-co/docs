@@ -1,60 +1,88 @@
 ---
-title: 'Motion'
-description: 'Configure travel speed, acceleration, deceleration, and leveling.'
+title: 'Movement'
+description: 'Set travel speed, starting, stopping, leveling, and pre-opening.'
 icon: 'move-vertical'
 ---
 
-Motion settings are stored under `MOVE`.
+Movement settings live in `MOVE` inside `CONFIGURATION`. Start with correct [floor alignment](/hera/adding-floors#align-a-landing), then tune the ride. A speed change cannot fix a `LEVEL_MAIN` part at the wrong height.
+
+## Travel speed and starting
+
+Edit these entries inside `MOVE`, keeping its other settings:
 
 ```lua
-MOVE = {
-    METHOD = 2,
-    ENGINE = 1,
-    MOTOR_SPEED = 8,
-
-    MOTOR_START_SETTINGS = {
-        UP_DELAY = 0,
-        DOWN_DELAY = 0,
-        ACCELERATION_RATE_UP = 0.05,
-        ACCELERATION_RATE_DOWN = 0.05,
-    },
-
-    MOTOR_STOP_SETTINGS = {
-        DECELERATION_RATE_UP = 0.025,
-        DECELERATION_RATE_DOWN = 0.025,
-    },
-
-    LEVELING_OFFSET = 4,
-    LEVELING_SPEED = 0.1,
-}
+MOTOR_SPEED = 8,
+MOTOR_START_SETTINGS = {
+    UP_DELAY = 0,
+    DOWN_DELAY = 0,
+    ACCELERATION_RATE_UP = 0.05,
+    ACCELERATION_RATE_DOWN = 0.05,
+},
 ```
 
-## Main settings
+| Setting | What a change does |
+| --- | --- |
+| `MOTOR_SPEED` | Sets the top travel speed. A short trip may begin slowing before reaching it. |
+| `UP_DELAY`, `DOWN_DELAY` | Adds a wait, in seconds, before travel starts in that direction. |
+| `ACCELERATION_RATE_UP`, `ACCELERATION_RATE_DOWN` | Higher values bring the car up to speed more quickly. |
 
-| Setting                                          | Purpose                                             |
-| ------------------------------------------------ | --------------------------------------------------- |
-| `MOTOR_SPEED`                                    | Top travel speed                                    |
-| `UP_DELAY`, `DOWN_DELAY`                         | Delay before starting in each direction             |
-| `ACCELERATION_RATE_UP`, `ACCELERATION_RATE_DOWN` | How quickly the car reaches speed                   |
-| `DECELERATION_RATE_UP`, `DECELERATION_RATE_DOWN` | How quickly the car slows for a stop                |
-| `LEVELING_OFFSET`                                | Distance from the floor where final leveling begins |
-| `LEVELING_SPEED`                                 | Speed used during final leveling                    |
+Speed and acceleration are controller values. Do not interpret `MOTOR_SPEED = 8` as 8 meters per second. Test the actual ride at your model's scale.
 
-Use positive values for acceleration, deceleration, and leveling speed.
+## Slowing and leveling
 
-## Tuning order
+**Leveling** is the final slow approach to the landing. These entries also belong inside `MOVE`:
 
-1. Confirm that every `LEVEL_MAIN` part is at the correct height.
-2. Set the desired `MOTOR_SPEED`.
-3. Tune acceleration for up and down travel.
-4. Tune deceleration so the car enters leveling smoothly.
-5. Adjust `LEVELING_SPEED` for a short, smooth final approach.
+```lua
+MOTOR_STOP_SETTINGS = {
+    DECELERATION_RATE_UP = 0.025,
+    DECELERATION_RATE_DOWN = 0.025,
+},
+LEVELING_OFFSET = 4,
+LEVELING_SPEED = 0.1,
+```
 
-Change only one value between test runs. Test both directions and trips of different lengths.
+| Setting | Purpose |
+| --- | --- |
+| `DECELERATION_RATE_UP`, `DECELERATION_RATE_DOWN` | Controls slowing in each direction. Higher values produce stronger slowing. |
+| `LEVELING_OFFSET` | Distance in studs used for the final leveling approach. Method 1 also uses this as its slowing threshold. |
+| `LEVELING_SPEED` | The slow final approach speed. Keep it positive and no higher than `MOTOR_SPEED`. |
+
+The controller supports two motion methods:
+
+| `MOVE.METHOD` | Behavior |
+| --- | --- |
+| `1` | Uses the leveling offset as the approach threshold. |
+| `2` | Uses current speed and the deceleration setting to calculate when to slow down. This is the default. |
+
+Keep the supplied method for the first test. After changing it, test adjacent floors as well as the longest trip.
+
+## Tune the ride in order
+
+1. Confirm that `.PLATFORM` and every `LEVEL_MAIN` line up at the intended stopping positions.
+2. Choose `MOTOR_SPEED` at a moderate value and test the longest trip.
+3. Adjust acceleration in each direction.
+4. Adjust deceleration in each direction, watching the transition into leveling.
+5. Adjust `LEVELING_SPEED` and, if needed, `LEVELING_OFFSET` for the final approach.
+6. Repeat a one-floor trip, the longest trip, and a trip with several calls queued.
+
+Change one value between tests. If an entrance is consistently misaligned at only one floor, return to that landing's geometry before adjusting global movement settings.
+
+## Movement engine
+
+`MOVE.ENGINE` controls how Hera moves the car:
+
+| Value | Engine |
+| --- | --- |
+| `1` | Direct position movement using CFrame. Default. |
+| `2` | A `PrismaticConstraint` servo. |
+
+Keep the engine supplied with your model unless you are deliberately changing its movement setup. Changing engines calls for another complete travel and passenger test.
+
+`MOVE.TICK` is the timing signal used by movement. Leave its supplied `RunService.Heartbeat` value in place for normal setup.
 
 ## Pre-opening
 
-Pre-opening begins to open the doors shortly before the car finishes leveling.
+Pre-opening starts the doors shortly before the car finishes leveling. Edit these entries inside `MOVE`:
 
 ```lua
 PREDOORS_ENABLED = true,
@@ -62,8 +90,25 @@ PREDOORS_OFFSET = 0.05,
 PREDOORS_IGNORE_DOOR_OPEN_DELAY = true,
 ```
 
-Set up and align all car and landing doors before enabling pre-opening.
+`PREDOORS_OFFSET` is the remaining distance in studs at which opening may begin. `PREDOORS_IGNORE_DOOR_OPEN_DELAY` lets pre-opening bypass the normal arrival opening delay.
 
-## Counterweight
+Align all entrances and finish normal stopping tests before enabling pre-opening. Test each door group at every floor it serves, including calls that open both front and rear doors. Pre-opening is disabled during fire recall.
 
-Hera can animate an optional `COUNTERWEIGHT` model. Enable it under `MOVE.COUNTERWEIGHT`, then set its movement axis and multiplier. The counterweight should move in the opposite direction from the car.
+## Counterweight and sheaves
+
+An optional `COUNTERWEIGHT` model moves beside the car. It needs a `.MAIN` reference part. Edit `MOVE.COUNTERWEIGHT`:
+
+```lua
+COUNTERWEIGHT = {
+    COUNTERWEIGHT_ENABLED = true,
+    SHEAVE_ENABLED = false,
+    COUNTERWEIGHT_AXIS = { AXIS = Enum.Axis.Y, MULTIPLIER = -1 },
+    SHEAVE_AXIS = { AXIS = Enum.Axis.X, MULTIPLIER = 1 },
+},
+```
+
+The counterweight axis selects its movement axis; `MULTIPLIER = -1` moves it in the opposite direction. Sheaves are pulley parts named `.SHEAVE` in the supplied counterweight assembly. Enable their animation only when those parts are present and correctly arranged.
+
+Check the counterweight's full travel at the lowest and highest landings. Adjust its starting position and multiplier if it reaches an obstruction before the car completes its trip.
+
+See the [settings reference](/hera/reference/configuration#movement) for defaults and value limits.

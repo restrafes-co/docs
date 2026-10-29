@@ -1,0 +1,102 @@
+---
+title: 'Fire service'
+description: 'Set recall floors and operate Phase I and Phase II fire service.'
+icon: 'siren'
+---
+
+**Phase I** brings the car back to a recall floor and holds its doors open. **Phase II** lets an operator choose one destination at a time after recall, using held door controls.
+
+Fire service requires Hera 26.8.28 or later. These instructions follow 26.9.6. Start with an elevator that works in normal service.
+
+## Configure recall
+
+Edit `FIRE_SERVICE` in `CONFIGURATION`:
+
+```lua
+FIRE_SERVICE = {
+    ENABLED = true,
+    RECALL_FLOOR = 1,
+    ALTERNATE_RECALL_FLOOR = 2,
+    DOOR_GROUP = 1,
+},
+```
+
+| Setting | Choose |
+| --- | --- |
+| `ENABLED` | `true` to allow fire-service requests. |
+| `RECALL_FLOOR` | The normal recall landing's number. `nil` uses `MAIN.PRIMARY_FLOOR`. |
+| `ALTERNATE_RECALL_FLOOR` | A different valid landing when your controls select alternate recall. |
+| `DOOR_GROUP` | The entrance to open at recall and prefer for fire-service controls. |
+
+Both recall floors must exist in `FLOORS` when used. Fit the intended landing entrance at each. Hera can fall back to another available door group if the preferred entrance is unavailable, so check the actual entrance opened during testing.
+
+Set `MAIN.PRIMARY_FLOOR` explicitly if recall relies on it. When left unset, the main floor is chosen from the car's startup floor.
+
+## Connect the controls
+
+Use the fire-service controls supplied with your model, or have a server script send the [fire-service requests](/hera/reference/service-api#fire-service-requests). Configuration alone does not add a key switch or automatically connect a fire alarm.
+
+A custom recall control selects normal or alternate recall. The controller does not independently decide that a landing is unavailable.
+
+## Phase I recall
+
+1. Turn independent service off, if it is active.
+2. Enable Phase I on your recall control.
+3. Choose alternate recall only when that landing has been configured.
+4. Wait for the car to reach the selected recall floor.
+5. Confirm that the selected doors open and stay open.
+
+On activation, Hera stops accepting ordinary car, hall, parking, and remote calls. It clears normal calls and closes the doors for recall. Pre-opening is disabled for the recall trip.
+
+If the car is already travelling, it first slows to a landing it can reach without an abrupt reversal. It keeps the doors closed at that intermediate stop, then travels to recall. In an older build, the intermediate stopping choice may differ.
+
+A stop or out-of-service condition can block recall. If recall does not start, inspect Output and the `onFireServiceCommandRejected` event before retrying.
+
+## Phase II firefighter control
+
+Enable Phase II **On** only after Phase I recall has completed and the car is stationary. Phase I remains active while Phase II controls the car.
+
+| Key-switch position | Behavior |
+| --- | --- |
+| **On** | Allows one car destination and held door controls. |
+| **Hold** | Holds the stationary car at its landing with the selected doors open. |
+| **Off** | Returns to Phase I and recalls the car when needed. |
+
+### Make a trip
+
+1. Select **On** after recall.
+2. Select one valid destination from inside the car.
+3. Hold Door Close until the doors close fully. Release after closure.
+4. Wait for the car to stop at the destination.
+5. Hold Door Open until the doors open fully. Release after opening.
+
+Hall and ordinary remote calls remain disabled. A second different destination is rejected while the first is active. The doors remain closed at arrival until the operator opens them.
+
+### Release a control early
+
+| Action | Result |
+| --- | --- |
+| Release Door Open before full opening. | The doors close again. |
+| Release Door Close before full closure. | The doors reopen. |
+| Release after the requested movement finishes. | The completed position is retained. |
+
+For custom buttons, send a press when the operator presses and a release when they release or leave the control. One press message starts the hold; it does not need repeated press messages. See [Held controls](/hera/reference/service-api#held-controls).
+
+### Hold at a landing
+
+Change from **On** to **Hold** while the car is stationary. The selected entrance opens and stays open. Return to **On** to operate the car again, or **Off** to return to recall.
+
+## Return to normal service
+
+1. Set Phase II to **Off**.
+2. Wait for the car to return to the recall floor and complete recall.
+3. Turn Phase I off while the car is stationary at that floor.
+4. Test a normal hall and car call.
+
+Turning Phase II off does not by itself restore passenger service. Phase I remains active until it is reset. A Phase I reset before recall completes is rejected.
+
+## Check the installation
+
+Test recall with the car idle, doors open, and car travelling. Test alternate recall separately. In Phase II, test early release of both door controls and the **Hold** and **Off** positions.
+
+For exact request fields, state values, events, and rejection reasons, use the [service-control API](/hera/reference/service-api).

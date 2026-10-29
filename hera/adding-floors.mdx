@@ -1,0 +1,70 @@
+---
+title: 'Floors and door openings'
+description: 'Add floors, align landings, and set up front and rear entrances.'
+icon: 'layers'
+---
+
+Start with an elevator that already completes a ride between its supplied floors. Stop the playtest and save a copy before moving or duplicating its parts.
+
+## Add a floor
+
+1. In Explorer, open the elevator's `FLOORS` model.
+2. Duplicate a complete working floor, including `LEVEL_MAIN`, landing doors, and hall buttons.
+3. Rename the duplicate to the new floor number. For example, rename a duplicate of `2` to `3`.
+4. Move the **whole floor model** to the new landing. Keep its reference parts, doors, and buttons together.
+5. Check `LEVEL_MAIN` against the car's `.PLATFORM`: their centers must have the same Y position when the car is correctly lined up at that landing.
+6. Remove directions that do not apply. The highest floor normally needs Down; the lowest normally needs Up; an intermediate floor can have both.
+7. Add the destination button inside the car. For front group `1` with alias `F`, floor `3` uses a fixture named `F3` containing a `BUTTON` part.
+8. Add a display label and voice cue for the new floor if you use them.
+9. Restart the playtest. Ride to the new floor from above and below where possible, and call the car from its hall buttons.
+
+A floor number must match its vertical order. If `3` is above `2`, its `LEVEL_MAIN` must also be higher. Use display labels for letters or building-specific names.
+
+## Align a landing
+
+`LEVEL_MAIN` sets the stop height; the door group's `LEVEL` sets its door reference. Moving one does not reposition the other.
+
+If the car stops consistently too high or low at one floor:
+
+1. Stop the playtest.
+2. Compare that floor's `LEVEL_MAIN` height with the intended `.PLATFORM` position.
+3. Move the floor's reference and landing equipment into the correct arrangement.
+4. Restart and test that floor in both directions.
+
+Keep the supplied reference-part offsets when adapting a model. Do not align `LEVEL_MAIN` with the top surface of the cabin floor simply because that surface looks like the stopping point; Hera compares the reference parts' positions.
+
+If every floor has inconsistent stopping, check [movement settings](/hera/configuration/motion) after confirming the reference heights.
+
+## Add a rear entrance
+
+A rear entrance uses a second door group. In this example, front is group `1` and rear is group `2`.
+
+1. Add the rear assembly under `CAR/.DOORS/2`, with its own `LEVEL`, `DOORS`, door leaves, and scalers.
+2. Add its sensor parts under `CAR/.DOORSENSORS/2`.
+3. At each floor with a rear landing, add `.DOORS/2` with matching landing doors. Do not add a rear group at a floor with no rear entrance.
+4. In `MISCELLANEOUS.DOOR_GROUP_ALIASES`, keep `F = 1` and set `R = 2`.
+5. Add rear car buttons such as `R3`, `RDO`, and `RDC`.
+6. Put rear hall buttons under that floor's `.BUTTONS/R` model.
+7. Test front and rear calls separately at each floor. Check that an unavailable entrance stays closed.
+
+Rotate and place the complete rear assembly together so its reference part and leaf travel directions remain consistent.
+
+## Choose which entrances a floor serves
+
+| Floor equipment | Result |
+| --- | --- |
+| Landing group `1` only | Front entrance available. |
+| Landing group `2` only | Rear entrance available, provided the car has group `2`. |
+| Landing groups `1` and `2` | Both entrances available; calls select the required group. |
+
+Calls to different entrances at the same floor can be registered separately. If both match the stop being served, Hera can open both. Test this arrangement deliberately rather than assuming every arrival opens only one side.
+
+Set `FIRE_SERVICE.DOOR_GROUP` and `INDEPENDENT_SERVICE.DOOR_GROUP` to an entrance available at their operating floors. Hera may select another available entrance if the preferred group is missing; do not rely on that fallback for your layout.
+
+## Remove a floor
+
+Stop the playtest, remove the floor model, and remove its car buttons. Update references to that floor in main-floor, parking, recall, label, voice, group-control, and custom-script settings. Restart and test the floors on either side of the removed landing.
+
+## Move the complete elevator
+
+To relocate an unchanged installation, move its car, floors, and optional counterweight together. Recheck the building openings and sensor placement afterward. For a change in size or floor spacing, align each landing again and repeat the [test guide](/hera/testing).

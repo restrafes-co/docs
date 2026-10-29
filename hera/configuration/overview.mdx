@@ -1,39 +1,79 @@
 ---
-title: 'Configuration'
-description: 'Learn how Hera configuration is organized.'
+title: 'Configuration basics'
+description: 'Edit Hera settings and understand the examples in these guides.'
 icon: 'settings-2'
 ---
 
-Hera reads its settings from the `CONFIGURATION` ModuleScript inside the elevator model.
+Open the elevator model in Explorer and double-click its `CONFIGURATION` ModuleScript. It returns a table containing sections such as `MOVE`, `DOORS`, and `SOUNDS`.
 
-## Editing configuration
+You can use the supplied configuration without writing new code. Change the values for the behavior you want, keeping setting names unchanged.
 
-1. Make a backup of the working configuration.
-2. Change one system at a time.
-3. Keep setting names and capitalization unchanged.
-4. Restart the server after each change.
-5. Test the affected floors, doors, and fixtures before continuing.
+## Make your first change
 
-<Callout type="warning">
-  Examples in these guides show only the settings being discussed. Keep all other sections from the
-  complete configuration supplied with Hera.
-</Callout>
+To change the normal door-open time:
 
-## Sections
+1. Stop the playtest.
+2. Save a copy of the working configuration.
+3. In `CONFIGURATION`, find the `DOORS` section.
+4. Find `TIMER_LENGTH` and change its value, for example from `8` to `10`.
+5. Start a new playtest, call the car, and check its wait before closing.
 
-| Section               | Controls                                       |
-| --------------------- | ---------------------------------------------- |
-| `NAME`                | Elevator name and identifier                   |
-| `MAIN`                | Main floor                                     |
-| `FIRE_SERVICE`        | Recall floors and fire-service door group      |
-| `INDEPENDENT_SERVICE` | Independent-service availability and doors     |
-| `MOVE`                | Travel, leveling, pre-opening, counterweight   |
-| `DOORS`               | Door movement, timing, sensors, and nudging    |
-| `SOUNDS`              | Chimes, motors, alarm, and other sound effects |
-| `BUTTONS`             | Button and lamp appearance                     |
-| `API`                 | Indicators, chimes, and floor indication       |
-| `QUEUE`               | Call handling                                  |
-| `VOICE`               | Voice announcements                            |
-| `MISCELLANEOUS`       | Door aliases, parking, and passenger welding   |
+The value is in seconds. It does not change how long the panels take to move; opening and closing speeds are separate settings.
 
-Use the [configuration reference](/hera/reference/configuration) when you need the name of a particular setting. See [Fire and independent service](/hera/operation/fire-and-independent-service) for complete mode examples.
+## Read setting paths
+
+A path such as `MOVE.MOTOR_START_SETTINGS.UP_DELAY` means:
+
+```lua
+MOVE = {
+    MOTOR_START_SETTINGS = {
+        UP_DELAY = 0,
+    },
+},
+```
+
+The outer section is `MOVE`, the inner section is `MOTOR_START_SETTINGS`, and the setting is `UP_DELAY`.
+
+Your configuration may use `["UP_DELAY"] = 0;` instead. That has the same meaning as `UP_DELAY = 0,` in these examples. Keep the style already used in your file if that is easier.
+
+## Use examples without removing other settings
+
+**Examples show only the settings being explained.** Edit those entries in the matching section of your existing configuration. Do not replace the whole ModuleScript with a partial example or add a second copy of an existing section.
+
+For example, a `CUBIC_BEZIER = { ... }` example on the doors page belongs inside `DOORS`. A `CHIME = { ... }` sound example belongs inside `SOUNDS`. Each guide states the location before its example.
+
+## Values you will see
+
+| Value | Example | How to edit it |
+| --- | --- | --- |
+| Number | `TIMER_LENGTH = 8` | Use a number without quotes. Timers and delays are seconds unless stated otherwise. |
+| Boolean | `ENABLED = true` | Use `true` or `false`, without quotes. |
+| Text | `PRESET = "sample"` | Keep quotation marks around the text. |
+| Automatic/default | `PRIMARY_FLOOR = nil` | `nil` leaves the setting unset; the guide describes the fallback. |
+| Color | `Color3.fromRGB(255, 255, 255)` | Red, green, and blue values from 0 to 255. |
+| Material | `Enum.Material.Neon` | A Roblox material value; preserve its spelling. |
+| Numbered entry | `[1] = { LABEL = "L" }` | The bracketed number identifies a floor or door group. |
+
+A missing comma, quote, or closing brace can prevent the ModuleScript from loading. Read the first syntax error in Output if Hera stops starting after an edit.
+
+## Choose a section
+
+| Section | What it changes | Guide |
+| --- | --- | --- |
+| `NAME`, `MAIN` | Elevator identity and primary floor | [Settings reference](/hera/reference/configuration#identity-and-main-floor) |
+| `MOVE` | Travel, leveling, pre-opening, counterweight | [Movement](/hera/configuration/motion) |
+| `DOORS` | Panel movement, wait times, sensors, nudging | [Doors](/hera/configuration/doors) |
+| `BUTTONS` | Button lights, colors, and materials | [Buttons](/hera/configuration/buttons) |
+| `SOUNDS`, `VOICE` | Effects, chimes, and announcements | [Sound and voice](/hera/configuration/sound-and-voice) |
+| `API` | Floor labels and timing for displays and chimes | [Indicators and labels](/hera/configuration/indicators) |
+| `QUEUE` | Delay before dispatch and direction after calls | [Calls and dispatch](/hera/operation/dispatch-and-calls) |
+| `FIRE_SERVICE` | Recall floors and fire-service entrance | [Fire service](/hera/operation/fire-service) |
+| `INDEPENDENT_SERVICE` | Independent-service availability and entrance | [Independent service](/hera/operation/independent-service) |
+| `MISCELLANEOUS` | Door aliases, parking, passenger welding | [Buttons](/hera/configuration/buttons), [parking and passengers](/hera/operation/parking-and-welding) |
+| `XCS` | Optional dashboard connection | [Connect XCS](/hera/integration/xcs) |
+
+## Test a change
+
+Change one behavior at a time, restart the playtest, and repeat the affected part of the [test guide](/hera/testing). Use a short trip and a long trip when changing movement; test opening, closing, and reopening when changing doors.
+
+Some newer builds fill in omitted defaults and recognize older setting names. Keep your supplied configuration complete and use the current names on these pages when making new changes. The [settings reference](/hera/reference/configuration) includes supported older names.

@@ -85,6 +85,11 @@
             "group": "Developer APIs",
             "icon": "square-terminal",
             "pages": ["api/overview", "api/callbox"]
+          },
+          {
+            "group": "MCP",
+            "icon": "plug",
+            "pages": ["mcp/overview", "mcp/connecting", "mcp/tools"]
           }
         ]
       },
@@ -131,12 +136,20 @@
             "icon": "rocket",
             "pages": [
               "hera/overview",
-              "hera/getting-started",
-              "hera/model-structure"
+              "hera/getting-started"
             ]
           },
           {
-            "group": "Configuration",
+            "group": "Build and test",
+            "icon": "layers",
+            "pages": [
+              "hera/model-structure",
+              "hera/adding-floors",
+              "hera/testing"
+            ]
+          },
+          {
+            "group": "Customize",
             "icon": "settings-2",
             "pages": [
               "hera/configuration/overview",
@@ -153,16 +166,25 @@
             "pages": [
               "hera/operation/dispatch-and-calls",
               "hera/operation/door-operation",
-              "hera/operation/fire-and-independent-service",
               "hera/operation/parking-and-welding"
             ]
           },
           {
-            "group": "Integration",
+            "group": "Service modes",
+            "icon": "siren",
+            "pages": [
+              "hera/operation/fire-and-independent-service",
+              "hera/operation/fire-service",
+              "hera/operation/independent-service"
+            ]
+          },
+          {
+            "group": "Scripting and integrations",
             "icon": "blocks",
             "pages": [
               "hera/integration/controller-api",
-              "hera/integration/group-control-and-displays"
+              "hera/integration/group-control-and-displays",
+              "hera/integration/xcs"
             ]
           },
           {
@@ -170,6 +192,9 @@
             "icon": "book-marked",
             "pages": [
               "hera/reference/configuration",
+              "hera/reference/events",
+              "hera/reference/service-api",
+              "hera/reference/glossary",
               "hera/reference/troubleshooting"
             ]
           }

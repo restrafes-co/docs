@@ -1,0 +1,45 @@
+---
+title: 'Glossary'
+description: 'Plain-language definitions of the terms used in the Hera guides.'
+icon: 'book-open-text'
+---
+
+| Term | Meaning |
+| --- | --- |
+| API | The connection your server scripts use to send requests to Hera and receive events. Hera's local `API` object is a `BindableEvent`. |
+| Call | A request for the elevator to serve a floor and entrance. |
+| Car | The cabin that carries passengers. |
+| Car call | A destination selected inside the car. |
+| Collective operation | Serving calls along the current direction of travel, then reversing for remaining calls. |
+| Constant-pressure control | A control that must remain pressed until an action finishes. Releasing it early changes or cancels that action. |
+| Controller | The Hera code that runs the elevator. |
+| Dispatch | Choosing the next call to serve. In a group, it also means choosing which car answers a shared call. |
+| Door alias | A letter such as `F` or `R` that maps fixture names to a numeric door group. |
+| Door group | One entrance: a set of car doors and matching landing doors. Often front is `1` and rear is `2`. |
+| Door leaf | One moving panel of an entrance. |
+| Dwell time | The time doors stay open before normal closing begins. |
+| ERSA | The group controller that assigns shared hall calls to Hera elevators. |
+| Event | A message Hera sends when something happens, such as a floor change or arrival. |
+| Fire service | Recall and firefighter control, described as Phase I and Phase II. |
+| Fixture | A button, light, or other control mounted in the car or at a landing. |
+| Hall call | A request made outside the car, usually with an Up or Down button. |
+| Hall lantern | A direction light at a landing that identifies the serving car and direction. |
+| Independent service | A mode where the car operator chooses one destination at a time and hall calls are ignored. |
+| Landing | The stationary entrance at a floor, outside the car. |
+| Leveling | The final slow approach that aligns the car with a landing. |
+| Loader | The supplied script that starts the selected Hera build with your configuration. |
+| Main floor | The configured primary floor, used as the default fire-recall floor when no separate recall floor is set. |
+| ModuleScript | A Roblox script that returns a value. `CONFIGURATION` returns a table of settings. |
+| Nudging | Closing after a prolonged wait or obstruction, with a warning and a separate closing speed. Normal sensor reopening is disabled during nudging. |
+| Parking | Moving an idle car to a chosen floor with its doors closed. |
+| Phase I | Fire recall: normal calls are cleared and the car returns to its recall floor. |
+| Phase II | Firefighter control after recall, with one destination at a time and held door controls. |
+| Pre-opening | Beginning to open doors near the end of leveling, before the car has completely stopped. |
+| Queue | The calls waiting to be served. |
+| Queue direction | The direction the car is serving next; it can differ from the current travel direction. |
+| Recall floor | The landing the car returns to during Phase I fire service. |
+| Request | A message your script sends asking Hera to do something. |
+| Scaler | A door leaf's `SCALE` part; its size and the leaf's name determine opening travel distance. |
+| Welding | Attaching parts together. Passenger welding temporarily keeps a character with the moving car. |
+
+For the exact object names, see [Model structure](/hera/model-structure). For the names used in scripts, see the [controller API](/hera/integration/controller-api).

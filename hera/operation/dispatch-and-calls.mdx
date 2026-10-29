@@ -1,47 +1,66 @@
 ---
 title: 'Calls and dispatch'
-description: 'Learn how Hera answers car and hall calls.'
+description: 'Understand which calls Hera serves first and when calls remain waiting.'
 icon: 'list-ordered'
 ---
 
-Hera accepts calls from car buttons, hall buttons, and the controller API. Each call includes a floor and door group. Hall calls also include the requested direction.
+A **call** asks the elevator to serve a floor and entrance. A car button chooses a destination from inside; a hall button asks for a car travelling up or down from a landing. Server scripts can add calls through the [controller API](/hera/integration/controller-api).
 
-## How calls are served
+## Which call is served next
 
-Hera uses collective operation:
+During normal operation, Hera serves calls along its current direction, then reverses when that sweep is complete.
 
-1. The car continues serving calls in its current direction.
-2. Calls ahead of the car are served when the car can stop for them.
-3. Calls behind the car remain registered.
-4. When no calls remain in the current direction, the car reverses to serve the remaining calls.
+For example, a car travelling up from floor 1 toward floor 5 can serve an Up call at floor 3 if it still has enough distance to stop. A Down call can remain registered until the car is ready to serve downward travel. A new call behind the car does not make it reverse immediately.
 
-This is similar to the way a conventional passenger elevator answers several calls without reversing for every new request.
+| Situation | Expected behavior |
+| --- | --- |
+| A compatible call is ahead and the car can stop in time. | Hera can serve it during the current trip. |
+| A call is behind the moving car. | It stays registered for a later sweep. |
+| A call arrives too late to stop at its floor. | The car continues and serves it later. |
+| No calls remain ahead, but calls remain behind. | Hera reverses its serving direction. |
+| The car reaches a terminal floor. | Its next serving direction points back into the served floors. |
+
+**Travel direction** describes actual motion. **Queue direction** describes which direction the car is serving next. A lantern showing the next direction can therefore differ from an arrow showing current travel.
+
+## Repeated and current-floor calls
+
+Pressing an already registered button keeps its call. It does not cancel the call or create a second identical entry.
+
+In normal service, a car call for the current floor can open or reopen the selected entrance. A hall call at the current floor also depends on the serving direction. A Down call is not necessarily answered immediately by a car committed to serving Up.
+
+A call lamp can briefly flash for press feedback without remaining registered. Look for a lamp that stays lit and the resulting elevator behavior when checking a new fixture.
+
+## Front and rear calls
+
+Calls include a numeric door group. Floor 3 front and floor 3 rear are different entrances and can be requested separately.
+
+When calls for both entrances match the stop Hera is serving, the car can open both available groups. A group missing from that landing cannot be used. See [Floors and door openings](/hera/adding-floors#choose-which-entrances-a-floor-serves).
+
+## Calls needing more boarding time
+
+A server-script call with `accessibility = true` uses the extended open and nudge times configured under `DOORS` for that stop. This does not create a special physical button automatically.
+
+Set `ACCESSIBILITY_TIMER_LENGTH` and `ACCESSIBILITY_NUDGE_TIMER_LENGTH` in [Door settings](/hera/configuration/doors#time-with-the-doors-open), then test both a normal and an accessible call.
+
+## Dispatch settings
+
+| Setting | Default | Purpose |
+| --- | --- | --- |
+| `QUEUE.PROCESS_DELAY` | `1` | Seconds before dispatch processes a call. The car must still be ready and its doors closed. |
+| `QUEUE.RESET_DIRECTION_ON_FINAL_CAR_CALL` | `false` | Returns the serving direction to neutral after the last car call when enabled. |
+
+A registered call is not a guarantee of immediate movement. Open doors, a stop state, or an out-of-service condition can prevent departure.
 
 ## Calls during special service
 
-Normal collective operation stops while fire or independent service is active.
+| Service | Calls accepted |
+| --- | --- |
+| Normal | Car, hall, and permitted API calls. |
+| Phase I recall | The recall trip; ordinary calls are rejected. |
+| Phase II On | One car destination at a time. |
+| Phase II Hold | No new travel destination. |
+| Independent service | One car destination at a time under the operator's control. |
 
-- Phase I rejects normal calls and recalls the car.
-- Phase II accepts one in-car destination and rejects hall and normal remote calls.
-- Independent service accepts one in-car destination after the doors fully close and rejects hall and remote calls.
+Fire and independent service cancel the normal calls they replace. Rejected service calls produce an event your script can use for feedback; see [Service-control API](/hera/reference/service-api#rejected-requests).
 
-Rejected calls publish a fire-service or independent-service rejection event. See [Fire and independent service](/hera/operation/fire-and-independent-service) for the mode sequence and reason values.
-
-## Car and hall calls
-
-- A car call selects a destination from inside the car.
-- An up or down hall call requests travel in that direction.
-- Pressing a button for the current floor opens or reopens the selected door group.
-- Pressing an already registered button does not add a duplicate call or cancel the existing call.
-
-Front and rear openings may have separate calls at the same floor.
-
-## Accessible calls
-
-An API call may set `accessibility = true`. Hera then uses the configured accessibility door and nudge timers for that stop.
-
-## Call settings
-
-`QUEUE.PROCESS_DELAY` adds a short delay before Hera begins processing a call. `QUEUE.RESET_DIRECTION_ON_FINAL_CAR_CALL` controls whether the direction indicator returns to neutral after the final car call.
-
-Use the [controller API](/hera/integration/controller-api) to add, remove, or monitor calls from another server script.
+For ordinary cancellation from scripts, see [Remove a call](/hera/integration/controller-api#remove-a-call). Removing an active destination does not make the moving car reverse or stop between floors.

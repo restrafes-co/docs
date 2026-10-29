@@ -1,0 +1,94 @@
+---
+title: 'Connect XCS'
+description: 'Show Hera status and use remote elevator controls in XCS.'
+icon: 'shield-check'
+---
+
+The optional XCS connection reports the running car's state to the dashboard and receives remote controls. The elevator still needs its normal Hera model and configuration.
+
+Set up and test local travel first. The bridge needs a **published, running Roblox server** with a non-empty job ID, so a Studio-only playtest cannot verify this connection.
+
+## Prepare the XCS side
+
+1. Use an XCS organization and location where elevator features are available to your account.
+2. Create or select an access point of type **Elevator** at that location.
+3. Open its elevator controls and find **Hera connection**. Copy the XCS elevator ID and location ID.
+4. Use the API URL shown there. For live state reporting, obtain the organization's API key.
+5. For dashboard commands, configure the location's Roblox universe and its Roblox Cloud messaging access. [Remote unlock setup](/guides/remote-unlock-setup) explains the location messaging setup.
+
+The organization API key authenticates reports from Hera to XCS. The Roblox Cloud key configured in XCS sends messages to the experience. They serve different purposes and are not interchangeable.
+
+## Fill in Hera configuration
+
+Edit `XCS` inside `CONFIGURATION`:
+
+```lua
+XCS = {
+    ELEVATOR_ID = "your-xcs-access-point-id",
+    LOCATION_ID = "your-xcs-location-id",
+    API_URL = "https://api.restrafes.co",
+    API_KEY = "your-organization-api-key",
+    STATUS_POLLING_ENABLED = true,
+    STATUS_POLL_SECONDS = 5,
+    MESSAGING_CONTROL_ENABLED = true,
+},
+```
+
+Use the URL supplied by your dashboard if it differs from the example. It must use HTTPS. Do not add an endpoint path to the base URL.
+
+| Setting | Meaning |
+| --- | --- |
+| `ELEVATOR_ID` | The XCS **access point ID**, not the car's display name. |
+| `LOCATION_ID` | The XCS location containing that access point. |
+| `API_URL` | The XCS API's HTTPS base URL. |
+| `API_KEY` | Organization API key used for state reporting. |
+| `STATUS_POLLING_ENABLED` | Enables outgoing state reports when the URL and key are supplied. |
+| `STATUS_POLL_SECONDS` | Regular reporting interval; default 5 seconds, limited to 2–30 seconds. |
+| `MESSAGING_CONTROL_ENABLED` | Enables incoming dashboard messages. |
+
+Keep `NAME.ID` distinct for each elevator in the same server. It identifies the Hera car in reports; `XCS.ELEVATOR_ID` links it to the dashboard access point.
+
+Leave the connection IDs unset if you do not use XCS. Keep real API keys out of public model copies and client scripts, and use the supplied server loading arrangement.
+
+## Start and select the server
+
+1. Save the configuration and publish your updated place.
+2. Allow the experience's server-side HTTP requests required for reporting.
+3. Join a new running server of that experience.
+4. Open the elevator in XCS and wait for its first report.
+5. Select the reported server. If needed, enter its Roblox job ID in the dashboard's server selector.
+
+Different game servers have separate elevator state. Check the selected server before comparing dashboard status with the car you are watching.
+
+## What the dashboard receives
+
+Reports include the floor, tracked floor, travel direction, operating state, service, queued floors, available floors, and door states. XCS can use a linked Roblox account to help select the server you are in.
+
+State changes can trigger reports between the regular polls. Reports are spaced by at least two seconds and can be delayed by network failures, so the dashboard is not an instant position display.
+
+## Remote controls
+
+| Action | Hera behavior |
+| --- | --- |
+| Call a floor | Registers a normal API call using an available entrance at that floor. |
+| Open doors | Opens available doors while stationary in normal service. |
+| Close doors | Requests closure while stationary in normal service. |
+| Stop | Activates the stop state and cancels calls; it does not serve as a floor-arrival command. |
+| Resume | Releases the stop state and allows queue processing. It does not clear a movement or door fault. |
+| Inspect | Requests a state report. |
+
+Ordinary remote calls remain restricted during fire and independent service. Remote door controls also require normal service. A rejected bridge command publishes `onXCSCommandRejected` locally.
+
+A dashboard command being sent is not proof it was accepted or completed. Confirm the resulting state in XCS and observe the car during the first test.
+
+## Troubleshoot the connection
+
+| Problem | Check |
+| --- | --- |
+| No server reports the car. | Use a live server, not Studio. Check both IDs, the HTTPS API URL, the organization API key, reporting enabled, and server HTTP access. |
+| Status belongs to another car. | Check the access point ID, distinct `NAME.ID`, and selected game server. |
+| State reports work but commands fail. | Check messaging enabled, the location's universe ID and Roblox Cloud messaging key, and dashboard permissions. |
+| Commands arrive but the car does not act. | Check current service, stop state, faults, and whether the floor and entrance exist. |
+| Reports stop after a configuration edit. | Publish and join a new server, then inspect its Output for the first XCS warning. |
+
+For local controller state and events, use the [scripting reference](/hera/reference/events).

@@ -1,0 +1,85 @@
+---
+title: 'Test your elevator'
+description: 'Check every floor, door opening, button, and service control.'
+icon: 'clipboard-check'
+---
+
+Use this guide after installation, after changing floors or doors, and before opening the experience to players. Start a new playtest after editing the model or `CONFIGURATION`.
+
+Keep Output visible. If a test fails, record the floor, door group, direction, and first error message, then follow [Troubleshooting](/hera/reference/troubleshooting).
+
+## Normal travel
+
+| Test | What should happen |
+| --- | --- |
+| Call from every landing. | The matching hall button registers, the car arrives, and the correct entrance opens. |
+| Select every destination from inside. | The car stops at the matching `LEVEL_MAIN` height and clears the call lamp. |
+| Travel up and down. | Starting, slowing, and leveling work in both directions. |
+| Make an adjacent-floor trip. | The car slows in time even when it cannot reach full speed. |
+| Make the longest trip. | The car reaches its configured speed and stops cleanly. |
+| Register several calls. | The car finishes serving one direction before reversing for calls behind it. |
+| Press a registered button again. | The existing call stays registered; a second press does not cancel it. |
+| Call a second entrance at the same floor. | Only available door groups are used, including both if both calls are served together. |
+
+## Doors and sensors
+
+Test each entrance separately.
+
+1. Watch a complete open and close cycle. Car and landing panels should clear the entrance and finish moving.
+2. Press Door Open during a normal close. The doors should reverse and reopen fully.
+3. Repeat with your avatar in the sensor area. Use a player character, rather than a loose part.
+4. Leave the sensor area. The doors should wait for the configured time and try closing again.
+5. Stay in the entrance through the nudge timeout. Check the warning sound and nudge closing behavior. Sensors do not reverse a nudge close.
+6. Press Door Hold, wait longer than the normal open time, then press Door Close. The first control should hold the doors; the second should release the hold.
+7. Check pre-opening, if enabled. Only an entrance available at the destination should begin to open.
+
+Repeat a reopening test near the start, middle, and end of closing after changing door curves or speeds.
+
+## Buttons, displays, and sound
+
+| Item | Check |
+| --- | --- |
+| Car and hall buttons | Correct floor, entrance, and direction; lamps clear after service. |
+| Floor display | Correct numeric floor or custom label, including basement and lobby. |
+| Direction arrows | Travel direction or next serving direction, as intended for that display. |
+| Hall lanterns and chimes | Correct floor, entrance, direction, and arrival timing. |
+| Voice | Every enabled event and floor cue plays the intended words. |
+| Audio range | Sounds are audible in the car and near the intended landing without reaching unnecessarily far. |
+
+## Fire service
+
+If you install fire-service controls, follow [Fire service](/hera/operation/fire-service) and check:
+
+- Phase I recall from an idle car and a moving car.
+- Alternate recall, if configured.
+- Calls being rejected during recall.
+- Doors held open at the recall floor.
+- Phase II entry only after recall completes.
+- One destination at a time in Phase II.
+- Door Open and Door Close held to completion, including early release of each.
+- Phase II Off returning the car to recall, followed by Phase I reset.
+
+## Independent service
+
+If you install independent-service controls, follow [Independent service](/hera/operation/independent-service) and check:
+
+- Enabling and disabling while stopped.
+- Hall and remote calls being rejected.
+- Holding a destination button until all doors close.
+- Releasing that button early reopening the doors and cancelling departure.
+- Arrival opening and holding the correct entrance.
+- Normal operation returning after the mode is turned off.
+
+## Parking, passengers, and integrations
+
+If parking is enabled, wait for its idle time and check the parking floor. The car should park with its doors closed. A new call should take priority over waiting to park.
+
+If passenger welding is enabled, test boarding, release at arrival, jumping after release, seats, and respawning. Use Studio's multi-client test to check how the moving car and passengers look to another player.
+
+For shared hall buttons, call every served floor with each car idle and with another car busy. For custom scripts, check state at startup, arrival, cancellation, and rejected requests.
+
+The XCS bridge needs a **published, running Roblox server** for its server ID. Check dashboard status and remote controls there after the local elevator works. See [Connect XCS](/hera/integration/xcs).
+
+## Keep a known working copy
+
+Save the model and configuration after the tests pass. When an update causes a problem, compare it with that copy and repeat the affected tests before making further changes.

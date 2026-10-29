@@ -1,90 +1,181 @@
 ---
 title: 'Troubleshooting'
-description: 'Resolve common Hera setup and operation problems.'
+description: 'Find the cause of startup, travel, door, button, audio, and integration problems.'
 icon: 'wrench'
 ---
 
-Start with the first Hera warning or error in Output. Later errors may be caused by the same missing part or setting.
+Start with the **first Hera warning or error in server Output**. Later errors can be consequences of the same missing part. Stop the playtest before changing the model, then restart after the fix.
+
+If the problem began after an edit, compare that change with your last working copy before changing unrelated settings.
 
 ## Hera does not start
 
-- Confirm that the elevator contains `CONFIGURATION`, `CAR`, and `FLOORS`.
-- Confirm that `CAR` contains a `.PLATFORM` BasePart.
-- Give every floor a numeric name and a `LEVEL_MAIN` BasePart.
-- Restore the complete configuration if a section was removed.
-- Restart the server after correcting the model.
+1. Confirm the complete model is in `Workspace`, with its supplied loader and `CONFIGURATION` ModuleScript.
+2. Check for syntax errors in `CONFIGURATION`: missing commas, quotes, or braces.
+3. Confirm the model has `CAR`, `FLOORS`, and a `.PLATFORM` part inside `CAR`.
+4. Give each floor a numeric whole-number name and a `LEVEL_MAIN` part.
+5. Check every door group for `LEVEL`, `DOORS`, and leaves containing `SCALE`.
+6. Check the first loader error for a missing build, product, or authorization problem. Keep the supplied loader and contact your provider if the package is incomplete.
+
+Useful error messages:
+
+| Message contains | Fix |
+| --- | --- |
+| `Hera requires CAR and FLOORS models` | Restore those containers at the model's top level. |
+| `unable to find .PLATFORM` | Restore the car reference part inside `CAR`. |
+| `Floor names must use canonical integers` | Use names such as `1`, `0`, and `-1`, not `01` or `1.0`. |
+| `Floor numbers and LEVEL_MAIN heights must increase together` | Put floor numbers and reference heights in the same bottom-to-top order. |
+| `requires LEVEL_MAIN` | Add the missing floor reference part. |
+| `requires LEVEL` or `requires DOORS` | Restore the named part or model inside that door group. |
+| `Unable to find the SCALE part` | Restore a scaler inside the named leaf. |
+| `has an invalid value` | Check the named numeric setting against the [settings reference](/hera/reference/configuration). |
+
+See [Model structure](/hera/model-structure) for a complete tree.
 
 ## The car does not move
 
-- Confirm that the requested floor exists.
-- Confirm that every door group is fully closed.
-- Check that `MOTOR_SPEED`, acceleration, deceleration, and leveling speed are positive.
-- Check whether the call is locked or the controller is out of service.
-- Try a car call and a hall call to determine whether the issue affects one fixture or all calls.
+| Check | Why it matters |
+| --- | --- |
+| Is the requested floor and entrance present? | A call must use a valid floor and a door group available there. |
+| Are all doors fully closed? | A held, obstructed, or incomplete entrance blocks departure. |
+| Is the car stopped or out of service? | These states prevent dispatch. Inspect the first fault before trying Resume. |
+| Is fire or independent service active? | These modes reject normal hall and remote calls. |
+| Does one button fail, or do all calls fail? | One button points to naming or wiring; all calls point to startup or controller state. |
+| Are movement values valid? | Motor speed, leveling speed, acceleration, and deceleration must be positive and within limits. |
 
-## A call is rejected during special service
+Use `getStates` if you have a script connected. Check `service`, `stop`, `outOfService`, `operating`, `queue`, and the separate `doorStates`. A call can register while the car waits for its doors.
 
-- Read `states.service` through `getStates`.
-- Listen for `onFireServiceCommandRejected` and `onIndependentServiceCommandRejected`.
-- Phase I does not accept normal calls.
-- Phase II and independent service accept car calls only.
-- Independent service requires the doors to be fully closed before a car call.
-- Each controlled mode accepts one destination at a time.
-- Fire and independent service cannot be active together.
+## The car stops too high or too low
 
-See [Fire and independent service](/hera/operation/fire-and-independent-service) for every rejection reason.
+If it happens at **one floor**, check that landing's `LEVEL_MAIN`. Hera lines up the reference part positions, not the visible top surfaces of the floor and platform.
 
-## The car overshoots or levels poorly
+If it varies by direction, speed, or trip length:
 
-1. Check the height of every `LEVEL_MAIN` part.
-2. Lower `MOTOR_SPEED` while testing.
-3. Adjust the up and down deceleration values separately.
-4. Lower `LEVELING_SPEED` if the final approach is too fast.
-5. Disable pre-opening until leveling is consistent.
+1. Recheck every reference height.
+2. Disable pre-opening while testing.
+3. Lower `MOTOR_SPEED` temporarily.
+4. Tune upward and downward deceleration separately.
+5. Check that `LEVELING_SPEED` is positive and no greater than motor speed.
+6. Test adjacent floors as well as the longest trip.
 
-## Doors do not move correctly
+Follow [Movement](/hera/configuration/motion) for the tuning order.
 
-- Confirm that the car and landing use the same numeric door group.
-- Confirm that every door leaf contains a `SCALE` part.
+## Doors move the wrong way or too far
+
 - Check the leaf prefix: `DL`, `DR`, `DU`, or `DD`.
-- Check the number at the end of the leaf name, which controls travel distance.
-- Remember that a lower method 2 or 3 speed value produces a faster door cycle.
+- Check the scaler's local orientation and its width or height.
+- Check the whole-number suffix. `DR2` travels two scaler widths; it does not mean “right panel number 2.”
+- In 26.9.6, use whole-number suffixes; a name such as `DL0.5` is not indexed as an active leaf.
+- Compare the car and landing door groups and their `LEVEL` parts.
+
+For methods 2 and 3, smaller speed values mean faster movement. Speed changes do not fix the travel distance.
+
+## Doors stop partway or the elevator goes out of service
+
+Read the first door or movement failure in Output. In 26.9.6 a failed cycle can set `fault` and stop further elevator operation.
+
+Check for a missing or renamed scaler, a broken entrance hierarchy, invalid curve settings, or an error introduced by custom changes. Restore the last working assembly if needed, then restart after repair. Resuming a remote stop does not clear a broken door or movement cycle.
 
 ## Doors remain open
 
-- Check `TIMER_LENGTH` and `NUDGE_TIMER_LENGTH`.
-- Check whether a sensor is continuously obstructed.
-- Press the matching door-close button to release door hold.
-- Confirm that the sensor is under the correct door group.
-- Check whether Phase I recall, Phase II hold, or independent service is holding the doors open.
+1. Check the active service. Recall, Phase II Hold, and independent service intentionally hold doors open.
+2. Check whether Door Hold was activated. In normal service, press the matching Door Close to release it.
+3. Move all players clear of that entrance's sensors.
+4. Check the normal and reopen timers for unexpectedly long values.
+5. On a multi-entrance car, check each group's state independently.
 
-## Buttons do not register
-
-- Each fixture needs a `BUTTON` BasePart.
-- The fixture prefix must exist in `DOOR_GROUP_ALIASES`.
-- A car-call floor must match an existing numeric floor.
-- Hall buttons must use `U`, `D`, or `N`.
-- Check whether the call is already registered or locked.
+Do not reduce the nudge timeout to work around a missing door-close signal in special service. Follow that mode's control sequence.
 
 ## Sensors do not reopen the doors
 
-- Place sensors under `CAR/.DOORSENSORS/<group>`.
-- Set `DOORS.SENSOR_ENABLED` to `true`.
-- Confirm that touch detection is enabled on the sensor parts.
-- Sensors do not reopen a nudge close.
+1. Test with a player avatar, not a loose part or arbitrary NPC.
+2. Put the sensor parts under `CAR/.DOORSENSORS/<numeric group>`.
+3. Set `DOORS.SENSOR_ENABLED = true` and enable touch detection on the sensor parts.
+4. Check the sensor's actual position across the entrance.
+5. Test during normal closing before nudging starts.
+
+Normal sensor reopening does not apply to a nudge close. Special service uses its own held-control behavior. See [Door operation](/hera/operation/door-operation).
+
+## Buttons do not register or light
+
+| Symptom | Check |
+| --- | --- |
+| One car floor button fails. | Its alias, floor number, entrance availability, and direct child `BUTTON` part. |
+| A whole panel fails. | Its `.BUTTONS` prefix and position directly under `CAR` or the floor. |
+| Hall Up or Down fails. | The alias container and `U`, `D`, or `N` name. |
+| Button operates but no LED lights. | LED parts must be direct children of the fixture and begin with `LED`; otherwise the `BUTTON` itself is used. |
+| A call briefly lights then clears. | It may have been rejected, already served, or not registered; check locks and service. |
+| Pressing again does not cancel. | Expected: repeated destination presses do not cancel a registered call. |
+
+See [Buttons](/hera/configuration/buttons).
+
+## A special-service call is rejected
+
+Listen for `onFireServiceCommandRejected` or `onIndependentServiceCommandRejected`, then read `command` and `reason`.
+
+Common cases:
+
+- Phase I recall rejects ordinary calls.
+- Phase II requires completed recall and accepts one car destination at a time.
+- Independent service rejects hall and ordinary API calls.
+- In 26.9.6, use the held-floor control to select a destination with independent-service doors open.
+- Both modes reject transitions that require a stopped car when it is still moving.
+- Fire and independent service cannot be active together.
+
+The [service-control API](/hera/reference/service-api#rejected-requests) lists reasons and corrections.
+
+## Phase II doors reverse unexpectedly
+
+Door Open and Door Close must remain held until the requested movement finishes. Releasing Open early closes again; releasing Close early reopens.
+
+For a custom panel, check that the press and release use the same door group and action. Do not fire the release immediately after the press. Release when the actual operator lets go or leaves the control.
+
+## Independent service will not depart
+
+In 26.9.6, hold the **destination floor button** until every door is fully closed. Releasing before that point cancels departure and reopens the doors.
+
+A script that sends only `queueAdd` while the doors are open does not represent a held button. Use `independentServiceFloorControl`, or hold Door Close to completion before adding a car destination. See [Independent service](/hera/operation/independent-service).
+
+## Floor labels or arrows are wrong
+
+- Keep the physical floor model names numeric; set visible names in `API.FLOOR_LABELS.FLOORS`.
+- Use numeric keys, such as `[1]`, for floor entries and door-group prefixes/suffixes.
+- Read an event's display text from `message.data.label.label`, not directly from `message.data.label`.
+- Choose travel direction for a movement arrow and queue direction for a next-service arrow.
+- Get initial state when a display connects; it may have missed startup events.
+
+Older accessories can use older event names. Check their compatibility before changing the core model. See [Group control and displays](/hera/integration/group-control-and-displays).
 
 ## Sound or voice does not play
 
-- Confirm that the audio asset is permitted for the experience.
-- Check the sound's enabled setting, asset ID, volume, and maximum distance.
-- For voice, enable the event or floor cue and confirm that its words exist in the selected vocabulary.
+1. Confirm the experience is permitted to play the audio asset.
+2. Check the sound's enabled or category switch, asset ID, volume, and maximum distance.
+3. For chimes, distinguish internal playback from API accessory events and their separate timing settings.
+4. For voice, set `VOICE.ENABLED = true` and select a preset available in the build.
+5. Check exact cue tokens against that preset's vocabulary and enable the relevant event cue.
+6. With your own recording, select `user-defined` and check its asset ID and timestamps.
+
+Long voice cues can cause a later cue to be skipped while speech is already playing. Test shorter phrases without waits to narrow that down.
 
 ## An API script receives no response
 
-- Run it from a server `Script`, not a `LocalScript`.
-- Wait for the elevator's `API` object before connecting.
-- Connect the listener before firing `getStates`.
-- Match the `returnId` in the `returnStates` response.
-- Include a callback `BindableEvent` when adding an API call.
+| Check | Fix |
+| --- | --- |
+| Script runs on the client. | Use a server `Script`. The controller's BindableEvent does not cross the network. |
+| `API` exists but startup is incomplete. | Use the [startup state request](/hera/integration/controller-api#connect-and-wait-for-startup). |
+| Listener connected after the request. | Connect first, then fire. |
+| State response ignored. | Match `event = "returnStates"` and `data.returnId`. |
+| Door state appears missing. | Read `data.doorStates`, separate from `data.states`. |
+| Waiting for `Fire()` to return a result. | Use response events or callbacks; it returns no controller success value. |
+| Call has no callback. | Supply a `BindableEvent` in `data.api` if you need a completion notification. |
+| Invalid call gets no response. | Check all required fields and set a timeout; general queue validation does not always broadcast rejection. |
 
-See [Controller API](/hera/integration/controller-api) for request examples.
+`queueRemove` can report completion without physical arrival in 26.9.6. Check actual floor, stationary state, and doors for any action that depends on arrival.
+
+## XCS has no status or remote control
+
+Use the [XCS troubleshooting table](/hera/integration/xcs#troubleshoot-the-connection). Start by checking that you are in a live published server, the two connection IDs are correct, and the dashboard has selected that server.
+
+## Gather details for help
+
+Include the Hera build, the first Output error, the affected floor and entrance, the active service, and the exact steps that reproduce the problem. For model issues, include the relevant Explorer hierarchy and which parts were moved or renamed. Leave API keys out of screenshots and copied configuration.

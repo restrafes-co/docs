@@ -1,72 +1,125 @@
 ---
 title: 'Doors'
-description: 'Configure door movement, timing, sensors, and nudging.'
+description: 'Adjust door movement, open time, reopening, sensors, and nudging.'
 icon: 'panel-left-open'
 ---
 
-Hera opens the car door and the matching landing door together. Each opening is identified by a numeric door group.
+Door settings live in `DOORS`. Each opening has a numeric **door group**, with matching car and landing doors. Check its [parts and naming](/hera/model-structure#door-leaves-and-travel-distance) before tuning movement.
 
-## Door movement
+## Choose the movement method
 
-`DOORS.METHOD` selects the movement style:
+| `DOORS.METHOD` | Movement |
+| --- | --- |
+| `1` | Legacy interpolated movement. |
+| `2` | Eased movement using a built-in curve. Default. |
+| `3` | Movement using your own cubic Bezier opening and closing curves. |
 
-| Value | Movement style            |
-| ----- | ------------------------- |
-| `1`   | Simple linear movement    |
-| `2`   | Eased movement            |
-| `3`   | Custom cubic Bezier curve |
+For methods **2 and 3**, a **smaller speed value makes the doors move faster**. These values control cycle timing rather than studs per second. Do not apply that rule to method 1; retain its supplied values when using the legacy method.
 
-Car and landing doors can use separate speeds and delays:
+## Car and landing timing
+
+Edit these entries inside `DOORS`:
 
 ```lua
-DOORS = {
-    METHOD = 3,
-
-    CAR_OPEN_SPEED = 0.8,
-    FLOOR_OPEN_SPEED = 0.8,
-    CAR_CLOSE_SPEED = 1.5,
-    FLOOR_CLOSE_SPEED = 1.5,
-    CAR_CLOSE_NUDGE_SPEED = 3,
-    FLOOR_CLOSE_NUDGE_SPEED = 3,
-
-    CAR_OPEN_DELAY = 0,
-    FLOOR_OPEN_DELAY = 0,
-    CAR_CLOSE_DELAY = 0,
-    FLOOR_CLOSE_DELAY = 0,
-}
+CAR_OPEN_SPEED = 0.8,
+FLOOR_OPEN_SPEED = 0.8,
+CAR_CLOSE_SPEED = 1.5,
+FLOOR_CLOSE_SPEED = 1.5,
+CAR_CLOSE_NUDGE_SPEED = 3,
+FLOOR_CLOSE_NUDGE_SPEED = 3,
+CAR_OPEN_DELAY = 0,
+FLOOR_OPEN_DELAY = 0,
+CAR_CLOSE_DELAY = 0,
+FLOOR_CLOSE_DELAY = 0,
 ```
 
-For methods 2 and 3, a lower speed value produces a faster door cycle.
+`CAR_` changes the cabin doors. `FLOOR_` changes the landing doors. All delays are seconds. Equal values are a useful starting point when both sets should move together.
 
-## Door timers
+These settings change timing, not how far a leaf travels. Travel distance comes from the leaf's `SCALE` part and name, such as `DL1`.
 
-| Setting                            | Purpose                                   |
-| ---------------------------------- | ----------------------------------------- |
-| `TIMER_LENGTH`                     | Normal open time                          |
-| `REOPEN_TIMER_LENGTH`              | Open time after a door reopens            |
-| `ACCESSIBILITY_TIMER_LENGTH`       | Extended open time for an accessible call |
-| `NUDGE_TIMER_LENGTH`               | Time before nudge closing begins          |
-| `ACCESSIBILITY_NUDGE_TIMER_LENGTH` | Nudge time for an accessible call         |
-| `OPEN_DELAY`                       | Delay before opening on arrival           |
-| `REOPEN_DELAY`                     | Delay before reversing a closing door     |
-| `NUDGE_CLOSE_DELAY`                | Delay before the nudge close starts       |
+## Time with the doors open
 
-## Sensors and nudging
+| Setting inside `DOORS` | Default | Purpose |
+| --- | --- | --- |
+| `TIMER_LENGTH` | `8` | Normal open time before closing. |
+| `REOPEN_TIMER_LENGTH` | `nil` | Open time after reopening. `nil` uses `TIMER_LENGTH`. |
+| `ACCESSIBILITY_TIMER_LENGTH` | `20` | Extended open time for an accessible call. |
+| `NUDGE_TIMER_LENGTH` | `16` | Time allowed before nudging. |
+| `ACCESSIBILITY_NUDGE_TIMER_LENGTH` | `60` | Extended nudge timeout for an accessible call. |
 
-When `SENSOR_ENABLED` is true, an obstruction during a normal close reopens the door. If the obstruction remains until the nudge timer expires, Hera closes at the configured nudge speed and plays the nudge sound.
+All values are seconds. Fractional values are supported. Keep the accessibility times at least as long as the normal times.
 
-Place sensors under `CAR/.DOORSENSORS/<group>`. Test every sensor across the full entrance width.
+A reopening resets the normal open timer. It does not give an obstructed entrance a fresh full nudge period every time.
 
-## Custom curves
+For example, to allow 10 seconds at a normal arrival and 4 seconds after a reopen, edit inside `DOORS`:
 
-Method 3 accepts separate open and close curves:
+```lua
+TIMER_LENGTH = 10,
+REOPEN_TIMER_LENGTH = 4,
+```
+
+## Opening and reversal delays
+
+| Setting | Purpose |
+| --- | --- |
+| `OPEN_DELAY` | Wait before opening on arrival. |
+| `REOPEN_DELAY` | Wait before a closing door reverses to open. |
+| `RECLOSE_DELAY` | Wait before an opening door reverses to close. |
+| `NUDGE_CLOSE_DELAY` | Wait used before nudge closing. |
+
+These are separate from the car and landing motor delays. If a door seems slow to react, check both its general delay and its `CAR_` or `FLOOR_` delay.
+
+## Obstruction sensors
+
+Set `DOORS.SENSOR_ENABLED = true`. Put sensor parts under `CAR/.DOORSENSORS/<group>`, with touch detection enabled, across the entrance they protect.
+
+During normal operation, a player touching a sensor while the doors close causes them to reopen. Standard sensors identify **player characters**, so use an avatar to test them. Loose parts and arbitrary NPC models do not substitute for that test.
+
+`TIMER_HOLD_MODE` controls the normal open timer while a sensor is obstructed:
+
+| Value | Behavior |
+| --- | --- |
+| `1` | Pause the normal countdown while obstructed. |
+| `2` | Reset the normal countdown while obstructed. |
+
+The nudge timer can still expire. Held door controls and service modes have their own rules; see [Door operation](/hera/operation/door-operation).
+
+## Nudging
+
+After a prolonged wait, Hera uses the nudge closing speeds and the nudge warning sound. **Sensors do not reverse a nudge close.** Test the timeout with a person standing in the entrance, then move clear and check that the cycle finishes.
+
+Set the warning sound and volume under `SOUNDS.NUDGE`. For the wait before nudging, use `DOORS.NUDGE_CLOSE_DELAY`. Older sound profiles also contain `DELAY_UNTIL_CLOSE`, but that entry is not used by the 26.9.6 door timer.
+
+## Custom opening and closing curves
+
+Set `DOORS.METHOD = 3`, then edit `DOORS.CUBIC_BEZIER`:
 
 ```lua
 CUBIC_BEZIER = {
     OPEN = { PLOTTING_POINTS = {0.65, 0, 0.35, 1} },
     CLOSE = { PLOTTING_POINTS = {0.65, 0, 0.35, 1} },
     REOPEN_CURVE_CORRECTION = true,
-}
+    INTERLOCK = {
+        OPEN = { ENABLED = false, OFFSET = 0.05, DURATION = 0.12 },
+        CLOSE = { ENABLED = false, OFFSET = 0.05, DURATION = 0.12 },
+    },
+    MOTOR_PITCH_SCALE_WITH_SPEED = false,
+    MOTOR_PITCH_REFERENCE_SPEED = 0.8,
+},
 ```
 
-The four values describe the two curve control points. Adjust them in small steps and test opening, closing, and reopening from a partly closed position.
+The four plotting values are `x1, y1, x2, y2`, each between `0` and `1`. They describe how progress changes during the cycle. Start with the supplied curve and change it gradually.
+
+`REOPEN_CURVE_CORRECTION` adjusts the opening curve when reversing from a partly closed position. Test reversals early, midway, and late in closing.
+
+The optional interlock stage adds a short movement at the beginning or end of the cycle. `OFFSET` is the movement amount and `DURATION` is seconds. Keep it disabled until the main cycle works. Its sound is configured separately under `SOUNDS.DOOR_INTERLOCK.OPEN` and `.CLOSE`.
+
+`MOTOR_PITCH_SCALE_WITH_SPEED` changes method 3 motor audio with the selected cycle speed. `MOTOR_PITCH_REFERENCE_SPEED` is its reference value; it does not change panel travel.
+
+## Sensor lights
+
+Models with sensor LEDs can use `DOORS.SENSOR_SIGNALIZATION`. Its `SETTINGS` table describes appearance for `OPEN`, `CLOSED`, `OPENING`, `CLOSING`, `CLOSING_NUDGE`, and `OBSTRUCTED`. `TRANSITION_TIME` and `TRANSITION_DELAY` control their changes.
+
+Use the complete settings supplied with that entrance. Enabling sensor lights does not enable detection; `SENSOR_ENABLED` controls detection separately.
+
+After any door change, run the [door tests](/hera/testing#doors-and-sensors).

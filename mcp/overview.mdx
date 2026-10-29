@@ -1,0 +1,49 @@
+---
+title: "XCS MCP"
+description: "Connect an AI assistant to your XCS organizations with Model Context Protocol."
+icon: "plug"
+---
+
+The XCS Model Context Protocol (MCP) server lets an AI assistant inspect and manage the XCS resources your account can access. Use it to find a door, create access points, maintain schedules, review activity, or send remote unlock commands.
+
+## Who can connect
+
+You need an **active XCS Pro subscription**, plus a verified email address. Free and Plus accounts do not have MCP access. A Pro subscription belonging to an organization owner does not give every member MCP access: eligibility belongs to the connecting account.
+
+Your organization permissions still apply. Connecting an assistant does not add you to an organization, expand your resource scope, raise an organization quota, or grant platform administration rights.
+
+## What you can do
+
+| Area              | Available operations                                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Organizations     | Discover accessible organizations; inspect organization details and effective limits                                     |
+| Locations         | List, retrieve, create, update and delete                                                                                |
+| Access points     | List, retrieve, create, update and delete; configure active state, offline behavior and unlock duration; set armed state |
+| Access groups     | List, retrieve, create, update and delete group metadata and schedule links                                              |
+| Schedules         | List, retrieve, create, update and delete schedules and time slots                                                       |
+| Members and roles | Read member and identity summaries; list roles                                                                           |
+| Activity          | Read access events within your visible resources                                                                         |
+| Remote unlock     | Send commands to live Roblox servers; check delivery acknowledgements                                                    |
+
+The customer catalog contains **31 tools**: **16 read tools** and **15 write tools**. It does not currently create or modify organization memberships, identity credentials, role assignments, organization billing, API keys, or platform administration settings. Access-group membership and access-point assignments are managed in the XCS website.
+
+## Read and write access
+
+A connection with `xcs:read` can discover and call read tools. Adding `xcs:write` grants access to mutation and remote-unlock tools, subject to your existing permissions. `xcs:write` must be requested with `xcs:read`.
+
+Write access requires explicit OAuth consent. An existing read-only connection stays read-only until you reconnect and approve the additional scope. The server marks mutation tools with MCP annotations so your assistant can identify their effects. Deletions are permanent; review the target before approving them in your client.
+
+## Access and privacy
+
+XCS checks the connecting account's current entitlement on every MCP HTTP request, including requests within an existing session. Losing Pro access; expired, revoked or disabled OAuth credentials also stop access. Resource and organization permissions are checked when a tool runs.
+
+Responses contain selected operational fields. Customer tools omit card numbers, PINs, invitation tokens, Open Cloud keys, private platform notes and raw scan payloads. Your assistant receives the returned data, so connect only applications you trust.
+
+<CardGroup cols={2}>
+  <Card title="Connect an assistant" icon="plug" href="/mcp/connecting">
+    OAuth settings, scopes and a first workflow.
+  </Card>
+  <Card title="Tool reference" icon="wrench" href="/mcp/tools">
+    Every customer tool and its accepted arguments.
+  </Card>
+</CardGroup>

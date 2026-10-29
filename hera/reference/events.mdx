@@ -1,0 +1,131 @@
+---
+title: 'State and events'
+description: 'Read controller state and handle movement, door, call, and service events.'
+icon: 'radio'
+---
+
+Hera sends events through the same `API` `BindableEvent` used for requests. An event message has an `event` name and its fields in `data`. Connect before sending a request.
+
+Use `getStates` for the initial state; events describe later changes. The [controller API guide](/hera/integration/controller-api#connect-and-wait-for-startup) includes a startup example.
+
+## State response
+
+A `getStates` request returns:
+
+```lua
+{
+    event = "returnStates",
+    data = {
+        returnId = "your-request-id",
+        states = { -- controller state
+            -- floor, trueFloor, currentMoveDirection, and other fields below
+        },
+        doorStates = { -- keyed by numeric door group
+            [1] = { doorGroup = 1, state = "closed", nudge = false },
+        },
+    },
+}
+```
+
+| In `data.states` | Meaning |
+| --- | --- |
+| `ready` | Startup has completed. Requests before readiness are ignored. |
+| `floor` | Current displayed floor. It can advance ahead of physical arrival. |
+| `trueFloor` | Floor used by the controller's position tracking. It is still not a stand-alone arrival signal. |
+| `currentMoveDirection` | `1` up, `-1` down, `0` stopped. |
+| `currentQueueDirection` | Serving direction: `1` up, `-1` down, `0` neutral. |
+| `currentSpeed` | Signed internal movement value; do not label it meters per second. |
+| `operating` | The car is carrying out a movement operation. |
+| `service` | Normal or special-service name; see below. |
+| `queue` | Registered calls, including floor, direction, door group, source, and accessibility where present. |
+| `stop` | Stop state is active. |
+| `outOfService` | An out-of-service condition is active; may be absent before one is set. |
+| `riotServiceEnabled` | Calls to the primary floor are restricted. |
+| `fireService` | Fire-service state. |
+| `independentService` | Independent-service state. |
+
+`data.doorStates` is separate from `states`. Each entry contains `doorGroup`, `state`, and `nudge`. Door states include `closed`, `opening`, `open`, `closing`, reversal states such as `reopen` or `reclose`, and `fault` after a failed cycle.
+
+For a “ready to board” action, check the correct landing, a stationary car, and the required door group's `open` state. A display change alone is insufficient.
+
+## Service state
+
+| `states.service` | Mode |
+| --- | --- |
+| `normal` | Normal passenger operation. |
+| `fire_phase_1` | Phase I recall or the hold at recall. |
+| `fire_phase_2_on` | Phase II operator control. |
+| `fire_phase_2_hold` | Phase II hold. |
+| `independent` | Independent service. |
+
+Stop and out-of-service conditions are separate fields, so inspect them as well as `service` when explaining why a car cannot move.
+
+`states.fireService` includes `phaseOne`, `phaseTwo`, `recallFloor`, `targetFloor`, `recallFloorUnavailable`, and `recalled`. `phaseTwo` is `"off"`, `"on"`, or `"hold"`.
+
+`states.independentService` includes `enabled` and `targetFloor`. Additional internal fields can exist; use the published mode and control events for your panel rather than changing those tables.
+
+## Movement and calls
+
+| Event | `message.data` | Meaning |
+| --- | --- | --- |
+| `onReady` | Empty table | Startup completed. Sent once. |
+| `returnStates` | `returnId`, `states`, `doorStates` | Requested current state. |
+| `onFloorChanged` | `floor`, optional `label` | Floor indication changed. `label` is an object with `label` and `isPrimary`. |
+| `onMoveDirectionChanged` | `direction` | Travel direction changed; `0` indicates stop. |
+| `onQueueDirectionChanged` | `direction` | Serving direction changed. |
+| `onQueueChanged` | `queue` | Registered call list changed. |
+| `moveStart` | `direction` | Travel starts. |
+| `moveRun` | `direction` | The run phase starts. |
+| `moveLeveling` | `direction` | The approach/leveling phase starts. |
+| `onMovementFault` | `reason` | Movement failed. In 26.9.6 the reason is `movement_failed`. |
+
+For individual call results, the callback `BindableEvent` receives a **request** named `api-onArrival` or `api-onCancelled`, with the call in `data`. These are not broadcast arrival events. See the [callback example and its limits](/hera/integration/controller-api#receive-completion-or-cancellation).
+
+## Doors and arrival signals
+
+| Event | `message.data` | Meaning |
+| --- | --- | --- |
+| `onDoorStateChanged` | `doorGroup`, `state`, `nudge`, sometimes `availableFloors` | An entrance changed state. |
+| `onDoorFault` | `doorGroup`, `floor` | A door cycle failed. Check Output and repair the model. |
+| `indicator` | `floor`, `doorGroup`, `direction`, `event`, `type` where supplied | Landing direction-lamp command. `event` is `lit` or `unlit`. |
+| `indicatorCar` | Same signal fields | Car direction-lamp command. |
+| `chime` | `floor`, `doorGroup`, `direction` and sound information where supplied | Landing chime command. |
+| `chimeCar` | Direction and applicable floor/sound information | Car chime command. |
+
+Accessory signals vary with the configured arrival phase. Handle the fields relevant to your accessory and use the [timing settings](/hera/configuration/indicators) rather than treating every signal as a completed stop.
+
+## Fire-service events
+
+These events include the fire-service state: `phaseOne`, `phaseTwo`, `recallFloor`, `targetFloor`, `recallFloorUnavailable`, and `recalled`, except a direct rejected queue call can contain only its rejection details.
+
+| Event | Additional information or trigger |
+| --- | --- |
+| `onFireServiceChanged` | Fire state changed. |
+| `onFireServicePhaseOneChanged` | `enabled`. |
+| `onFireServiceCallsCancelled` | `count`: number of calls removed. |
+| `onFireServiceRecallStarted` | Recall trip was registered. |
+| `onFireServiceRecallComplete` | Car reached recall and doors were commanded open. |
+| `onFireServicePhaseTwoChanged` | `mode`. |
+| `onFireServicePhaseTwoCallAccepted` | `floor`, `doorGroup`. |
+| `onFireServicePhaseTwoArrival` | `floor`. |
+| `onFireServiceDoorControl` | `action`, `pressed`, `doorGroup`. |
+| `onFireServiceCommandRejected` | `command`, `reason`; a rejected queue call also includes `floor` and `source`. |
+
+## Independent-service events
+
+These include `enabled` and `targetFloor`, except a direct rejected queue call can contain only rejection details.
+
+| Event | Additional information or trigger |
+| --- | --- |
+| `onIndependentServiceChanged` | Independent state changed. |
+| `onIndependentServiceCallsCancelled` | `count`. |
+| `onIndependentServiceCallAccepted` | `floor`, `doorGroup`. |
+| `onIndependentServiceArrival` | `floor`. |
+| `onIndependentServiceDoorControl` | `action`, `pressed`, `doorGroup`. |
+| `onIndependentServiceCommandRejected` | `command`, `reason`; a rejected queue call also includes `floor` and `source`. |
+
+Use the [service-control reference](/hera/reference/service-api#rejected-requests) to interpret rejection reasons.
+
+## XCS events
+
+`onXCSCommandRejected` includes `action` and `requestId`. It means the bridge did not accept that command in the current controller state. Dashboard reporting and remote actions are described in [Connect XCS](/hera/integration/xcs).

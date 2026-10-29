@@ -1,0 +1,160 @@
+---
+title: 'Service-control API'
+description: 'Request fields, held controls, and rejection reasons for fire and independent service.'
+icon: 'siren'
+---
+
+Use these requests from server scripts connected to a ready Hera `API`. The [controller API guide](/hera/integration/controller-api) covers startup and the common message format. For the operating sequence, use [Fire service](/hera/operation/fire-service) or [Independent service](/hera/operation/independent-service).
+
+The examples assume `api` is the ready elevator's `BindableEvent`. A request uses `{ request = "name", data = { ... } }`. `Fire()` does not return success; observe state changes and rejection events.
+
+## Fire-service requests
+
+| Request | Required fields | Optional fields |
+| --- | --- | --- |
+| `fireServicePhaseOne` | `enabled`: boolean | `recallFloorUnavailable`: boolean, default `false` |
+| `fireServicePhaseTwo` | `mode`: `"on"`, `"hold"`, or `"off"` | None |
+| `fireServiceCarCall` | `floor`: valid floor number | `doorGroup`: available entrance; defaults to a suitable configured group |
+| `fireServiceDoorControl` | `action`: `"open"` or `"close"`; `pressed`: boolean | `doorGroup`: current landing entrance |
+
+### Start and reset Phase I
+
+```lua
+api:Fire({
+    request = "fireServicePhaseOne",
+    data = { enabled = true, recallFloorUnavailable = false },
+})
+```
+
+Use `recallFloorUnavailable = true` to select `FIRE_SERVICE.ALTERNATE_RECALL_FLOOR`. Your control chooses this; Hera does not detect landing availability automatically.
+
+To reset, send `enabled = false` only after the car is stationary at recall, recall is complete, and Phase II is off.
+
+### Set Phase II and choose a destination
+
+After completed recall:
+
+```lua
+api:Fire({ request = "fireServicePhaseTwo", data = { mode = "on" } })
+api:Fire({ request = "fireServiceCarCall", data = { floor = 2, doorGroup = 1 } })
+```
+
+`"hold"` is available from Phase II On or Hold while stationary. `"off"` returns to Phase I and starts recall again when needed. It does not turn Phase I off.
+
+## Independent-service requests
+
+| Request | Required fields | Optional fields |
+| --- | --- | --- |
+| `independentService` | `enabled`: boolean | None |
+| `independentServiceFloorControl` | `floor`: numeric whole number; `doorGroup`: number; `pressed`: boolean | None; requires 26.9.6 |
+| `independentServiceDoorControl` | `action`: `"open"` or `"close"`; `pressed`: boolean | `doorGroup`: current landing entrance |
+
+Enable while stationary and with fire service off:
+
+```lua
+api:Fire({ request = "independentService", data = { enabled = true } })
+```
+
+### Hold a destination button
+
+On the destination button's press, send:
+
+```lua
+api:Fire({
+    request = "independentServiceFloorControl",
+    data = { floor = 2, doorGroup = 1, pressed = true },
+})
+```
+
+On release or when the operator leaves the control, send the matching release:
+
+```lua
+api:Fire({
+    request = "independentServiceFloorControl",
+    data = { floor = 2, doorGroup = 1, pressed = false },
+})
+```
+
+A press selects one destination and closes the available entrances. Releasing before all doors are closed cancels the departure and reopens them. Releasing after closure lets the trip continue.
+
+`queueAdd` with `source = "car"` can also choose a destination after the doors are closed. It does not represent a held floor button and is rejected while doors are open unless it matches the active held-floor selection.
+
+To restore normal operation while stationary:
+
+```lua
+api:Fire({ request = "independentService", data = { enabled = false } })
+```
+
+## Held controls
+
+A held control sends **one press and one release**, not a stream of repeated press messages. Keep the same action and door group in the pair. A custom interface should also release the control when focus or the interaction ends.
+
+For Phase II Door Open:
+
+```lua
+-- Button pressed.
+api:Fire({
+    request = "fireServiceDoorControl",
+    data = { action = "open", pressed = true, doorGroup = 1 },
+})
+
+-- Button released, after however long the operator holds it.
+api:Fire({
+    request = "fireServiceDoorControl",
+    data = { action = "open", pressed = false, doorGroup = 1 },
+})
+```
+
+Do not send the two examples back to back for a real hold; connect them to the actual input's press and release.
+
+Use `action = "close"` for Door Close. Use request `independentServiceDoorControl` for the independent-service version. In Phase II, early release of Open closes again and early release of Close reopens. In independent service, early release of Close reopens.
+
+## Observe the mode
+
+`getStates` returns `states.service`, `states.fireService`, and `states.independentService`. See [State and events](/hera/reference/events#service-state) for their fields and service strings.
+
+`onFireServiceRecallComplete` means the car reached recall and Hera requested opening. Wait for `onDoorStateChanged` with `state = "open"` if your control needs fully open doors.
+
+## Rejected requests
+
+Connect before sending a command:
+
+```lua
+api.Event:Connect(function(message)
+    if message.event == "onFireServiceCommandRejected"
+        or message.event == "onIndependentServiceCommandRejected" then
+        warn(message.data.command, message.data.reason)
+    end
+end)
+```
+
+A rejection has `command` and `reason`. A rejected queue call can also include `floor` and `source`. Do not assume every malformed message produces an event: ordinary queue validation can reject before the service checks.
+
+| Reason | Meaning and next step |
+| --- | --- |
+| `disabled` | Enable the mode in configuration before using it. |
+| `fire_service_active` | Turn fire service off before enabling independent service. |
+| `independent_service_active` | Turn independent service off before starting recall. |
+| `car_operating` | Wait until the car stops before this transition. |
+| `car_not_recalled` | Wait for completed recall at the selected recall floor. |
+| `phase_one_inactive` | Start Phase I before using Phase II. |
+| `phase_two_active` | Turn Phase II off before resetting or changing Phase I recall. |
+| `phase_two_inactive` | Put Phase II in On before selecting a firefighter destination. Ordinary calls during Phase I can also use this reason. |
+| `phase_two_not_available` | The selected Phase II mode or door action is unavailable in the current state. |
+| `service_not_available` | Independent service is off or the requested control is unavailable while moving. |
+| `hall_and_remote_calls_disabled` | The mode accepts car controls only. |
+| `single_call_only` | Finish or cancel the current controlled destination before selecting another. |
+| `floor_button_not_held` | With independent doors open, use `independentServiceFloorControl` or fully close the doors first. |
+| `invalid_recall_floor` | Set a recall floor that exists in the model. |
+| `invalid_alternate_recall_floor` | Set a valid alternate floor before selecting alternate recall. |
+| `invalid_floor` | Use a destination in `FLOORS`. |
+| `invalid_door_group` | Use an entrance available at the destination. |
+| `no_recall_door_group` | Add a usable entrance at recall. |
+| `no_door_group` | Add a usable entrance at the current independent-service landing. |
+| `invalid_mode` | Use Phase II `on`, `hold`, or `off`. |
+| `invalid_command` | Check boolean fields, the door action, and availability of the selected entrance. |
+| `invalid_call` | Check the independent held-floor number and entrance. |
+| `invalid_recall_call` | An internal recall call does not match the active recall. External callers should use the recall request. |
+| `recall_blocked` | Check stop and out-of-service conditions, then the configured recall trip. |
+
+An older build can report `doors_not_closed` for an independent car call while doors are open. The held-floor workflow in 26.9.6 uses `floor_button_not_held` for that case.

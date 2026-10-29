@@ -1,44 +1,82 @@
 ---
-title: 'Indicators'
-description: 'Configure floor labels, direction lanterns, and call indicators.'
+title: 'Indicators and labels'
+description: 'Set floor labels and choose when displays, lanterns, and chimes change.'
 icon: 'panel-top'
 ---
 
-Hera publishes floor and direction changes for compatible indicators and hall lanterns.
+Hera sends floor and direction information to connected displays and lanterns. Its `API` configuration section controls labels and event timing; the accessory itself supplies the screen or light.
 
 ## Floor labels
 
-Use `API.FLOOR_LABELS` to replace numeric floor values with display text:
+Keep floor model names numeric. To display `B` for floor `-1` and `L` for floor `1`, edit `API.FLOOR_LABELS`:
 
 ```lua
-API = {
-    FLOOR_LABELS = {
-        [-1] = "B",
-        [1] = "L",
-        [2] = "2",
+FLOOR_LABELS = {
+    FLOORS = {
+        [-1] = { LABEL = "B" },
+        [1] = { LABEL = "L", PRIMARY = true },
+        [2] = { LABEL = "2" },
     },
-}
+    COMMON_PREFIX = {},
+    COMMON_SUFFIX = {},
+},
 ```
 
-The same labels can be shown on car-call fixtures that contain a `TextLabel` named `.LABEL`.
+`FLOORS` uses **numeric keys**. Each entry has `LABEL` and may have `PRIMARY` and `IGNORE_PREFIX_SUFFIX`.
 
-## Floor indication
+`PRIMARY = true` marks the label for accessories that support that appearance. It does not set the operational main floor; use `MAIN.PRIMARY_FLOOR` for that.
 
-`API.FLOOR.FLOOR_CHANGE_TIME` controls when the displayed floor changes during travel. Select the behavior that best matches the indicator style used in your model, then test it on both short and long trips.
+A car-call fixture with a `TextLabel` named `.LABEL` can show the configured label. A custom display receives a label object in `message.data.label`, with `label` for the text and `isPrimary` for the marker. If no label is configured, the label object can be absent; display the numeric floor instead.
 
-`FLOOR_CHANGE_ON_ACCELERATION` controls whether the display may change while the car is accelerating.
+### Prefixes and suffixes by entrance
 
-## Hall lantern timing
+`COMMON_PREFIX` and `COMMON_SUFFIX` use **door-group numbers**, not floor numbers. For example:
 
-The `API.INDICATOR` settings control when car and landing direction lamps turn on and off:
+```lua
+COMMON_PREFIX = { [1] = "" },
+COMMON_SUFFIX = { [1] = "", [2] = "R" },
+```
 
-| Setting            | Controls                           |
-| ------------------ | ---------------------------------- |
-| `FLOOR_LIT_TIME`   | When a landing indicator turns on  |
-| `FLOOR_UNLIT_TIME` | When a landing indicator turns off |
-| `CAR_LIT_TIME`     | When a car indicator turns on      |
-| `CAR_UNLIT_TIME`   | When a car indicator turns off     |
+With these suffixes, floor 2 can display `2` for group `1` and `2R` for group `2`. A floor entry with `IGNORE_PREFIX_SUFFIX = true` uses its label alone.
 
-The matching `API.CHIME` settings control car and landing chime timing. Keep lantern and chime timing together so passengers receive a clear arrival signal.
+## When the floor display changes
 
-See [Group control and displays](/hera/integration/group-control-and-displays) for connecting compatible accessories.
+`API.FLOOR.FLOOR_CHANGE_TIME` selects the floor-indication behavior. The default is `2`. In 26.9.6, values `1` and `2` use the normal approaching-floor display path; `3` displays the next landing at which the car can stop at its current speed.
+
+For mode `3`, `FLOOR_CHANGE_ON_ACCELERATION` determines whether indication can advance during acceleration. Set it to `false` to wait until acceleration ends.
+
+The displayed floor can lead the car's physical position. Use `states.trueFloor` together with movement and door state for control logic, rather than treating a display change as proof of arrival.
+
+## When lanterns turn on
+
+Edit `API.INDICATOR.FLOOR_LIT_TIME` for landing lanterns and `CAR_LIT_TIME` for car direction lights:
+
+| Value | Turn on |
+| --- | --- |
+| `1` | During leveling, before doors begin opening. |
+| `2` | When doors begin opening. |
+| `3` | After doors finish opening. |
+| `4` | During leveling after a trip; when opening for a same-floor call. |
+
+The defaults are `FLOOR_LIT_TIME = 4` and `CAR_LIT_TIME = 2`.
+
+## When lanterns turn off
+
+Edit `API.INDICATOR.FLOOR_UNLIT_TIME` and `CAR_UNLIT_TIME`:
+
+| Value | Turn off |
+| --- | --- |
+| `1` | When closing begins. |
+| `2` | After closing finishes. Default. |
+
+## Match chimes to lanterns
+
+`API.CHIME.FLOOR_CHIME_TIME` and `CAR_CHIME_TIME` use the same `1`–`4` choices as lantern turn-on timing. These settings determine when Hera sends chime events to accessories.
+
+For Hera's own audio, set the separate `SOUNDS.CHIME.FLOOR_CHIME_TIME` and `CAR_CHIME_TIME` values. Changing the API event timing alone does not change every internal sound.
+
+For example, to signal both the landing lantern and the external landing chime when opening starts, set both `API.INDICATOR.FLOOR_LIT_TIME` and `API.CHIME.FLOOR_CHIME_TIME` to `2`.
+
+## Connect and test a display
+
+See [Group control and displays](/hera/integration/group-control-and-displays) for accessory setup and a custom floor-display example. Test labels, direction, and timing while travelling both ways and when reopening at the same floor.

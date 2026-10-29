@@ -1,0 +1,76 @@
+---
+title: 'Independent service'
+description: 'Put the car under operator control and make one trip at a time.'
+icon: 'user-round-cog'
+---
+
+Independent service ignores hall and remote calls so an operator inside the car can choose its trips. It clears existing calls when enabled and holds the doors open at arrival.
+
+These instructions describe the floor-button hold controls in **Hera 26.9.6**. Independent service first appeared in 26.8.28; that build used the separate Door Close sequence described below.
+
+## Configure the mode
+
+Edit `INDEPENDENT_SERVICE` in `CONFIGURATION`:
+
+```lua
+INDEPENDENT_SERVICE = {
+    ENABLED = true,
+    DOOR_GROUP = 1,
+},
+```
+
+Choose the entrance the mode should normally hold open. It must be available at the operating landing. Hera can choose another available group when the preferred one is missing, so test every floor that uses a different entrance.
+
+Use the key switch supplied with your model, or connect your own server control with the [service-control API](/hera/reference/service-api#independent-service-requests). Setting `ENABLED = true` allows the mode; it does not switch the elevator into it at startup.
+
+## Turn independent service on
+
+1. Stop the car at a landing.
+2. Make sure fire service is off.
+3. Enable independent service with the operator control.
+4. Confirm that existing calls clear and the configured entrance opens and stays open.
+
+Trying to enable or disable the mode while the car is moving is rejected. Fire and independent service cannot run together.
+
+## Make a trip in 26.9.6
+
+1. Press and **hold the destination floor button** inside the car.
+2. Keep holding while the doors close. All available car entrances must finish closing.
+3. Once the doors are fully closed and the trip begins, release the floor button.
+4. Wait for arrival. The destination entrance opens automatically and stays open.
+5. Hold the next destination button to make another trip.
+
+Only one different destination can be active at a time. Pressing a hall button or sending an ordinary remote call does not take over the car.
+
+### Release the floor button early
+
+If you release the destination before full closure, Hera cancels the pending departure and reopens the doors. Press and hold the destination again to try closing and departing.
+
+Door Open can also cancel a pending floor-button departure and reopen the entrance. Test early release at several points during closing, especially on a car with two entrances.
+
+### Use a separate Door Close control
+
+The mode also supports holding Door Close until the doors fully close, then selecting a destination. Releasing Door Close early reopens the doors.
+
+This is the workflow documented for 26.8.28. For a new 26.9.6 custom panel, use `independentServiceFloorControl` to match the physical destination-button hold behavior.
+
+## Turn independent service off
+
+1. Wait until the car is stationary at a landing.
+2. Turn the independent-service control off.
+3. Confirm that normal car and hall calls work again.
+
+Calls cancelled when the mode started are not restored. Passengers must register their destinations again.
+
+## If a trip does not start
+
+| Symptom | Check |
+| --- | --- |
+| The mode will not enable. | The car must be stopped, fire service off, and the configured mode enabled. |
+| A hall or remote call is ignored. | This is expected while independent service is active. |
+| Doors reopen during closure. | Keep the destination or Door Close held until closure finishes. |
+| Another floor is rejected. | Complete or cancel the active destination first. |
+| A scripted car call is rejected with doors open. | Use the held-floor request rather than an ordinary `queueAdd`. |
+| One entrance remains open. | Check that entrance's hold state, controls, and door operation. All doors must close before departure. |
+
+For a custom panel, listen for `onIndependentServiceCommandRejected` and show the relevant reason to its operator. Exact messages and examples are in the [service-control API](/hera/reference/service-api).

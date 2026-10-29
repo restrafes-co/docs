@@ -1,54 +1,93 @@
 ---
-title: 'Buttons and fixtures'
-description: 'Set up car buttons, hall buttons, door controls, and lamps.'
+title: 'Buttons'
+description: 'Name car and hall buttons, map entrances, and change button lights.'
 icon: 'circle-dot'
 ---
 
-Each fixture model needs a `BUTTON` part. If the fixture contains parts whose names begin with `LED`, Hera uses those parts as its lamp; otherwise it changes the appearance of `BUTTON`.
+Hera uses fixture names to decide which floor, entrance, or door control a button operates. Every fixture model needs a direct child `BUTTON` part.
 
-## Door aliases
+## Map front and rear entrances
 
-Aliases make fixture names easy to read:
+Edit `MISCELLANEOUS.DOOR_GROUP_ALIASES`:
 
 ```lua
-MISCELLANEOUS = {
-    DOOR_GROUP_ALIASES = {
-        F = 1, -- front
-        R = 2, -- rear
-    },
-}
+DOOR_GROUP_ALIASES = {
+    F = 1,
+    R = 2,
+},
 ```
 
-Each alias must point to a different door group.
+This maps `F` to door group `1` and `R` to group `2`. Each alias must point to a different group. Keep the alias consistent across car buttons, hall buttons, and accessories.
+
+The model must contain the corresponding numeric door group. An alias does not create an entrance.
 
 ## Car buttons
 
-Place car fixtures under a model whose name begins with `.BUTTONS`.
+Place a panel model directly under `CAR`. Its name must begin with `.BUTTONS`. Place the fixture models inside it.
 
-| Name    | Function                               |
-| ------- | -------------------------------------- |
-| `F5`    | Call floor 5 and use the front opening |
-| `R2`    | Call floor 2 and use the rear opening  |
-| `FDO`   | Open the front doors                   |
-| `FDC`   | Close the front doors                  |
-| `FDH`   | Hold the front doors open              |
-| `ALARM` | Sound the alarm while pressed          |
+| Fixture name | Function with the aliases above |
+| --- | --- |
+| `F1` | Call floor 1 using the front entrance. |
+| `F-1` | Call floor -1 using the front entrance. |
+| `R2` | Call floor 2 using the rear entrance. |
+| `FDO` / `RDO` | Door Open for that entrance. |
+| `FDC` / `RDC` | Door Close for that entrance. |
+| `FDH` / `RDH` | Door Hold for that entrance. |
+| `ALARM` | Sound the alarm while held. |
 
-Pressing an already registered floor button does not cancel the call. Pressing the current floor opens or reopens the selected door group.
+A front floor-2 button can look like this:
+
+```text
+CAR
+└── .BUTTONS
+    └── F2
+        ├── BUTTON (BasePart)
+        ├── LED (optional BasePart)
+        └── SurfaceGui (optional)
+            └── .LABEL (TextLabel, optional)
+```
+
+A floor button's number must exist in `FLOORS`, and its entrance must exist at that floor. Display labels do not change the button name: the button for a lobby numbered `1` stays `F1` even when its visible label is `L`.
+
+Pressing an already registered destination does not cancel it. In normal service, pressing the current floor can open or reopen the selected entrance. See [Calls and dispatch](/hera/operation/dispatch-and-calls).
 
 ## Hall buttons
 
-At each floor, place hall fixtures under `.BUTTONS`. Add a model for the alias, such as `F`, then add:
+A hall panel belongs inside the landing's floor model. Under its `.BUTTONS` panel, add a model named for the entrance alias, then its direction fixtures:
 
-- `U` for an up call
-- `D` for a down call
-- `N` for a call without a preferred direction
+```text
+FLOORS
+└── 2
+    └── .BUTTONS
+        └── F
+            ├── U
+            │   └── BUTTON
+            └── D
+                └── BUTTON
+```
 
-Terminal floors normally need only the direction that leaves the terminal.
+| Name | Request |
+| --- | --- |
+| `U` | Travel up from this floor. |
+| `D` | Travel down from this floor. |
+| `N` | Call without a preferred direction. |
 
-## Lamp appearance
+The lowest landing normally needs Up and the highest needs Down. Use both at intermediate landings. For a rear panel, put the direction fixtures inside `R` instead of `F`.
 
-The `BUTTONS` section contains separate settings for car calls, hall calls, door controls, and the alarm. Each section can define an `UNLIT` and `LIT` color, material, and texture.
+## Button lights
+
+Optional direct child parts whose names begin with `LED`, such as `LED` or `LED_Ring`, light together. If the fixture has no LED parts, Hera changes the appearance of `BUTTON`.
+
+The `BUTTONS` configuration has four categories:
+
+| Category | Fixtures |
+| --- | --- |
+| `CAR` | Car floor buttons. |
+| `HALL` | Landing call buttons. |
+| `DOOR_CONTROL` | Door Open, Close, and Hold. |
+| `ALARM` | Alarm button. |
+
+For example, edit the existing `BUTTONS.CAR` entries to change car-call lights:
 
 ```lua
 CAR = {
@@ -62,7 +101,21 @@ CAR = {
         COLOR = Color3.fromRGB(236, 240, 255),
         MATERIAL = Enum.Material.Neon,
     },
-}
+},
 ```
 
-Car and hall call lamps remain lit while their calls are registered. Door controls may also remain lit while their door is moving.
+`TRANSITION_DURATION` is the color-change time in seconds; when omitted, Hera uses `0.1`. `LIT_ON_CLICK_DURATION` controls brief press feedback when a call does not remain registered. Registered call lamps stay lit until the call is served or removed.
+
+A `TEXTURE` value in `LIT` or `UNLIT` changes a `Decal` or `Texture` named `.BUTTON` or `.TEXTURE` directly inside the illuminated part. Keep the supplied texture structure when changing this feature.
+
+`LIT_ON_DOOR_MOVE` keeps door-control lights active during movement. Older configuration files also contain `LIT_ON_CLICK`, `LIT_ON_HOLD`, and `LIT_ON_HALL_LOCK`; these switches are retained but do not change the current 26.9.6 input lighting. See [Settings reference](/hera/reference/configuration#button-lights).
+
+## Labels and sound
+
+To put `L`, `B`, or another label on a car button, configure [floor labels](/hera/configuration/indicators#floor-labels) and include a `TextLabel` named `.LABEL` in that fixture.
+
+Button press sounds are controlled separately by `SOUNDS.ON_BUTTON_PRESS`. Separate rejection sounds are available for locked car and hall calls. See [Sound and voice](/hera/configuration/sound-and-voice).
+
+## Check your panel
+
+Test every floor and direction, watch the lamp after arrival, and try a current-floor call. If nothing happens, first check the `BUTTON` part, fixture name, alias, and served entrance. Special service changes what the controls do; see [Fire service](/hera/operation/fire-service) and [Independent service](/hera/operation/independent-service).

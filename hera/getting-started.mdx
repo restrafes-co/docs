@@ -1,47 +1,77 @@
 ---
 title: 'Getting started'
-description: 'Set up a supplied Hera model and complete a first test run.'
+description: 'Place your Hera model in Studio and complete your first ride.'
 icon: 'rocket'
 ---
 
-This guide assumes your Hera provider supplied a complete elevator model. It should include the elevator assembly, a `CONFIGURATION` ModuleScript, and the Hera loader.
+This guide gets a complete, supplied Hera elevator running before you change its appearance or settings. You need Roblox Studio, an editable place, and the elevator model with its loader and configuration included.
 
-## Set up the model
+The **car** is the cabin you ride in. A **landing** is an entrance outside the car at a floor. A **call** is a request for the elevator to stop somewhere.
 
-1. Place the complete elevator model in `Workspace`.
-2. Keep `CONFIGURATION`, `CAR`, and `FLOORS` inside the elevator model.
-3. Check that each floor has a numeric name and a `LEVEL_MAIN` part.
-4. Check that the car has a `.PLATFORM` part.
-5. Make sure each car door group has a matching door group at every floor it serves.
-6. Run the experience and watch Output for any errors.
+## 1. Place the complete model
 
-<Callout type="warning">
-  Make a backup before changing the model or configuration. Missing parts and incorrect names can
-  prevent Hera from starting.
-</Callout>
+1. Open your place in Roblox Studio and save a copy before making changes.
+2. Insert the complete elevator model into `Workspace`.
+3. Open **Explorer** and expand the elevator model. Find `CONFIGURATION`, `CAR`, and `FLOORS`, and keep the supplied loader with the model.
+4. Keep the elevator in its supplied arrangement for the first test. Do not move the car, landing doors, or reference parts individually yet.
 
-See [Model structure](/hera/model-structure) for the expected names and hierarchy.
+`CONFIGURATION` is a **ModuleScript**, a script that returns the elevator's settings. `CAR` contains the moving cabin. `FLOORS` contains a separate model for each landing.
 
-## First test
+The loader uses the configuration supplied with it to start Hera. If your copy is missing the loader or configuration, obtain the complete model from your provider before continuing.
 
-Before changing detailed settings:
+## 2. Check the required parts
 
-1. Press a car button for another floor.
-2. Confirm that the button lights and the doors close.
-3. Confirm that the car starts, slows, levels at the floor, and stops.
-4. Confirm that the car and landing doors open together.
-5. Place an object in the door sensor while the doors close and confirm that they reopen.
-6. Test the up and down hall buttons.
-7. Repeat the test for every floor and door opening.
+Use Explorer to check the following. Names beginning with a dot include that dot.
 
-If the car does not start or stop correctly, check [Troubleshooting](/hera/reference/troubleshooting) before changing several settings at once.
+| Location | What to check |
+| --- | --- |
+| `CAR/.PLATFORM` | A part that Hera uses as the car's movement reference. |
+| `FLOORS/1`, `FLOORS/2`, and so on | Floor models named with numbers, in increasing order from bottom to top. |
+| Each floor's `LEVEL_MAIN` | A part marking the height where the car's `.PLATFORM` should stop. |
+| `CAR/.DOORS/1` | A door group containing `LEVEL` and a `DOORS` model. |
+| Each served floor's `.DOORS/1` | The matching landing door group, also containing `LEVEL` and `DOORS`. |
+| Each moving door leaf | A model such as `DL1` or `DR1`, containing a `SCALE` part. |
 
-## Continue setup
+For now, compare the model with this list rather than rebuilding it. The complete hierarchy and an explanation of each part are in [Model structure](/hera/model-structure).
 
-Configure one system at a time:
+## 3. Start a playtest
 
-- [Motion](/hera/configuration/motion)
-- [Doors](/hera/configuration/doors)
-- [Buttons and fixtures](/hera/configuration/buttons)
-- [Sound and voice](/hera/configuration/sound-and-voice)
-- [Indicators](/hera/configuration/indicators)
+1. Open Studio's **Output** window so you can see script messages.
+2. Start a playtest that inserts your avatar. Walk to the elevator.
+3. Allow the loader to finish starting. If an error appears, read the first Hera error and use [Troubleshooting](/hera/reference/troubleshooting).
+4. Press the hall button to bring the car to your floor if needed.
+
+Hera creates an `API` object inside the elevator model as it starts. Its presence alone does not mean startup has finished. A failed startup should be fixed before changing motion or door settings.
+
+See Roblox's [Studio testing guide](https://create.roblox.com/docs/studio/testing-modes) for the playtest controls.
+
+## 4. Take a first ride
+
+Choose a destination that exists in `FLOORS` and has a working door opening.
+
+| Action | Expected result |
+| --- | --- |
+| Enter the car and press another floor's button. | The call registers and its button stays lit. |
+| Wait for the doors to close. | Both the car doors and landing doors close fully. |
+| Ride to the destination. | The car starts, slows down, lines up with the landing, and stops. |
+| Wait at arrival. | Only the doors serving that floor open. The call lamp clears. |
+| Travel back. | The elevator also stops and opens correctly in the other direction. |
+
+If something fails, stop the playtest and fix that step before continuing. Changing several settings at once makes the cause harder to find.
+
+## 5. Check door reopening
+
+During a **normal** closing cycle, walk your avatar into the sensor area. The doors should reopen. Move clear and allow them to close again.
+
+Hera's standard sensors detect player characters. A loose part placed in the entrance is not a valid sensor test. If a person stays in the entrance long enough, the nudge timer eventually starts a warning and closes the doors without normal sensor reopening. See [Door operation](/hera/operation/door-operation).
+
+## Fit the elevator to your building
+
+After the supplied model passes its first ride:
+
+1. [Add or move floors and door openings](/hera/adding-floors).
+2. [Edit configuration](/hera/configuration/overview) to set your main floor, movement, doors, lights, and sounds.
+3. [Test every floor and entrance](/hera/testing).
+4. Add service controls, shared hall buttons, or other integrations after the single elevator works.
+
+Stop the playtest before saving model or configuration changes. Edits made only during a playtest are normally reset when you stop it.

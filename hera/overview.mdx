@@ -1,31 +1,53 @@
 ---
 title: 'Introduction'
-description: 'Learn what Hera does and where to begin.'
+description: 'Install, customize, and connect a Hera elevator.'
 icon: 'building-2'
 ---
 
-Hera is an elevator controller developed by Restrafes & Co.
+Hera runs the elevator in your Roblox experience. It moves the car between floors, opens the doors, answers calls, and operates the buttons, lights, sounds, and announcements.
 
-It controls the movement, doors, buttons, indicators, sounds, and call handling of an elevator in a Roblox experience. Hera supports multiple floors and door openings, car and hall calls, door sensors, nudging, parking, fire service, independent service, voice announcements, and external integrations.
+Start with the complete elevator model supplied with Hera. You can get it running without writing a script. Scripting is only needed for custom controls and integrations.
+
+## Set up your first elevator
+
+Follow these pages in order:
+
+1. [Getting started](/hera/getting-started): place the model and take a first ride.
+2. [Model structure](/hera/model-structure): find the parts Hera uses and understand their names.
+3. [Floors and door openings](/hera/adding-floors): fit the elevator to your building.
+4. [Test your elevator](/hera/testing): check every floor, entrance, and control.
+
+If a term is unfamiliar, look it up in the [glossary](/hera/reference/glossary). For a problem with an existing elevator, start with [Troubleshooting](/hera/reference/troubleshooting).
+
+## Customize a working elevator
 
 <CardGroup cols={2}>
-  <Card title="Getting started" icon="rocket" href="/hera/getting-started">
-    Install a Hera model and complete a first test run.
+  <Card title="Movement" icon="move-vertical" href="/hera/configuration/motion">
+    Change travel speed, acceleration, stopping, and leveling.
   </Card>
-  <Card title="Configuration" icon="settings-2" href="/hera/configuration/overview">
-    Adjust motion, doors, fixtures, sound, and indicators.
+  <Card title="Doors" icon="panel-left-open" href="/hera/configuration/doors">
+    Change opening and closing, wait times, and obstruction sensors.
   </Card>
-  <Card title="Operation" icon="between-vertical-start" href="/hera/operation/dispatch-and-calls">
-    Learn how calls, doors, service modes, and parking behave.
+  <Card title="Buttons" icon="circle-dot" href="/hera/configuration/buttons">
+    Set up floor buttons, front and rear entrances, and button lights.
   </Card>
-  <Card title="Controller API" icon="blocks" href="/hera/integration/controller-api">
-    Connect server scripts and compatible accessories to Hera.
+  <Card title="Sound and displays" icon="volume-2" href="/hera/configuration/sound-and-voice">
+    Add arrival chimes, voice announcements, and floor labels.
   </Card>
 </CardGroup>
 
-## Where to begin
+[Configuration basics](/hera/configuration/overview) explains how to edit settings. The [settings reference](/hera/reference/configuration) lists their names, defaults, and accepted values.
 
-1. Follow [Getting started](/hera/getting-started).
-2. Check the required [model structure](/hera/model-structure).
-3. Configure [motion](/hera/configuration/motion) and [doors](/hera/configuration/doors).
-4. Test every floor, door opening, button, and sensor before adding integrations.
+## Learn the controls
+
+[Calls and dispatch](/hera/operation/dispatch-and-calls) explains which calls the elevator answers first. [Door operation](/hera/operation/door-operation) covers opening, holding, reopening, and nudging.
+
+Use [Fire service](/hera/operation/fire-service) for recall and firefighter operation, or [Independent service](/hera/operation/independent-service) to put one person in control of the car. [Parking and passenger movement](/hera/operation/parking-and-welding) covers the idle parking floor and keeping passengers with the moving car.
+
+## Connect other systems
+
+Use the [controller API](/hera/integration/controller-api) for your own server scripts, [group control and displays](/hera/integration/group-control-and-displays) for shared hall buttons and accessories, or [XCS](/hera/integration/xcs) for dashboard status and remote controls.
+
+## Version used in these guides
+
+Examples and defaults follow Hera **26.9.6**. Fire and independent service were added in **26.8.28**; the independent-service floor-button hold workflow described here is in **26.9.6**. An older model or loader may select a different build. Check the build supplied with your elevator before using a newer feature, and keep its original loader and configuration when updating.
