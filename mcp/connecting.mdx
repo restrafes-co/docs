@@ -1,77 +1,23 @@
 ---
 title: "Connect an assistant"
-description: "Authenticate an MCP client with your XCS account."
+description: "Add XCS to your AI assistant."
 icon: "plug"
 ---
 
-## Before you start
+1. Open your assistant's settings and add an MCP connection.
+2. Enter this server URL:
 
-Use a verified, active XCS Pro account. Your MCP client must support **Streamable HTTP**, **OAuth authorization-code flow**, and **S256 PKCE**.
+   ```text
+   https://api.restrafes.co/api/xcs/mcp
+   ```
 
-XCS uses registered public OAuth clients. Automatic dynamic client registration is disabled. Obtain a registered client ID for your application's exact callback URI from XCS support before connecting. The client ID is public; there is no client secret.
+3. Sign in to your XCS account.
+4. Review the requested access and approve the connection.
 
-## Connection settings
+If your assistant asks for an OAuth client ID, request one from XCS support.
 
-| Setting                       | Value                                                                            |
-| ----------------------------- | -------------------------------------------------------------------------------- |
-| MCP server URL                | `https://api.restrafes.co/api/internal/mcp`                                      |
-| Transport                     | Streamable HTTP                                                                  |
-| Authorization server          | `https://api.restrafes.co/api/mcp-oauth`                                         |
-| Authorization URL             | `https://api.restrafes.co/api/mcp-oauth/oauth2/authorize`                        |
-| Token URL                     | `https://api.restrafes.co/api/mcp-oauth/oauth2/token`                            |
-| Protected-resource metadata   | `https://api.restrafes.co/.well-known/oauth-protected-resource/api/internal/mcp` |
-| OAuth resource                | `https://api.restrafes.co/api/internal/mcp`                                      |
-| Token endpoint authentication | `none`                                                                           |
-| PKCE challenge method         | `S256`                                                                           |
+Once connected, try asking:
 
-The server URL retains its historical `/internal/mcp` path. Your OAuth scopes select the customer catalog.
+> List my organizations and show the access points in the Lobby location.
 
-Request one of these scope sets:
-
-| Access          | Scopes                              |
-| --------------- | ----------------------------------- |
-| Read only       | `xcs:read offline_access`           |
-| Read and manage | `xcs:read xcs:write offline_access` |
-
-`offline_access` lets the client renew short-lived access without asking you to sign in for every request. Omit it if your client does not need refresh access. Your registered client must allow every scope you request. Customer connections should not request the separate `xcs:support` scope.
-
-## Sign in and approve
-
-1. Add the MCP URL and registered client ID in your assistant's connection settings.
-2. Start the OAuth connection. Sign in to XCS when prompted.
-3. Review the application's name and requested access on the XCS consent page.
-4. Approve the connection and return to your assistant.
-5. Ask the assistant to list your XCS organizations.
-
-Access tokens last **five minutes**. A connection that can refresh expires no later than **90 days** after its separate XCS connection session started. Reconnect after that deadline. Signing out of the website does not disconnect an existing OAuth connection; revoke the connection or its refresh token to stop automatic access.
-
-## First workflow
-
-For example, ask your assistant:
-
-> List my XCS organizations, then show the access points in the location called Lobby.
-
-The assistant can call `my_organizations`, `my_locations` and `my_access_points`, using the IDs returned by earlier calls. List tools accept `limit` and `offset`; the default page contains up to 50 results, and the maximum page size is 100. Request the next page until a page contains fewer than `limit` results.
-
-With write access, you can ask:
-
-> Create a regular access point called North Entrance in the Lobby location.
-
-The `create_access_point` call takes the location ID and name. XCS checks your manage-access-points permission, the location's organization, duplicate names and the organization's quota before creating it.
-
-## Remote unlock
-
-Configure [remote unlock](/guides/remote-unlock-setup) before asking an assistant to unlock a door. An unlock command targets `universe`, `player`, or `linked` scope. Player scope requires a Roblox user ID or username; linked scope uses the Roblox accounts linked to your XCS account.
-
-A successful response means XCS sent the command. It does not confirm that a physical or in-game door opened. Player and linked commands return a request ID for delivery acknowledgement. Poll `get_remote_unlock_status` promptly: its record expires after 15 seconds. Universe commands do not provide delivery pollback.
-
-## Connection problems
-
-| Result                  | What to check                                                                                                                                     |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `401 Unauthorized`      | Reconnect if the access token expired, was revoked or failed resource validation. Your client should refresh a valid refresh grant automatically. |
-| `403 Forbidden`         | Check your own Pro eligibility, account state, requested scopes and organization permissions.                                                     |
-| A write tool is missing | Your connection has read-only access. Confirm the registered client allows `xcs:write`, then reconnect and approve it.                            |
-| `404 Session not found` | Initialize a new MCP session after changing the account, client or granted read/write scope.                                                      |
-| Invalid tool arguments  | Use the exact input schema from `tools/list`. Unknown fields are rejected.                                                                        |
-| Quota exceeded          | Check `my_organization_limits`. The connecting account's subscription does not replace the organization's effective limits.                       |
+Your assistant discovers the [available tools](/mcp/tools) automatically. To use remote unlock, first complete [Remote Unlock Setup](/guides/remote-unlock-setup).

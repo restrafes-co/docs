@@ -1,399 +1,73 @@
 ---
-title: "Customer tool reference"
-description: "All 31 XCS customer MCP tools, their permissions and input arguments."
+title: "Tools"
+description: "What your AI assistant can do with XCS."
 icon: "wrench"
 ---
 
-The server exposes tools according to your connection's OAuth scopes. Read tools require `xcs:read`. Write tools require **both** `xcs:read` and `xcs:write`. All calls also require current Pro eligibility and the applicable organization permissions.
+Your assistant discovers these 31 tools automatically. Available actions follow the access you approved and your organization permissions.
 
-`tools/list` returns the authoritative JSON input schemas. Inputs are strict: unknown fields are rejected. IDs must be nonempty strings up to 100 characters. Unless otherwise shown, names are trimmed and must contain 1–100 characters; descriptions allow up to 4,000 characters and accept `null` to clear them.
+## Organizations
 
-All list tools accept optional `limit` (integer, 1–100; default 50) and `offset` (integer, 0–100,000; default 0). They return arrays. Other tools return a resource or operation result as JSON inside MCP text content. Role permission bitfields are decimal strings. Failed tool calls return MCP `isError`; authorization failures at the HTTP boundary return HTTP errors.
-
-Organization-level tools use the organization UUID returned by `my_organizations`. Resource IDs come from the relevant list or create tool.
-
-## Organizations and limits
-
-### `my_organizations`
-
-**Read.** List your accessible, active organizations. Paginated.
-
-| Argument | Type               | Required | Default |
-| -------- | ------------------ | -------- | ------- |
-| `limit`  | integer (1–100)    | No       | `50`    |
-| `offset` | integer (0–100000) | No       | `0`     |
-
-### `get_organization`
-
-**Read.** Get an organization you can access.
-
-| Argument         | Type                      | Required | Default |
-| ---------------- | ------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters) | Yes      | —       |
-
-### `my_organization_limits`
-
-**Read.** Get effective limits for an organization you can access. Null means unlimited.
-
-| Argument         | Type                      | Required | Default |
-| ---------------- | ------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters) | Yes      | —       |
+| Tool                     | Action                    |
+| ------------------------ | ------------------------- |
+| `my_organizations`       | List your organizations   |
+| `get_organization`       | View an organization      |
+| `my_organization_limits` | Check organization limits |
 
 ## Locations
 
-### `my_locations`
-
-**Read.** List locations visible to you in an organization. Paginated.
-
-| Argument         | Type                      | Required | Default |
-| ---------------- | ------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters) | Yes      | —       |
-| `limit`          | integer (1–100)           | No       | `50`    |
-| `offset`         | integer (0–100000)        | No       | `0`     |
-
-### `get_location`
-
-**Read.** Get a location visible to your account.
-
-| Argument     | Type                      | Required | Default |
-| ------------ | ------------------------- | -------- | ------- |
-| `locationId` | string (1–100 characters) | Yes      | —       |
-
-### `create_location`
-
-**Write.** Create a location, subject to organization permissions and quota.
-
-| Argument         | Type                               | Required | Default |
-| ---------------- | ---------------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters)          | Yes      | —       |
-| `name`           | string (1–100 characters)          | Yes      | —       |
-| `description`    | string (0–4000 characters) or null | No       | —       |
-
-### `update_location`
-
-**Write.** Change a location name or description.
-
-| Argument      | Type                               | Required | Default |
-| ------------- | ---------------------------------- | -------- | ------- |
-| `locationId`  | string (1–100 characters)          | Yes      | —       |
-| `name`        | string (1–100 characters)          | No       | —       |
-| `description` | string (0–4000 characters) or null | No       | —       |
-
-### `delete_location`
-
-**Write.** Permanently delete a location and its access points. Destructive.
-
-| Argument     | Type                      | Required | Default |
-| ------------ | ------------------------- | -------- | ------- |
-| `locationId` | string (1–100 characters) | Yes      | —       |
+| Tool              | Action                                  |
+| ----------------- | --------------------------------------- |
+| `my_locations`    | List locations                          |
+| `get_location`    | View a location                         |
+| `create_location` | Create a location                       |
+| `update_location` | Edit a location                         |
+| `delete_location` | Delete a location and its access points |
 
 ## Access points
 
-### `my_access_points`
-
-**Read.** List visible access points in an organization, optionally by location. Paginated.
-
-| Argument         | Type                      | Required | Default |
-| ---------------- | ------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters) | Yes      | —       |
-| `limit`          | integer (1–100)           | No       | `50`    |
-| `offset`         | integer (0–100000)        | No       | `0`     |
-| `locationId`     | string (1–100 characters) | No       | —       |
-
-### `get_access_point`
-
-**Read.** Get a visible access point and its operational configuration.
-
-| Argument        | Type                      | Required | Default |
-| --------------- | ------------------------- | -------- | ------- |
-| `accessPointId` | string (1–100 characters) | Yes      | —       |
-
-### `create_access_point`
-
-**Write.** Create an access point in a location. Names must be unique within that location.
-
-| Argument      | Type                               | Required | Default   |
-| ------------- | ---------------------------------- | -------- | --------- |
-| `locationId`  | string (1–100 characters)          | Yes      | —         |
-| `name`        | string (1–100 characters)          | Yes      | —         |
-| `description` | string (0–4000 characters) or null | No       | —         |
-| `type`        | `REGULAR`, `ELEVATOR`              | No       | `regular` |
-| `scheduleId`  | string (1–100 characters)          | No       | —         |
-
-### `update_access_point`
-
-**Write.** Change access point metadata or its schedule. Configuration and armed state have separate tools.
-
-| Argument        | Type                               | Required | Default |
-| --------------- | ---------------------------------- | -------- | ------- |
-| `accessPointId` | string (1–100 characters)          | Yes      | —       |
-| `name`          | string (1–100 characters)          | No       | —       |
-| `description`   | string (0–4000 characters) or null | No       | —       |
-| `type`          | `REGULAR`, `ELEVATOR`              | No       | —       |
-| `scheduleId`    | string (1–100 characters) or null  | No       | —       |
-
-### `delete_access_point`
-
-**Write.** Permanently delete an access point. Destructive.
-
-| Argument        | Type                      | Required | Default |
-| --------------- | ------------------------- | -------- | ------- |
-| `accessPointId` | string (1–100 characters) | Yes      | —       |
-
-### `update_access_point_configuration`
-
-**Write.** Set active state, offline behavior or unlock duration. Requires manage-access-points permission.
-
-| Argument        | Type                      | Required | Default |
-| --------------- | ------------------------- | -------- | ------- |
-| `accessPointId` | string (1–100 characters) | Yes      | —       |
-| `active`        | boolean                   | No       | —       |
-| `offlineMode`   | `LOCKED`, `UNLOCKED`      | No       | —       |
-| `unlockTime`    | number (1–60)             | No       | —       |
-
-### `set_access_point_armed`
-
-**Write.** Set ARMED, DISARMED or AUTO explicitly. AUTO requires an accessible schedule. Requires arm-access-points permission.
-
-| Argument          | Type                        | Required | Default |
-| ----------------- | --------------------------- | -------- | ------- |
-| `accessPointId`   | string (1–100 characters)   | Yes      | —       |
-| `armed`           | `ARMED`, `DISARMED`, `AUTO` | Yes      | —       |
-| `armedScheduleId` | string (1–100 characters)   | No       | —       |
+| Tool                                | Action                                                   |
+| ----------------------------------- | -------------------------------------------------------- |
+| `my_access_points`                  | List access points                                       |
+| `get_access_point`                  | View an access point                                     |
+| `create_access_point`               | Create an access point                                   |
+| `update_access_point`               | Edit an access point                                     |
+| `delete_access_point`               | Delete an access point                                   |
+| `update_access_point_configuration` | Change active state, offline behavior or unlock duration |
+| `set_access_point_armed`            | Arm, disarm or schedule an access point                  |
 
 ## Access groups
 
-### `list_access_groups`
-
-**Read.** List access groups. Requires manage-access-groups permission. Paginated.
-
-| Argument         | Type                      | Required | Default |
-| ---------------- | ------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters) | Yes      | —       |
-| `limit`          | integer (1–100)           | No       | `50`    |
-| `offset`         | integer (0–100000)        | No       | `0`     |
-
-### `get_access_group`
-
-**Read.** Get an access group. Requires manage-access-groups permission.
-
-| Argument         | Type                      | Required | Default |
-| ---------------- | ------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters) | Yes      | —       |
-| `accessGroupId`  | string (1–100 characters) | Yes      | —       |
-
-### `create_access_group`
-
-**Write.** Create an organization-wide access group, subject to quota.
-
-| Argument         | Type                      | Required | Default |
-| ---------------- | ------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters) | Yes      | —       |
-| `name`           | string (1–100 characters) | Yes      | —       |
-| `active`         | boolean                   | No       | `true`  |
-| `priority`       | integer (-100000–100000)  | No       | `0`     |
-| `scheduleId`     | string (1–100 characters) | No       | —       |
-
-### `update_access_group`
-
-**Write.** Change an access group name, active state, priority or schedule.
-
-| Argument         | Type                              | Required | Default |
-| ---------------- | --------------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters)         | Yes      | —       |
-| `accessGroupId`  | string (1–100 characters)         | Yes      | —       |
-| `name`           | string (1–100 characters)         | No       | —       |
-| `active`         | boolean                           | No       | —       |
-| `priority`       | integer (-100000–100000)          | No       | —       |
-| `scheduleId`     | string (1–100 characters) or null | No       | —       |
-
-### `delete_access_group`
-
-**Write.** Delete an access group and remove its assignments. Destructive.
-
-| Argument         | Type                      | Required | Default |
-| ---------------- | ------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters) | Yes      | —       |
-| `accessGroupId`  | string (1–100 characters) | Yes      | —       |
+| Tool                  | Action                 |
+| --------------------- | ---------------------- |
+| `list_access_groups`  | List access groups     |
+| `get_access_group`    | View an access group   |
+| `create_access_group` | Create an access group |
+| `update_access_group` | Edit an access group   |
+| `delete_access_group` | Delete an access group |
 
 ## Schedules
 
-### `list_schedules`
-
-**Read.** List organization schedules. Requires manage-schedules permission. Paginated.
-
-| Argument         | Type                      | Required | Default |
-| ---------------- | ------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters) | Yes      | —       |
-| `limit`          | integer (1–100)           | No       | `50`    |
-| `offset`         | integer (0–100000)        | No       | `0`     |
-
-### `get_schedule`
-
-**Read.** Get a schedule and its time slots. Requires manage-schedules permission.
-
-| Argument         | Type                      | Required | Default |
-| ---------------- | ------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters) | Yes      | —       |
-| `scheduleId`     | string (1–100 characters) | Yes      | —       |
-
-### `create_schedule`
-
-**Write.** Create a weekly or holiday schedule with explicit time slots in the organization timezone.
-
-| Argument         | Type                                        | Required | Default |
-| ---------------- | ------------------------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters)                   | Yes      | —       |
-| `name`           | string (3–32 characters)                    | Yes      | —       |
-| `description`    | string (0–4000 characters) or null          | No       | —       |
-| `active`         | boolean                                     | No       | `true`  |
-| `tables`         | array of [time slots](#schedule-time-slots) | Yes      | —       |
-
-### `update_schedule`
-
-**Write.** Update a schedule. Providing tables atomically replaces all time slots. System schedules cannot be changed.
-
-| Argument         | Type                                        | Required | Default |
-| ---------------- | ------------------------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters)                   | Yes      | —       |
-| `scheduleId`     | string (1–100 characters)                   | Yes      | —       |
-| `name`           | string (3–32 characters)                    | No       | —       |
-| `description`    | string (0–4000 characters) or null          | No       | —       |
-| `active`         | boolean                                     | No       | —       |
-| `tables`         | array of [time slots](#schedule-time-slots) | No       | —       |
-
-### `delete_schedule`
-
-**Write.** Delete a schedule. System schedules cannot be deleted. Destructive.
-
-| Argument         | Type                      | Required | Default |
-| ---------------- | ------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters) | Yes      | —       |
-| `scheduleId`     | string (1–100 characters) | Yes      | —       |
+| Tool              | Action                             |
+| ----------------- | ---------------------------------- |
+| `list_schedules`  | List schedules                     |
+| `get_schedule`    | View a schedule                    |
+| `create_schedule` | Create a schedule                  |
+| `update_schedule` | Edit a schedule and its time slots |
+| `delete_schedule` | Delete a schedule                  |
 
 ## Members, roles and activity
 
-### `list_members`
-
-**Read.** List member and identity summaries without card numbers, PINs or invitation tokens. Requires manage-members permission. Paginated.
-
-| Argument         | Type                      | Required | Default |
-| ---------------- | ------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters) | Yes      | —       |
-| `limit`          | integer (1–100)           | No       | `50`    |
-| `offset`         | integer (0–100000)        | No       | `0`     |
-
-### `get_member`
-
-**Read.** Get a member or identity summary without credentials. Requires manage-members permission.
-
-| Argument         | Type                      | Required | Default |
-| ---------------- | ------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters) | Yes      | —       |
-| `memberId`       | string (1–100 characters) | Yes      | —       |
-
-### `list_roles`
-
-**Read.** List organization role summaries. Requires manage-roles permission. Paginated.
-
-| Argument         | Type                      | Required | Default |
-| ---------------- | ------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters) | Yes      | —       |
-| `limit`          | integer (1–100)           | No       | `50`    |
-| `offset`         | integer (0–100000)        | No       | `0`     |
-
-### `list_events`
-
-**Read.** List visible access activity, newest first, without raw scan payloads. Requires view-activity permission. Paginated.
-
-| Argument         | Type                          | Required | Default |
-| ---------------- | ----------------------------- | -------- | ------- |
-| `organizationId` | string (1–100 characters)     | Yes      | —       |
-| `limit`          | integer (1–100)               | No       | `50`    |
-| `offset`         | integer (0–100000)            | No       | `0`     |
-| `locationId`     | string (1–100 characters)     | No       | —       |
-| `accessPointId`  | string (1–100 characters)     | No       | —       |
-| `eventType`      | `SCAN_GRANTED`, `SCAN_DENIED` | No       | —       |
+| Tool           | Action                      |
+| -------------- | --------------------------- |
+| `list_members` | List members and identities |
+| `get_member`   | View a member or identity   |
+| `list_roles`   | List organization roles     |
+| `list_events`  | Review access activity      |
 
 ## Remote unlock
 
-### `remote_unlock_access_point`
-
-**Write.** Send an unlock command to live Roblox servers. Requires remote-unlock permission. A sent command does not prove the door opened.
-
-| Argument         | Type                           | Required | Default |
-| ---------------- | ------------------------------ | -------- | ------- |
-| `scope`          | `universe`, `player`, `linked` | Yes      | —       |
-| `unlockTime`     | number (2–60)                  | No       | —       |
-| `robloxUserId`   | string                         | No       | —       |
-| `robloxUsername` | string                         | No       | —       |
-| `accessPointId`  | string (1–100 characters)      | Yes      | —       |
-
-### `get_remote_unlock_status`
-
-**Read.** Check delivery acknowledgement for this access point and request. Poll records expire after 15 seconds.
-
-| Argument        | Type                      | Required | Default |
-| --------------- | ------------------------- | -------- | ------- |
-| `accessPointId` | string (1–100 characters) | Yes      | —       |
-| `requestId`     | UUID string               | Yes      | —       |
-
-## Schedule time slots
-
-`create_schedule.tables` and `update_schedule.tables` accept 1–100 time slots. Each slot requires `startHour` and `endHour` (integers 0–23) and `startMinute` and `endMinute` (integers 0–59).
-
-Enable at least one day using `sunday`, `monday`, `tuesday`, `wednesday`, `thursday`, `friday`, `saturday`, or `holiday1` through `holiday8`. Each day is a boolean and defaults to `false`. Start time must precede end time on the same day. Overnight time slots are not supported. Times use the organization's timezone. Holiday flags follow the organization's existing holiday configuration.
-
-Creating a schedule requires a name of 3–32 characters and explicit time slots. Updating a schedule replaces all slots atomically when `tables` is supplied. Omit `tables` to leave the slots unchanged. System schedules are protected from update and deletion.
-
-```json
-{
-  "organizationId": "ORGANIZATION_UUID",
-  "name": "Weekday entry",
-  "tables": [
-    {
-      "monday": true,
-      "tuesday": true,
-      "wednesday": true,
-      "thursday": true,
-      "friday": true,
-      "startHour": 9,
-      "startMinute": 0,
-      "endHour": 17,
-      "endMinute": 0
-    }
-  ]
-}
-```
-
-## Permissions and operation details
-
-- Location writes require manage-locations permission. Access-point metadata and configuration writes require manage-access-points permission. Arming requires arm-access-points permission; `AUTO` also requires a schedule from the same organization that is organization-wide or belongs to the point's location.
-- Access-group tools require manage-access-groups permission. Their write tools manage metadata and schedule links. New groups are organization-wide, so their schedules must also be organization-wide.
-- Schedule tools require manage-schedules permission. Member tools require manage-members permission; role listing requires manage-roles permission; event listing requires view-activity permission. Organization management permission or ownership can satisfy these management checks under XCS's permission rules.
-- Resource reads and activity respect logical resource scopes. Every referenced schedule must belong to the same organization; a location-specific schedule must match the relevant location.
-- `my_organization_limits` returns effective organization caps, with `null` meaning unlimited. Create tools enforce those caps using the same quota service as the website.
-- `delete_location` also deletes its access points. All delete tools return `{ "deleted": true, ... }` with the affected ID.
-- `remote_unlock_access_point` returns `accessPointId`, `requestId` and `expectsPollback`. Its optional `unlockTime` is 2–60 seconds. `get_remote_unlock_status` returns `pending`, `completed` or `not_found` for that access point. A delivery acknowledgement does not prove that a door opened.
-
-## Example MCP tool call
-
-After the normal MCP initialization handshake, a write-authorized client can call:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 2,
-  "method": "tools/call",
-  "params": {
-    "name": "create_access_point",
-    "arguments": {
-      "locationId": "LOCATION_UUID",
-      "name": "North Entrance",
-      "type": "REGULAR"
-    }
-  }
-}
-```
-
-Use the returned access-point ID with `get_access_point`, `update_access_point`, `update_access_point_configuration`, `set_access_point_armed`, or `delete_access_point`.
+| Tool                         | Action                       |
+| ---------------------------- | ---------------------------- |
+| `remote_unlock_access_point` | Send a remote unlock command |
+| `get_remote_unlock_status`   | Check command delivery       |
