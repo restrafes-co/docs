@@ -78,7 +78,8 @@
             "pages": [
               "guides/security",
               "guides/remote-unlock-setup",
-              "guides/telephone-entry"
+              "guides/telephone-entry",
+              "guides/xcs-configurator"
             ]
           },
           {
