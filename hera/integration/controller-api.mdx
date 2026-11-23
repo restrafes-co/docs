@@ -1,190 +1,124 @@
 ---
-title: 'Controller API'
-description: 'Send calls and read Hera state from your own server scripts.'
-icon: 'braces'
+title: "Controller API"
+description: "Connect to a Hera car, submit calls and handle registration and service outcomes."
+icon: "braces"
 ---
 
-Hera creates a `BindableEvent` named `API` directly inside the elevator model. A server `Script` sends requests with `api:Fire(...)` and receives events through `api.Event`.
-
-This page is for custom scripting. You do not need it to run a supplied elevator. The API is local to the running Roblox server; it is separate from the XCS website's HTTP API.
+Use `Elevator/API` from a server Script or accessory. The BindableEvent is server-local. Code installed under `Elevator/extensions` can use the [extension controller](/hera/extensions/controller).
 
 ## Connect and wait for startup
 
-Put this example in a server `Script`, such as one in `ServerScriptService`. Replace `"Elevator"` with the name of your elevator model.
+A listener that joins late can miss `onReady`. Connect first and request a state snapshot with a unique `returnId`. This example works from a server Script with a model named `Elevator`.
 
 ```lua
 local HttpService = game:GetService("HttpService")
-local elevator = workspace:WaitForChild("Elevator")
-local api = elevator:WaitForChild("API")
-local requestId = HttpService:GenerateGUID(false)
-local receivedState = false
-
-local connection = api.Event:Connect(function(message)
-    if message.event == "returnStates" and message.data.returnId == requestId then
-        receivedState = true
-        print("Hera floor:", message.data.states.floor)
-        print("Hera service:", message.data.states.service)
+local elevator = assert(workspace:WaitForChild("Elevator", 10), "Elevator missing")
+local api = assert(elevator:WaitForChild("API", 10), "Hera API missing")
+local id = HttpService:GenerateGUID(false)
+local snapshot
+local listener = api.Event:Connect(function(message)
+    if message.event == "returnStates" and message.data.returnId == id then
+        snapshot = message.data
     end
 end)
 
 local deadline = os.clock() + 15
 repeat
-    api:Fire({ request = "getStates", data = { returnId = requestId } })
+    api:Fire({request = "getStates", data = {returnId = id}})
     task.wait(0.25)
-until receivedState or os.clock() >= deadline
-
-connection:Disconnect()
-assert(receivedState, "Hera did not become ready; check server Output")
+until snapshot or os.clock() >= deadline
+listener:Disconnect()
+assert(snapshot, "Hera did not become ready")
 ```
-
-Requests sent before startup completes are ignored. The example retries a read-only state request for up to 15 seconds, so it works whether your script starts before or after Hera. `onReady` is also available as a startup event, but it is not replayed for listeners that connect later.
-
-The remaining examples assume `api` refers to this ready controller.
 
 ## Message format
 
-A request has `request` and `data` fields:
-
-```lua
-api:Fire({
-    request = "queueAdd",
-    data = {
-        floor = 2,
-        direction = 0,
-        doorGroup = 1,
-        source = "api",
-        accessibility = false,
-    },
-})
-```
-
-An event has `event` and `data` fields. Requests and responses share the same `BindableEvent`, so a listener should handle only the message names it needs.
-
-`Fire()` does not return an acceptance result. A state response, queue event, arrival callback, or service rejection event provides the relevant feedback. An invalid ordinary queue request can be ignored without a response.
-
-If input comes from a player, check their permissions and validate their requested floor and action in your server handler before sending it to Hera. Do not let the player choose a trusted `source` such as `"car"` or `"fire_service"`. Roblox's [bindable event guide](https://create.roblox.com/docs/scripting/events/bindable) explains the server/client boundary.
+Send `{request = name, data = payload}` and listen on `api.Event` for `{event = name, data = payload}`. `api:Fire(...)` has no return value. For request-specific call results, attach a separate BindableEvent.
 
 ## Add a call
 
-Use `queueAdd` with these fields:
+`queueAdd` requires `floor`, `doorGroup`, `direction` and `source`. Send the numeric floor and an entrance served by the car at that landing. Use direction `1` for Up, `-1` for Down or `0` for neutral. Use source `"api"` for an external integration, `"car"` for a COP input or `"landing"` for a local hall input. Pass `accessibility = true` for extended door timers.
 
-| Field | Value |
-| --- | --- |
-| `floor` | A numeric whole-number floor that exists in `FLOORS`. |
-| `direction` | `1` for Up, `-1` for Down, `0` for no preferred direction. |
-| `doorGroup` | A numeric entrance available in the car and at that floor. |
-| `source` | `"api"` for an external server integration. |
-| `accessibility` | Optional boolean; `true` requests extended door timing. |
-| `api` | Optional callback `BindableEvent` for completion or cancellation. |
-
-For a simple destination, use `direction = 0`. For a shared hall call, use the passenger's requested direction. Do not use group `0` for a passenger call; it is used internally for parking without opening doors.
-
-Normal remote calls are rejected during fire and independent service. Use their dedicated operator controls when implementing those features.
+```lua
+api:Fire({
+    request = "queueAdd",
+    data = {floor = 2, doorGroup = 1, direction = 0, source = "api"},
+})
+```
 
 ### Receive completion or cancellation
 
-Connect the callback **before** adding the call:
+On a core that advertises `snapshot.confirmsCalls == true`, set `confirm = true` on the outer request and supply a **parented BindableEvent** as `data.api`. Connect the callback before sending. This snippet continues from the startup example.
 
 ```lua
-local callback = Instance.new("BindableEvent")
+assert(snapshot.confirmsCalls == true, "This core does not confirm calls")
+local reply = Instance.new("BindableEvent")
+reply.Parent = elevator
 local finished = false
-
-callback.Event:Connect(function(message)
-    if message.request == "api-onArrival" or message.request == "api-onCancelled" then
-        finished = true
+reply.Event:Connect(function(message)
+    if message.request == "api-onCallResult" then
+        if message.data.success then return end
+        warn("Call rejected", message.data.reason)
+    elseif message.request == "api-onArrival" or message.request == "api-onCancelled" then
         print(message.request, message.data.floor)
-        callback:Destroy()
+    else
+        return
     end
+    finished = true
+    reply:Destroy()
 end)
 
 api:Fire({
     request = "queueAdd",
-    data = {
-        floor = 2,
-        direction = 0,
-        doorGroup = 1,
-        source = "api",
-        accessibility = false,
-        api = callback,
-    },
+    confirm = true,
+    data = {floor = 2, doorGroup = 1, direction = 0, source = "api", api = reply},
 })
 
 task.delay(120, function()
-    if not finished then
-        finished = true
-        callback:Destroy()
-        warn("No call completion received; check Hera state")
-    end
+    if not finished then reply:Destroy() end
 end)
 ```
 
-The timeout cleans up this script's listener; it does not cancel the trip. Choose a timeout appropriate to your building and queue.
+| Callback `message.request` | Meaning |
+| --- | --- |
+| `api-onCallResult` | `data.success` reports acceptance. A coalesced call can also set `data.duplicate`. On failure, read `data.reason`. |
+| `api-onArrival` | Hera served the call. Use the door state to confirm the group is fully open. |
+| `api-onCancelled` | Hera withdrew the call before service. |
 
-In 26.9.6, callbacks can receive `api-onCancelled` when calls are cleared for service changes or other cancellations. A duplicate registered call can share completion with another callback. Same-floor requests can open the doors without adding a queued entry, so do not rely on receiving a callback for every same-floor request.
-
-Use controller and door state if your next action depends on a stationary car or fully open doors. A callback reports how the call was completed; it is not a door-open confirmation.
+An accepted same-floor `"car"` request can operate the doors directly without an arrival callback. Use a matching door-state observation if your COP integration needs confirmation. The example uses source `"api"` and disposes of the callback after its outcome or a 120-second timeout. The timeout only disposes of the listener. Use `queueRemove` to withdraw the call.
 
 ## Read current state
 
-Connect your listener first, generate a unique `returnId`, and send `getStates`:
-
-```lua
-local returnId = game:GetService("HttpService"):GenerateGUID(false)
-local connection
-connection = api.Event:Connect(function(message)
-    if message.event == "returnStates" and message.data.returnId == returnId then
-        print(message.data.states.trueFloor, message.data.states.operating)
-        for group, door in pairs(message.data.doorStates) do
-            print(group, door.state)
-        end
-        connection:Disconnect()
-    end
-end)
-
-api:Fire({ request = "getStates", data = { returnId = returnId } })
-```
-
-The response is `message.data.states` plus a separate `message.data.doorStates` table. Door states are not nested inside `states`. The [state and event reference](/hera/reference/events) lists both.
+`snapshot.states` contains movement, queue and service state. `snapshot.doorStates` is a separate table keyed by numeric group. A state read is useful on connection and after reconnecting an accessory. Follow subsequent events for changes. [Fields and event names](/hera/reference/events)
 
 ## Remove a call
 
-The external `queueRemove` request matches a floor, direction, and door group:
-
 ```lua
-api:Fire({
-    request = "queueRemove",
-    data = { floor = 2, direction = 0, doorGroup = 1 },
-})
+api:Fire({request = "queueRemove", data = {floor = 2, direction = 0, doorGroup = 1}})
 ```
 
-In 26.9.6 this request clears the matching entry through the completion path. It can therefore send `api-onArrival` to that entry's callback even when the car has not physically arrived. Do not use `queueRemove` as an emergency stop or as a way to prove arrival. Verify the car's floor and stationary state separately.
+Use the original floor, direction and group. Cancellation applies to the shared queue entry and notifies its registered callers with `api-onCancelled`. The car can finish braking before completing removal. Older cores can use `api-onArrival` for both service and removal, so validate against the car and entrance state on those builds.
 
 ## Lock car or hall inputs
-
-The `lock` request's `data` is a list of entries:
 
 ```lua
 api:Fire({
     request = "lock",
     data = {
-        { source = "car", floor = 2, doorGroup = 1, enabled = true },
-        { source = "hall", floor = 2, doorGroup = 1, enabled = true },
+        {source = "car", floor = 2, doorGroup = 1, enabled = true},
+        {source = "hall", floor = 2, doorGroup = 1, enabled = true},
     },
 })
 ```
 
-Use `enabled = false` to unlock. Here the hall lock category is `"hall"`, while a hall-origin queue entry uses `"landing"`.
-
-These locks control the built-in button inputs. They are not a permission check for every script using `queueAdd`; enforce your own permissions before adding a custom call.
+This legacy request gates built-in buttons. Clear it with the same entries and `enabled = false`. Use `"hall"` for legacy button locks and `"landing"` as the source for hall-origin calls. Use an [extension lock](/hera/extensions/floor-lockouts) to cover scripted calls or withdraw queued calls.
 
 ## Other controls
 
-| Request | `data` | Purpose |
-| --- | --- | --- |
-| `queueCheck` | `{}` | Ask Hera to consider its current queue. It still requires closed doors and an available car. |
-| `riotService` | `{ enabled = true }` | Reject new ordinary calls to `MAIN.PRIMARY_FLOOR`; set `false` to restore them. |
-| `playerWelds` | `{ status = true }` | Attach passengers; `false` releases them. Requires configured player welding unless deliberately overridden by a trusted integration. |
+| Request | Effect |
+| --- | --- |
+| `queueCheck` | Rechecks dispatch. |
+| `riotService` | With `data.enabled = true`, rejects new ordinary calls **to** `MAIN.PRIMARY_FLOOR`. |
+| `playerWelds` | Uses `data.status` to request passenger attachment or release. |
 
-There is no general normal-service `doorOpen` request in this API. Use the supplied physical controls or the supported controls of an integration rather than inventing request names.
-
-For fire and independent operation, use the [service-control API](/hera/reference/service-api). For updates to displays and logs, see [State and events](/hera/reference/events).
+Use the [service-control API](/hera/reference/service-api) for recall and operator modes and the [extension door methods](/hera/extensions/controller#doors) for normal-service door commands.

@@ -1,12 +1,20 @@
 ---
-title: 'Settings reference'
-description: 'Find Hera setting names, defaults, accepted values, and related guides.'
-icon: 'list-tree'
+title: "Configuration reference"
+description: "Defaults, allowed values and legacy aliases for the Hera configuration table."
+icon: "list-tree"
 ---
 
-This reference follows **Hera 26.9.6**. Defaults are the controller's defaults; your supplied elevator may override them. Keep the rest of your configuration when editing an entry. [Configuration basics](/hera/configuration/overview) explains paths and example placement.
+These are Hera's defaults. The supplied `CONFIGURATION` can override them. Timers and delays are in seconds unless specified. Distances are in studs and motion rates use controller units. [Configuration guide](/hera/configuration/overview)
 
-All timers and delays are seconds unless a row says otherwise. Distances are studs. Movement speed values are controller values, not meters per second.
+| To adjust | Section |
+| --- | --- |
+| Speed, braking and leveling | [Movement](#movement) |
+| Panel movement, ordinary dwell and nudging | [Doors](#doors) |
+| Lamps, arrival sounds and floor names | [Button lights](#button-lights), [sounds](#sounds), [labels and lanterns](#labels-lanterns-and-chime-events) |
+| Idle return or rider attachment | [Parking and passengers](#parking-and-passengers) |
+| Dashboard transport | [XCS connection](#xcs-connection) |
+
+Extension-enabled builds load modules from `Elevator/extensions`. See the [extension reference](/hera/extensions/controller) for runtime controls and lock scopes.
 
 ## Identity and main floor
 
@@ -24,7 +32,7 @@ All timers and delays are seconds unless a row says otherwise. Distances are stu
 | --- | --- | --- |
 | `FIRE_SERVICE.ENABLED` | `true` | Allows fire-service requests. Does not activate recall at startup. |
 | `FIRE_SERVICE.RECALL_FLOOR` | `nil` | Normal recall floor; uses `MAIN.PRIMARY_FLOOR` when unset. |
-| `FIRE_SERVICE.ALTERNATE_RECALL_FLOOR` | `nil` | Must be a valid floor before alternate recall is requested. |
+| `FIRE_SERVICE.ALTERNATE_RECALL_FLOOR` | `nil` | Alternate recall landing. Must exist and differ from normal recall. |
 | `FIRE_SERVICE.DOOR_GROUP` | `1` | Preferred recall and fire-service entrance. |
 | `INDEPENDENT_SERVICE.ENABLED` | `true` | Allows independent-service requests. Does not activate the mode at startup. |
 | `INDEPENDENT_SERVICE.DOOR_GROUP` | `1` | Preferred independent-service entrance. |
@@ -44,8 +52,8 @@ See [Fire service](/hera/operation/fire-service) and [Independent service](/hera
 | `MOVE.MOTOR_START_SETTINGS.DOWN_DELAY` | `0` | Start delay travelling down. |
 | `MOVE.MOTOR_START_SETTINGS.ACCELERATION_RATE_UP` | `0.05` | Positive upward acceleration value. |
 | `MOVE.MOTOR_START_SETTINGS.ACCELERATION_RATE_DOWN` | `0.05` | Positive downward acceleration value. |
-| `MOVE.MOTOR_STOP_SETTINGS.DECELERATION_RATE_UP` | `0.025` | Upward slowing value, greater than 0 and no greater than 1. |
-| `MOVE.MOTOR_STOP_SETTINGS.DECELERATION_RATE_DOWN` | `0.025` | Downward slowing value, greater than 0 and no greater than 1. |
+| `MOVE.MOTOR_STOP_SETTINGS.DECELERATION_RATE_UP` | `0.025` | Up deceleration, from `0.00001` to `1`. |
+| `MOVE.MOTOR_STOP_SETTINGS.DECELERATION_RATE_DOWN` | `0.025` | Down deceleration, from `0.00001` to `1`. |
 | `MOVE.LEVELING_OFFSET` | `4` | Non-negative leveling distance in studs. |
 | `MOVE.LEVELING_SPEED` | `0.1` | Positive final approach speed, no higher than `MOTOR_SPEED`. |
 | `MOVE.PREDOORS_ENABLED` | `true` | Allows pre-opening near the end of leveling. |
@@ -54,7 +62,7 @@ See [Fire service](/hera/operation/fire-service) and [Independent service](/hera
 | `MOVE.TICK` | `RunService.Heartbeat` | Movement timing signal; retain for normal setup. |
 | `MOVE.DELAY` | `0` | Older shared start-delay value. Prefer the direction-specific delays above. |
 
-The configuration requires at least `0.001` for motor and leveling speed, and at least `0.00001` for acceleration and deceleration. These are lower bounds for validation, not suggested ride settings.
+The validation minimum is `0.001` for motor and leveling speeds and `0.00001` for acceleration rates.
 
 ### Counterweight
 
@@ -94,9 +102,9 @@ For all speed entries below, values must be at least `0.01`. With methods 2 and 
 | `DOORS.NUDGE_CLOSE_DELAY` | `3` | Delay before a nudge close. |
 | `DOORS.TIMER_LENGTH` | `8` | Normal open time. |
 | `DOORS.REOPEN_TIMER_LENGTH` | `nil` | Open time after a reopen; falls back to `TIMER_LENGTH`. |
-| `DOORS.ACCESSIBILITY_TIMER_LENGTH` | `20` | Extended normal open time for an accessible call. |
+| `DOORS.ACCESSIBILITY_TIMER_LENGTH` | `20` | Extended dwell target for an accessible call. Set at or above normal dwell. |
 | `DOORS.NUDGE_TIMER_LENGTH` | `16` | Normal nudge timeout. |
-| `DOORS.ACCESSIBILITY_NUDGE_TIMER_LENGTH` | `60` | Extended nudge timeout for an accessible call. |
+| `DOORS.ACCESSIBILITY_NUDGE_TIMER_LENGTH` | `60` | Extended nudge target for an accessible call. Set at or above the normal timeout. |
 | `DOORS.TIMER_HOLD_MODE` | `1` | Obstruction: `1` pauses normal countdown; `2` resets it. |
 | `DOORS.TIMER_COUNTDOWN_FREQUENCY` | Runtime fallback `1` | Optional countdown update interval. Configuration accepts at least `0.01`; runtime uses a minimum of `0.05`. |
 | `DOORS.SENSOR_ENABLED` | `true` | Detects player-character obstruction during normal service. |
@@ -134,7 +142,7 @@ All paths below start with `DOORS.CUBIC_BEZIER`. Use `DOORS.METHOD = 3`.
 | `TRANSITION_TIME` | Transition durations keyed by door state. |
 | `TRANSITION_DELAY` | Transition delays keyed by door state. |
 
-Older configurations can contain `SENSOR_LED_ENABLED`, `SENSOR_LED`, `SENSOR_LED_TRANSITION_TIME`, and `SENSOR_LED_TRANSITION_DELAY`. 26.9.6 can translate that profile when `SENSOR_SIGNALIZATION` is absent. Preserve the complete profile during a migration.
+Older configurations can contain `SENSOR_LED_ENABLED`, `SENSOR_LED`, `SENSOR_LED_TRANSITION_TIME` and `SENSOR_LED_TRANSITION_DELAY`. Hera translates the legacy profile when `SENSOR_SIGNALIZATION` is absent. Preserve the complete profile during a migration.
 
 See [Doors](/hera/configuration/doors).
 
@@ -156,13 +164,13 @@ Category-specific entries:
 
 | Setting | Default | Purpose |
 | --- | --- | --- |
-| `BUTTONS.DOOR_CONTROL.LIT_ON_CLICK` | `true` | Retained older option; not read by 26.9.6 input lighting. |
+| `BUTTONS.DOOR_CONTROL.LIT_ON_CLICK` | `true` | Legacy field. Input lighting ignores it. |
 | `BUTTONS.DOOR_CONTROL.LIT_ON_DOOR_MOVE` | `true` | Keeps door-control lights active with door movement. |
-| `BUTTONS.ALARM.LIT_ON_HOLD` | `true` | Retained older option; not read by 26.9.6 input lighting. |
-| `BUTTONS.HALL.LIT_ON_HALL_LOCK` | `true` | Retained older option; not read by 26.9.6 input lighting. |
+| `BUTTONS.ALARM.LIT_ON_HOLD` | `true` | Legacy field. Input lighting ignores it. |
+| `BUTTONS.HALL.LIT_ON_HALL_LOCK` | `true` | Legacy field. Input lighting ignores it. |
 | `MISCELLANEOUS.DOOR_GROUP_ALIASES` | `{ F = 1, R = 2 }` | Maps fixture letters to numeric entrances. |
 
-The current input code sets press lighting directly. Change the active appearance and timing entries above instead of relying on the retained older switches.
+The COP's ordinary floor-button release timer reads `BUTTONS.HALL.LIT_ON_CLICK_DURATION`.
 
 See [Buttons](/hera/configuration/buttons).
 
@@ -188,7 +196,7 @@ Sound entries use the following properties where applicable. Retain the properti
 | `SOUNDS.ON_DOOR_OBSTRUCTION` | Disabled | Player obstruction cue. |
 | `SOUNDS.ON_CARCALL_REJECTED`, `SOUNDS.ON_HALLCALL_REJECTED` | Disabled | Locked-call rejection sounds. |
 | `SOUNDS.ALARM` | Supplied, looping | Controlled by the held alarm button. |
-| `SOUNDS.NUDGE` | Enabled, looping | Also used by the recall warning. The retained `DELAY_UNTIL_CLOSE = 2` is not read by the 26.9.6 timer; use `DOORS.NUDGE_CLOSE_DELAY`. |
+| `SOUNDS.NUDGE` | Enabled, looping | Also used by the recall warning. Use `DOORS.NUDGE_CLOSE_DELAY` for timing. `DELAY_UNTIL_CLOSE` is a legacy field. |
 | `SOUNDS.CAR_MOTOR` | Enabled | `DIVIDER = 10`, must be positive. |
 | `SOUNDS.COUNTERWEIGHT_MOTOR` | Disabled | `DIVIDER = 10`, must be positive. |
 | `SOUNDS.DOOR_MOTOR` | Enabled | `PEAK_PITCH = 0.5`. |
@@ -201,11 +209,11 @@ Paths start with `SOUNDS.CHIME`.
 | Entry | Default | Purpose |
 | --- | --- | --- |
 | `INTERNAL_ENABLED` | `true` | Enables Hera's own chime playback. |
-| `API_ENABLED` | `true` | Retained older option; does not gate API chime events in 26.9.6. |
+| `API_ENABLED` | `true` | Legacy field. API chime events are emitted independently of this flag. |
 | `CAR_CHIME_TIME` | `3` | Internal car chime timing. |
 | `FLOOR_CHIME_TIME` | `4` | Internal landing chime timing. |
-| `CHIME_ON_FLOOR_CALL_ENABLED` | `true` | Retained older option; not read by 26.9.6 chime playback. |
-| `CHIME_ON_NO_QUEUE_ENABLED` | `true` | Retained older option; not read by 26.9.6 chime playback. |
+| `CHIME_ON_FLOOR_CALL_ENABLED` | `true` | Legacy field. Chime playback ignores it. |
+| `CHIME_ON_NO_QUEUE_ENABLED` | `true` | Legacy field. Chime playback ignores it. |
 | `DATA_CAR.UP`, `DATA_CAR.DOWN` | Supplied audio IDs | Direction-specific car recordings. |
 | `DATA_FLOOR.UP`, `DATA_FLOOR.DOWN` | Supplied audio IDs | Direction-specific landing recordings. |
 
@@ -222,7 +230,7 @@ See [Sound and voice](/hera/configuration/sound-and-voice).
 | `API.FLOOR_LABELS.FLOORS` | `{}` | Numeric floor keys, with `LABEL`, optional `PRIMARY`, and `IGNORE_PREFIX_SUFFIX`. |
 | `API.FLOOR_LABELS.COMMON_PREFIX` | `{}` | Prefixes keyed by numeric door group. |
 | `API.FLOOR_LABELS.COMMON_SUFFIX` | `{}` | Suffixes keyed by numeric door group. |
-| `API.FLOOR.FLOOR_CHANGE_TIME` | `2` | `1`/`2`: approaching-floor indication in 26.9.6; `3`: next floor at which the car can stop. |
+| `API.FLOOR.FLOOR_CHANGE_TIME` | `2` | `1` and `2` indicate the approaching floor. `3` indicates the next floor at which the car can stop. |
 | `API.FLOOR.FLOOR_CHANGE_ON_ACCELERATION` | `true` | Allows mode 3 floor indication changes during acceleration. |
 | `API.CHIME.CAR_CHIME_TIME` | `3` | External car chime event timing, choices `1`–`4` as above. |
 | `API.CHIME.FLOOR_CHIME_TIME` | `4` | External landing chime event timing. |
@@ -258,7 +266,7 @@ See [Calls and dispatch](/hera/operation/dispatch-and-calls).
 | `VOICE.DATA.CUES.EVENTS` | Supplied event entries | Each has `ENABLED` and `CUSTOM_CUE`. |
 | `VOICE.DATA.CUES.FLOOR` | Supplied floor entries | Numeric floor keys with `ENABLED` and `CUSTOM_CUE`. |
 
-Preset choices in 26.9.6 include `sample`, `eve-beta-v1`, and `eve-beta-v2`. A preset supplies vocabulary; your `DATA.CUES` chooses the phrases. Tokens vary by preset.
+Available presets include `sample`, `eve-beta-v1` and `eve-beta-v2`. Each preset supplies its own vocabulary. Set `DATA.CUES` to select the phrases.
 
 See [Sound and voice](/hera/configuration/sound-and-voice#enable-voice-with-a-preset) for event names, pauses, placeholders, and a custom-recording example.
 
@@ -271,7 +279,7 @@ See [Sound and voice](/hera/configuration/sound-and-voice#enable-voice-with-a-pr
 | `MISCELLANEOUS.PARKING.REQUIRED_IDLE_TIME` | `60` | Non-negative idle wait before parking. |
 | `MISCELLANEOUS.WELD.PLAYERS_ENABLED` | `true` | Keeps detected passengers attached during travel. |
 | `MISCELLANEOUS.WELD.UNWELD_TIME` | `2` | Release choice: `1` leveling, `2` stopped, `3` pre-opening or stopped without pre-opening. Not seconds. |
-| `MISCELLANEOUS.WELD.OBJECTS_ENABLED` | `false` | Loose-object welding remains disabled by configuration normalization in 26.9.6. |
+| `MISCELLANEOUS.WELD.OBJECTS_ENABLED` | `false` | Hera forces loose-object welding off during startup. |
 
 See [Parking and passengers](/hera/operation/parking-and-welding).
 
@@ -291,7 +299,7 @@ The bridge remains inactive without its connection IDs and requires a live game 
 
 ## Older setting names
 
-26.9.6 recognizes these older names when the current setting is absent. Prefer current names for new changes; do not keep conflicting values under both names.
+Hera recognizes these older names when the current setting is absent. Use the current names in new configurations.
 
 | Older name | Current name |
 | --- | --- |
@@ -315,4 +323,4 @@ The bridge remains inactive without its connection IDs and requires a live game 
 
 A legacy `DOORS.METHOD = 2` with `CUBIC_BEZIER.ENABLED = true` is translated to method `3`. A direct floor-label map can be translated into `API.FLOOR_LABELS.FLOORS`; use the full current form in new configurations.
 
-After changing an older configuration, restart and follow [Test your elevator](/hera/testing). Configuration compatibility does not guarantee that an older accessory uses the current API messages.
+After migrating a configuration, [commission the car](/hera/testing) and check accessory calls and events against the [Controller API](/hera/integration/controller-api).

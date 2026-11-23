@@ -1,60 +1,29 @@
 ---
-title: 'Parking and passengers'
-description: 'Choose an idle parking floor and keep passengers with the moving car.'
-icon: 'square-parking'
+title: "Parking and passenger welding"
+description: "Configure the idle return and passenger release phase."
+icon: "square-parking"
 ---
 
 ## Idle parking
 
-Parking moves an unused car to a chosen floor with its doors closed. Edit `MISCELLANEOUS.PARKING`:
+Set `MISCELLANEOUS.PARKING.ENABLED = true`. `FLOOR` selects the parking landing and defaults to the startup floor. `REQUIRED_IDLE_TIME` is in seconds.
 
-```lua
-PARKING = {
-    ENABLED = true,
-    FLOOR = 1,
-    REQUIRED_IDLE_TIME = 60,
-},
-```
+Hera queues parking with source `"parking"`, direction `0` and door group `0`. The car returns with the doors closed. A whole-floor or parking-source lock can prevent the trip. [Lock scopes](/hera/extensions/floor-lockouts#narrow-the-rule)
 
-`REQUIRED_IDLE_TIME` is the idle wait in seconds. `FLOOR` must name a floor in the model. If `FLOOR` is `nil`, Hera uses the car's startup floor.
-
-After the idle wait, Hera registers a parking trip without opening an entrance at arrival. A normal call takes priority over waiting to park. Parking does not start while the car is operating, stopped, in special service, or has calls to serve.
-
-### Test parking
-
-1. Finish a normal trip away from the parking floor.
-2. Leave the car idle for the configured time.
-3. Confirm it returns to the parking floor and keeps the doors closed.
-4. Repeat, registering a hall call before the idle wait expires. Check that the call is served.
-5. Confirm parking does not interrupt fire or independent service.
+Test parking from another landing, then repeat with a passenger call during the idle interval.
 
 ## Passenger welding
 
-Passenger welding temporarily attaches player characters to the moving car to help them travel with it. Edit `MISCELLANEOUS.WELD`:
+`MISCELLANEOUS.WELD.PLAYERS_ENABLED` attaches detected avatars during travel. The detection area follows the cabin's `.PLATFORM` footprint. Set `UNWELD_TIME` to select the release phase.
 
-```lua
-WELD = {
-    PLAYERS_ENABLED = true,
-    UNWELD_TIME = 2,
-},
-```
-
-`UNWELD_TIME` is a **choice of release point**, despite its name. It is not a number of seconds.
-
-| Value | Release passengers |
+| Value | Release point |
 | --- | --- |
-| `1` | When leveling begins. |
-| `2` | When the car stops completely. Default. |
-| `3` | When pre-opening begins; when the car stops if pre-opening is disabled. |
+| `1` | Start of leveling |
+| `2` | Full stop (default) |
+| `3` | Pre-opening, or full stop when pre-opening does not run |
 
-Hera detects passengers in a region above `.PLATFORM` and temporarily disables jumping while they are attached. Keep the reference part fitted to the cabin footprint so the detection area matches the car.
-
-### Test passenger movement
-
-Ride from different positions in the cabin, then check that the character is released and can jump after arrival. Also test seats, respawning, and two players watching each other in the car. A change to the platform size, movement engine, or pre-opening can affect this behavior.
+Recheck rider attachment across the platform after changing its footprint, the movement engine or the pre-opening settings.
 
 ## Loose objects
 
-Automatic loose-object welding is disabled by the 26.9.6 configuration, including when `OBJECTS_ENABLED` is set in the supplied file. Do not rely on it to transport props. Test loose objects separately using the physics setup of your experience.
-
-A server integration can request player welding directly; see [Controller API](/hera/integration/controller-api#other-controls).
+Hera forces `MISCELLANEOUS.WELD.OBJECTS_ENABLED` off during startup. Passenger welding has its own switch.

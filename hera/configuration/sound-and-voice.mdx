@@ -1,10 +1,10 @@
 ---
-title: 'Sound and voice'
-description: 'Set chimes, button and motor sounds, and spoken announcements.'
-icon: 'volume-2'
+title: "Configure chimes and announcements"
+description: "Set sound assets and cues for motors, fixtures, arrival chimes and voice."
+icon: "volume-2"
 ---
 
-Sound effects live in `SOUNDS`; spoken announcements live in `VOICE`. Start by changing one audible sound, then adjust volume and range from inside and outside the car.
+Set local playback in `SOUNDS` and `VOICE`. If an accessory plays the arrival chime, disable the internal chime to avoid duplicate audio.
 
 ## Sound properties
 
@@ -45,45 +45,11 @@ Motor audio follows movement. `CAR_MOTOR` and `COUNTERWEIGHT_MOTOR` use `DIVIDER
 
 ## Arrival chimes
 
-Edit the existing `SOUNDS.CHIME` section, preserving its volume and range entries:
-
-```lua
-INTERNAL_ENABLED = true,
-API_ENABLED = true,
-CAR_CHIME_TIME = 3,
-FLOOR_CHIME_TIME = 4,
-DATA_CAR = {
-    UP = { SOUND = 5195361817 },
-    DOWN = { SOUND = 5195362131 },
-},
-DATA_FLOOR = {
-    UP = { SOUND = 5195361817 },
-    DOWN = { SOUND = 5195362131 },
-},
-```
-
-`INTERNAL_ENABLED` lets Hera play its own chimes. `API_ENABLED` remains in the supplied configuration but is not used to gate chime events in 26.9.6. Configure external event timing under `API.CHIME` and test the accessory separately. Coordinate accessory playback and internal playback to avoid hearing two chimes for one arrival.
-
-Car and landing chime timing use these values:
-
-| Value | Play |
-| --- | --- |
-| `1` | During leveling. |
-| `2` | When opening begins. |
-| `3` | After opening finishes. |
-| `4` | During leveling after travel, or when opening at the current floor. |
-
-For external chime events, configure `API.CHIME` separately. See [Indicators and labels](/hera/configuration/indicators#match-chimes-to-lanterns).
+Configure `SOUNDS.CHIME.DATA_CAR` and `DATA_FLOOR` with `UP` and `DOWN` clips. `SOUNDS.CHIME.INTERNAL_ENABLED` gates local playback. Set local timing in `SOUNDS.CHIME` and accessory event timing in `API.CHIME`. `SOUNDS.CHIME.API_ENABLED` is a legacy field. An accessory should handle or ignore `chime` and `chimeCar` directly. [Timing table](/hera/configuration/indicators#when-lanterns-turn-on)
 
 ### Use part of an audio asset
 
-A direction entry can include `START`, `END`, and `REPEATS`:
-
-```lua
-UP = { SOUND = 5195361817, START = 0, END = 0.8, REPEATS = 0 },
-```
-
-Times are seconds within the asset. `END` must be greater than `START`. `REPEATS = 0` plays once; `1` plays twice. Use timestamps matching your actual recording.
+For a clip within a longer recording, set its `START` and `END` in seconds. Set `REPEATS = 0` for one play. Check that the experience has access to the audio asset and that the end lies after the start.
 
 ## Enable voice with a preset
 
@@ -96,7 +62,7 @@ VOLUME = 0.15,
 PITCH = 1,
 ```
 
-`sample`, `eve-beta-v1`, and `eve-beta-v2` are supplied preset names in 26.9.6. The default is `sample`; the example selects `eve-beta-v2`. Keep the preset name available in your build, and choose cues from its vocabulary.
+Hera supplies the `sample`, `eve-beta-v1` and `eve-beta-v2` presets. `sample` is the default. Choose cues from the selected preset's vocabulary.
 
 The preset supplies the vocabulary audio and timestamps. You still choose announcements under `VOICE.DATA.CUES`.
 
@@ -121,7 +87,7 @@ CUES = {
 
 Cue tokens are separated by spaces. Their spelling must match the selected vocabulary. `{wait-1}` inserts a one-second pause; `{wait-0.5}` inserts half a second.
 
-Active event entries include `DOORS_OPENING`, `DOORS_CLOSING`, `QUEUE_UP`, `QUEUE_DOWN`, `QUEUE_NONE`, `MOVE_UP_START`, `MOVE_UP_STOP`, `MOVE_DOWN_START`, and `MOVE_DOWN_STOP`. An event entry must be enabled to play. The template also contains `DOOR_OBSTRUCTION`, but standard sensors do not trigger that voice cue in 26.9.6; use `SOUNDS.ON_DOOR_OBSTRUCTION` for its warning sound.
+Active event entries include `DOORS_OPENING`, `DOORS_CLOSING`, `QUEUE_UP`, `QUEUE_DOWN`, `QUEUE_NONE`, `MOVE_UP_START`, `MOVE_UP_STOP`, `MOVE_DOWN_START` and `MOVE_DOWN_STOP`. An event entry must be enabled to play. For the standard sensor obstruction warning, use `SOUNDS.ON_DOOR_OBSTRUCTION`. `DOOR_OBSTRUCTION` is an unused voice cue in the template.
 
 Floor announcements are separate from display labels. A button displaying `L` will not automatically make the voice say “Lobby.” Add that floor's cue explicitly. Floors without a usable custom cue fall back to the controller's numbered-floor phrase, which still requires matching vocabulary tokens.
 
@@ -134,7 +100,7 @@ Placeholders `{current-floor}`, `{move-direction}`, and `{queue-direction}` inse
 3. Add a timestamp entry for each token in `VOICE.DATA.VOCABULARY_TIMESTAMPS`.
 4. Reference those exact tokens in your event and floor cues.
 
-For a recording whose word “Lobby” runs from 1.2 to 2.0 seconds, the entry inside `VOCABULARY_TIMESTAMPS` is:
+If the lobby clip spans 1.2 to 2.0 seconds, add this entry to `VOCABULARY_TIMESTAMPS`.
 
 ```lua
 LOBBY = { START = 1.2, END = 2.0 },
@@ -142,6 +108,6 @@ LOBBY = { START = 1.2, END = 2.0 },
 
 A token can include `ID` to use a separate audio asset instead of the shared vocabulary recording. Use real timings from your recording and keep `END` greater than `START`.
 
-## Test the complete route
+## Verify playback
 
-Check up and down chimes, every floor cue, opening and closing, and audio at the edge of the intended range. Hera does not layer a second voice cue over one already playing, so long announcements can cause a later cue to be skipped. Shorten the cue or remove unnecessary waits if announcements overlap in timing.
+Test both serving directions at an intermediate landing. Check the car and hall chimes separately. For a missing voice cue, verify its event flag, vocabulary token, clip bounds and asset permissions. A cue can be skipped while another announcement is playing.

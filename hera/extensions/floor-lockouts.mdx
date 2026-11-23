@@ -1,0 +1,75 @@
+---
+title: "Apply floor lockouts"
+description: "Lock a landing, entrance or call class through a Hera extension."
+icon: "lock"
+---
+
+This [extension](/hera/extensions/getting-started) applies a maintenance lock to floor 2 while the elevator's `MaintenanceActive` attribute is true. Set `restrictedFloor` to a floor served by the car.
+
+## Connect the maintenance switch
+
+1. On the elevator **Model**, add a Boolean attribute named `MaintenanceActive`. Leave it unchecked.
+2. Under `Elevator/extensions`, create a ModuleScript named `Maintenance`.
+3. Paste this code. It applies the initial attribute value, then listens for changes.
+
+```lua
+local extension = {}
+local restrictedFloor = 2
+
+function extension.init(controller)
+    local elevator = controller.elevator.model
+    local release
+
+    local function updateLock()
+        if elevator:GetAttribute("MaintenanceActive") == true then
+            if release == nil then
+                release = controller.floor.lock(restrictedFloor)
+            end
+        elseif release then
+            release()
+            release = nil
+        end
+    end
+
+    updateLock()
+    local connection = elevator:GetAttributeChangedSignal("MaintenanceActive"):Connect(updateLock)
+    return function()
+        connection:Disconnect()
+        if release then release() end
+    end
+end
+
+return extension
+```
+
+## Test it from the server
+
+Start Play, select the elevator in the **server** view and toggle `MaintenanceActive` on. From another landing, try the floor-2 car button and a call to another floor. Floor 2 should be rejected and the other call should still run. Toggle the attribute off and register a **new** call to floor 2. Releasing a lock does not requeue cancelled calls.
+
+A whole-floor lock rejects ordinary car, landing, API and parking calls and guards closed entrances against manual opening. Applying a lock during travel can leave the car committed to braking at that landing. A cancelled call that has no unlocked callers remaining is withdrawn from door service. An active door cycle, including obstruction handling, can still finish. Phase I recall and Phase II calls bypass extension locks.
+
+## Narrow the rule
+
+Each of these calls acquires a separate lock. Pick the one that matches the installation.
+
+| Intended restriction at floor 2 | Acquisition |
+| --- | --- |
+| All ordinary access | `controller.floor.lock(2)` |
+| Only entrance 2 | `controller.floor.lock(2, {doorGroup = 2})` |
+| Calls using source `"car"`, including the built-in COP | `controller.floor.lock(2, {source = "car"})` |
+| Only upward landing calls at entrance 1 | `controller.floor.lock(2, {source = "landing", doorGroup = 1, direction = 1})` |
+| Only calls originating as API requests, including ERSA and XCS calls | `controller.floor.lock(2, {source = "api"})` |
+| Only the idle parking trip | `controller.floor.lock(2, {source = "parking"})` |
+
+Scope fields are combined. A rule with a source or direction restricts matching calls. To keep an entrance closed to manual opening as well, use a whole-floor or entrance-only lock. An entrance-only lock leaves parking eligible because a parking trip has no passenger entrance.
+
+Keep the function returned by each acquisition. Calling it twice is harmless. If two extensions lock the same floor, both must release their locks to restore access. A pending stop shared by multiple sources can still serve its unlocked callers.
+
+## Check a particular call
+
+```lua
+local scope = {source = "landing", doorGroup = 1, direction = 1}
+local locked = controller.floor.isLocked(2, scope)
+```
+
+Supply the same source, group and direction that the call would use. `isLocked(2)` checks for a whole-floor rule. A narrower rule can match a particular call even when that whole-floor query returns `false`. [Controller methods](/hera/extensions/controller)

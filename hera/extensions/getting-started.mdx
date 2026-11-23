@@ -1,0 +1,73 @@
+---
+title: "Write a Hera extension"
+description: "Install a server ModuleScript and use the controller lifecycle and event hooks."
+icon: "puzzle"
+---
+
+Use a Hera build with extension support. This example requests the first available entrance on `onReady` and logs when it reaches `open`.
+
+## Install the ModuleScript
+
+1. Stop the Studio playtest. In Explorer, find the elevator model that contains `CONFIGURATION`, `CAR` and `FLOORS`.
+2. Add a **Folder** named `extensions` directly under that model. Use lowercase.
+3. Add a **ModuleScript** named `WelcomeDoor` directly inside the folder. Replace its contents with the example below.
+
+```text
+Elevator
+├── CONFIGURATION
+├── CAR
+├── FLOORS
+└── extensions
+    └── WelcomeDoor
+```
+
+```lua
+local extension = {}
+
+function extension.init(controller)
+    print("Initialized", controller.elevator.model.Name)
+end
+
+function extension.event(name, data, controller)
+    if name == "onReady" then
+        local group = controller.door.groups()[1]
+        if group then
+            controller.door.open(group)
+        end
+    elseif name == "onDoorStateChanged" and data.state == "open" then
+        print("Opened group", data.doorGroup, "on floor", controller.floor.current())
+    end
+end
+
+return extension
+```
+
+## Run it
+
+Start Play with the car level. In server **Output**, verify the initialization log and the group and floor in the open log. Use `controller.door.open(2)` for group 2 or omit the argument to request all available groups.
+
+Use the `door.open` return value to check acceptance and the `open` state event to check full travel.
+
+## Receive just one event
+
+The optional `extension.event(name, data, controller)` receives each named Hera event on this elevator, including `onReady`. The data is a copy and the controller is the same one passed to `init`. The hook is connected before `init` runs. If `init` yields, events can arrive while it is waiting.
+
+For an extension that only follows floor changes, the entire ModuleScript can be shorter. The listener receives the event data directly.
+
+```lua
+return {
+    init = function(controller)
+        controller.floor.onChanged(function(data)
+            print("Display floor", data.floor)
+        end)
+    end,
+}
+```
+
+The displayed floor can advance during travel. For a boarding display, also check the car's movement state and the entrance you are monitoring. [State and events](/hera/reference/events)
+
+## Lifetime and cleanup
+
+Hera discovers direct ModuleScript children at startup. Restart Play after installing a module. Put car-specific setup in `init`; return a cleanup function for any Roblox connections or other resources you own. Hera releases locks and subscriptions acquired through the controller when the elevator is destroyed or initialization fails.
+
+If nothing appears in Output, check the folder name and nesting, the selected core build, and that your module returns a table containing `init`. A warning with the ModuleScript's full path identifies the extension that failed. [Build a floor lockout](/hera/extensions/floor-lockouts) · [Controller methods](/hera/extensions/controller)

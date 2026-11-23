@@ -1,0 +1,3 @@
+html.dark img[src$="/logo/xcs-symbol.svg"] {
+  filter: invert(1);
+}

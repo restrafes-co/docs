@@ -1,21 +1,14 @@
 ---
-title: 'Service modes'
-description: 'Choose the guide for fire recall, firefighter control, or independent service.'
-icon: 'siren'
+title: "Service modes"
+description: "Hera's availability, dispatch and door behavior for fire and independent service."
+icon: "siren"
 ---
 
-Fire service and independent service replace normal passenger operation. They cannot be active together.
-
-| Mode | Use it to | Continue with |
+| Mode | Dispatch | Doors at arrival |
 | --- | --- | --- |
-| Phase I fire recall | Clear normal calls and return the car to its recall landing. | [Fire service](/hera/operation/fire-service#phase-i-recall) |
-| Phase II firefighter control | Operate one destination at a time after recall, with held door controls. | [Fire service](/hera/operation/fire-service#phase-ii-firefighter-control) |
-| Independent service | Give the car operator control while ignoring hall and remote calls. | [Independent service](/hera/operation/independent-service) |
+| [Phase I](/hera/operation/fire-service#phase-i-recall) | Recall to the configured primary or alternate landing. | The recall entrance opens and holds. |
+| [Phase II On](/hera/operation/fire-service#phase-ii-firefighter-control) | One COP destination at a time. | Constant-pressure Door Open. |
+| [Phase II Hold](/hera/operation/fire-service#phase-ii-firefighter-control) | The car remains at the current landing. | The selected entrance holds open. |
+| [Independent](/hera/operation/independent-service) | One COP destination at a time. Holding the destination can close the doors. | The selected entrance opens and holds. |
 
-These features are available from Hera 26.8.28. The floor-button hold workflow for independent service described in these guides uses 26.9.6.
-
-## Start with a working elevator
-
-Before adding service controls, confirm that normal travel, door closing, and each served entrance work. Then configure the mode's entrance and floors, connect its controls, and follow the test sequence in its guide.
-
-Enabling a mode in configuration makes it available; it does not create a key switch or operator panel. Use the controls supplied with your model or connect your own server scripts through the [service-control API](/hera/reference/service-api).
+Fire and independent service are mutually exclusive. The configuration `ENABLED` fields make the mode available. Send the corresponding [service request](/hera/reference/service-api) to activate it from a server-side key switch or panel.

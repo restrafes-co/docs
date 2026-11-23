@@ -1,60 +1,41 @@
 ---
-title: 'Group control and displays'
-description: 'Connect shared hall calls, landing lanterns, and floor displays.'
-icon: 'panels-top-left'
+title: "ERSA, hall lanterns and PIs"
+description: "Wire shared hall stations and connect accessories to Hera car events."
+icon: "panels-top-left"
 ---
-
-Get each elevator working on its own before adding shared hall buttons or accessories. A group controller chooses which car answers a call; a display or lantern shows information from that car's API.
 
 ## ERSA group control
 
-ERSA assigns a shared hall call to one elevator in a group. Start with a complete ERSA package compatible with your Hera build, including its loader and configuration.
+ERSA assigns shared hall calls to eligible cars. Each car runs its own Hera core and queue. Use a core that advertises `confirmsCalls` for explicit acceptance and cancellation callbacks.
 
-A typical arrangement is:
+### Set up a group
 
 ```text
 GroupController
 ├── CONFIGURATION
-├── Loader (supplied)
+├── Loader
 ├── ELEVATORS
-│   ├── ElevatorA (complete Hera elevator)
-│   └── ElevatorB (complete Hera elevator)
+│   ├── ElevatorA
+│   └── ElevatorB
 └── CALLBUTTONS
-    ├── 1
-    │   └── .BUTTONS
-    │       └── F
-    │           └── U
-    │               └── BUTTON
     └── 2
         └── .BUTTONS
             └── F
-                └── D
+                └── U
                     └── BUTTON
 ```
 
-### Set up a group
-
-1. Complete a normal travel and door test for each car separately.
-2. Give each car a distinct `NAME.ID` so it can be identified in settings and logs.
-3. Place the complete car models under the group's `ELEVATORS` container.
-4. Add the shared landing fixtures under `CALLBUTTONS`, using floor numbers, entrance aliases, and `U`, `D`, or `N` direction names.
-5. Keep floor numbers and alias meanings consistent across the cars intended to answer those calls.
-6. Configure and start the supplied group controller with the matching accessory instructions.
-7. Wait until all cars are ready before checking group operation.
-
-ERSA normally favors a suitable car already at the floor, approaching in the requested direction, or idle nearby. When the selected car serves the call, the shared lamp clears.
+Commission each complete car before moving it under `ELEVATORS`. Use the supplied ERSA loader and configuration. Match the station aliases to the car group IDs in the bank's `MISCELLANEOUS.DOOR_GROUP_ALIASES`. If the bank config supplies the legacy `DOOR_SIDE_ALIASES`, ERSA uses that table first. The example registers an Up call at floor 2 for alias `F`. Use `D` for Down or `N` for neutral. A direct part named `LED` carries the station lamp. With no `LED`, ERSA uses `BUTTON`.
 
 ### Test the shared calls
 
-Call every floor while all cars are idle, then repeat with one car busy. Confirm which car is assigned, that it serves the requested entrance, and that the shared lamp clears. Test any floor that only some cars serve.
+ERSA ranks eligible cars by service at the calling floor, compatible approach, then idle availability. It prefers the closer car within each rank. A rejected or cancelled assignment can fall through to another eligible car. ERSA submits source `"api"`, so use an API-scoped lock when testing reassignment.
 
-Fire and independent service reject ordinary group calls at the car. Confirm that your group-controller version excludes unavailable cars rather than continuing to assign calls to them.
+Register a shared hall call and listen on the bank's `API` for `carAssigned` with `car`, `floor`, `direction` and `doorGroup`. Verify the station lamp clears at pickup. Repeat with one car in special service, then with a station served by only one car. If ERSA exhausts the eligible cars, it publishes `onMultibayError` with the call key and reason.
 
 ### Older accessory packages
 
-Some older ERSA and hall-lantern scripts expect a configuration ModuleScript named `Settings`, while current Hera loaders use the configuration supplied as `CONFIGURATION`. Older displays can also expect different event names or data fields.
-
-Use an accessory build matched to your controller. Do not rename Hera's configuration without updating its loader, and do not assume that placing an old accessory beside a newer car makes them compatible. If an old accessory fails with a missing `Settings` or event error, compare its requirements with the [current API](/hera/reference/events) or obtain a compatible package.
+Older cores can use the same callback for arrival and queue removal. For these cars, ERSA checks the queue and entrance state before clearing the station. For the legacy opening delay, ERSA reads `Settings.DOORS.OPEN_DELAY` from the car's `Settings` ModuleScript when present.
 
 ## Hall lanterns
 
@@ -71,65 +52,30 @@ Lanterns
                 └── LED
 ```
 
-Point the accessory's elevator reference at the intended car and its lantern-model reference at the `Lanterns` container. The older supplied controller uses settings named `ELEVATOR_MODEL` and `LANTERNS_MODEL`; preserve the settings expected by your accessory version.
+On the older supplied lantern controller, set `ELEVATOR_MODEL` to the car and `LANTERNS_MODEL` to the fixture container. That version reads the car aliases from a ModuleScript named `Settings`. Use a compatible accessory or subscribe directly to `indicator` if your car uses `CONFIGURATION`.
 
-The selected `LED` is shown on a `lit` command and hidden on `unlit`. The event data includes `floor`, `doorGroup`, and `direction`. Use the door alias mapping to find `F` or `R` from the numeric group.
+For a custom lantern, map `data.floor` and `data.doorGroup` to the fixture and `data.direction` to Up or Down. Apply `data.event` as `lit` or `unlit`.
 
 Set timing in [Indicators and labels](/hera/configuration/indicators). For a terminal floor, fit only the direction light that can be used there, and test arrivals from the available direction.
 
 ## Floor displays
 
-A custom floor display should:
-
-1. Connect to the correct elevator's `API` from a server script.
-2. Read `getStates` for the initial floor, even if the car is already idle.
-3. Listen for `onFloorChanged` after that.
-4. Read display text from `message.data.label.label` when present, or show the numeric floor.
-5. Choose a separate direction event for its arrows.
-
-For a simple display, place a `SurfaceGui` on a part in `Workspace`. Add a `TextLabel` named `FloorLabel` and a server `Script` inside that GUI:
-
-```text
-DisplayPart
-└── SurfaceGui
-    ├── FloorLabel (TextLabel)
-    └── Script (server Script)
-```
-
-Use this script with an elevator named `Elevator`:
+Add a `SurfaceGui` named `Display` below the elevator with a direct `TextLabel` named `FloorLabel`. Install this ModuleScript under `Elevator/extensions` on an extension-enabled core. It initializes the PI and updates it on `onFloorChanged`.
 
 ```lua
-local api = workspace:WaitForChild("Elevator"):WaitForChild("API")
-local label = script.Parent:WaitForChild("FloorLabel")
-local returnId = game:GetService("HttpService"):GenerateGUID(false)
-local initialized = false
-local receivedFloorEvent = false
-
-api.Event:Connect(function(message)
-    if message.event == "onFloorChanged" then
-        local floorLabel = message.data.label
-        receivedFloorEvent = true
-        label.Text = floorLabel and floorLabel.label or tostring(message.data.floor)
-    elseif message.event == "returnStates" and message.data.returnId == returnId then
-        if not receivedFloorEvent then
-            label.Text = tostring(message.data.states.floor)
-        end
-        initialized = true
-    end
-end)
-
-local deadline = os.clock() + 15
-repeat
-    api:Fire({ request = "getStates", data = { returnId = returnId } })
-    task.wait(0.25)
-until initialized or os.clock() >= deadline
-
-assert(initialized, "Hera display could not read the initial state")
+return {
+    init = function(controller)
+        local display = assert(controller.elevator.model:FindFirstChild("Display", true), "Display missing")
+        local label = assert(display:FindFirstChild("FloorLabel"), "FloorLabel missing")
+        label.Text = tostring(controller.elevator.getState().floor)
+        controller.floor.onChanged(function(data)
+            label.Text = if data.label then data.label.label else tostring(data.floor)
+        end)
+    end,
+}
 ```
 
-The initial state contains a numeric floor rather than a generated label, so apply your configured label mapping at startup if your display must immediately show a custom label. Later `onFloorChanged` events include the generated label.
-
-This script leaves its event connection active for the display's lifetime. Disconnect it when removing a dynamically created display.
+The snapshot supplies the numeric floor. Initialize from your floor-label mapping if the PI needs display text before the first floor-change event. A remote PI can subscribe through the [BindableEvent API](/hera/integration/controller-api).
 
 ## Choose the arrow meaning
 

@@ -1,78 +1,31 @@
 ---
-title: 'Buttons'
-description: 'Name car and hall buttons, map entrances, and change button lights.'
-icon: 'circle-dot'
+title: "Wire COP and hall fixtures"
+description: "Map COP and hall fixtures to door groups, call inputs and lamp styles."
+icon: "circle-dot"
 ---
 
-Hera uses fixture names to decide which floor, entrance, or door control a button operates. Every fixture model needs a direct child `BUTTON` part.
+Use a fixture model with a direct `BUTTON` BasePart. Hera derives the input from the fixture's name and its position in the panel hierarchy.
 
 ## Map front and rear entrances
 
-Edit `MISCELLANEOUS.DOOR_GROUP_ALIASES`:
-
-```lua
-DOOR_GROUP_ALIASES = {
-    F = 1,
-    R = 2,
-},
-```
-
-This maps `F` to door group `1` and `R` to group `2`. Each alias must point to a different group. Keep the alias consistent across car buttons, hall buttons, and accessories.
-
-The model must contain the corresponding numeric door group. An alias does not create an entrance.
+The default `MISCELLANEOUS.DOOR_GROUP_ALIASES` maps `F = 1` and `R = 2`. Match the alias to your car and landing group IDs. [Model tree](/hera/model-structure)
 
 ## Car buttons
 
-Place a panel model directly under `CAR`. Its name must begin with `.BUTTONS`. Place the fixture models inside it.
+Under `CAR`, place fixtures inside a panel whose name starts with `.BUTTONS`. Use the alias followed by the numeric destination or control.
 
-| Fixture name | Function with the aliases above |
+| Fixture | With `F = 1` and `R = 2` |
 | --- | --- |
-| `F1` | Call floor 1 using the front entrance. |
-| `F-1` | Call floor -1 using the front entrance. |
-| `R2` | Call floor 2 using the rear entrance. |
-| `FDO` / `RDO` | Door Open for that entrance. |
-| `FDC` / `RDC` | Door Close for that entrance. |
-| `FDH` / `RDH` | Door Hold for that entrance. |
-| `ALARM` | Sound the alarm while held. |
+| `F1` or `F-1` | Front entrance at floor 1 or basement floor -1 |
+| `R2` | Rear entrance at floor 2 |
+| `FDO`, `FDC`, `FDH` | Front Door Open, Close and Hold |
+| `ALARM` | Alarm while held |
 
-A front floor-2 button can look like this:
-
-```text
-CAR
-└── .BUTTONS
-    └── F2
-        ├── BUTTON (BasePart)
-        ├── LED (optional BasePart)
-        └── SurfaceGui (optional)
-            └── .LABEL (TextLabel, optional)
-```
-
-A floor button's number must exist in `FLOORS`, and its entrance must exist at that floor. Display labels do not change the button name: the button for a lobby numbered `1` stays `F1` even when its visible label is `L`.
-
-Pressing an already registered destination does not cancel it. In normal service, pressing the current floor can open or reopen the selected entrance. See [Calls and dispatch](/hera/operation/dispatch-and-calls).
+Use the floor number in the fixture name. For floor `1`, name the fixture `F1` and add a descendant `TextLabel` named `.LABEL` to display a configured label such as `L`.
 
 ## Hall buttons
 
-A hall panel belongs inside the landing's floor model. Under its `.BUTTONS` panel, add a model named for the entrance alias, then its direction fixtures:
-
-```text
-FLOORS
-└── 2
-    └── .BUTTONS
-        └── F
-            ├── U
-            │   └── BUTTON
-            └── D
-                └── BUTTON
-```
-
-| Name | Request |
-| --- | --- |
-| `U` | Travel up from this floor. |
-| `D` | Travel down from this floor. |
-| `N` | Call without a preferred direction. |
-
-The lowest landing normally needs Up and the highest needs Down. Use both at intermediate landings. For a rear panel, put the direction fixtures inside `R` instead of `F`.
+Under the landing, use `.BUTTONS/F/U/BUTTON` for a front Up call. Use `D` for Down or `N` for a neutral call. For shared stations, use the [ERSA layout](/hera/integration/group-control-and-displays#ersa-group-control).
 
 ## Button lights
 
@@ -104,18 +57,12 @@ CAR = {
 },
 ```
 
-`TRANSITION_DURATION` is the color-change time in seconds; when omitted, Hera uses `0.1`. `LIT_ON_CLICK_DURATION` controls brief press feedback when a call does not remain registered. Registered call lamps stay lit until the call is served or removed.
+`TRANSITION_DURATION` sets the color transition in seconds and defaults to `0.1`. Use `LIT_ON_CLICK_DURATION` for momentary feedback. The COP's ordinary floor-button release timer reads `BUTTONS.HALL.LIT_ON_CLICK_DURATION`. Registered calls keep their lamp lit until service or cancellation.
 
 A `TEXTURE` value in `LIT` or `UNLIT` changes a `Decal` or `Texture` named `.BUTTON` or `.TEXTURE` directly inside the illuminated part. Keep the supplied texture structure when changing this feature.
 
-`LIT_ON_DOOR_MOVE` keeps door-control lights active during movement. Older configuration files also contain `LIT_ON_CLICK`, `LIT_ON_HOLD`, and `LIT_ON_HALL_LOCK`; these switches are retained but do not change the current 26.9.6 input lighting. See [Settings reference](/hera/reference/configuration#button-lights).
-
-## Labels and sound
-
-To put `L`, `B`, or another label on a car button, configure [floor labels](/hera/configuration/indicators#floor-labels) and include a `TextLabel` named `.LABEL` in that fixture.
-
-Button press sounds are controlled separately by `SOUNDS.ON_BUTTON_PRESS`. Separate rejection sounds are available for locked car and hall calls. See [Sound and voice](/hera/configuration/sound-and-voice).
+`LIT_ON_DOOR_MOVE` keeps Door Open and Door Close lamps lit during the corresponding strokes. [Active and legacy lamp settings](/hera/reference/configuration#button-lights)
 
 ## Check your panel
 
-Test every floor and direction, watch the lamp after arrival, and try a current-floor call. If nothing happens, first check the `BUTTON` part, fixture name, alias, and served entrance. Special service changes what the controls do; see [Fire service](/hera/operation/fire-service) and [Independent service](/hera/operation/independent-service).
+Register a destination away from the car. Verify the lamp stays lit until service. A flash indicates input feedback and can accompany a rejection. For a failure isolated to one entrance, check its alias, door group and any [lockout](/hera/extensions/floor-lockouts).

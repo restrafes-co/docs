@@ -1,61 +1,34 @@
 ---
-title: 'Door operation'
-description: 'Understand Door Open, Close, Hold, sensor reopening, and nudging.'
-icon: 'door-open'
+title: "Door operation"
+description: "Trace Hera's normal-service controls, obstruction reversal and nudge closure."
+icon: "door-open"
 ---
 
-Each door group controls one entrance. Its car and landing panels operate together, while a second entrance can have a different state.
-
-For model setup and timing values, use [Model structure](/hera/model-structure) and [Door settings](/hera/configuration/doors). This page explains what the controls do during use.
-
-## A normal stop
-
-1. The car slows and levels at its destination.
-2. Chimes and direction lights operate at their configured times.
-3. The requested car and landing doors open.
-4. The open timer allows time to board or leave.
-5. The doors close, then Hera can depart for the next call.
-
-With pre-opening enabled, the doors may start opening just before leveling finishes. At a floor without a particular landing entrance, that door group stays closed.
+Hera tracks each entrance independently. A normal stop opens the selected groups. With pre-opening enabled, the selected entrance can begin opening during final leveling.
 
 ## Door controls in normal service
 
-| Control | Action |
+| Control | Hera behavior |
 | --- | --- |
-| Door Open | Opens the selected entrance at the current landing, or reverses a normal closing cycle. |
-| Door Close | Ends the normal wait and releases Door Hold so closing can begin. |
-| Door Hold | Keeps the selected entrance open until Door Close releases the hold. |
-| Current-floor car button | Can open or reopen that button's entrance. |
+| Door Open | Opens the selected entrance at a served landing or requests a reversal during a normal close. |
+| Door Hold | Latches the selected group open. |
+| Door Close | Releases the hold and zeroes dwell. Normal closure waits for the sensor to clear. |
+| Current-floor COP button | Can open or reopen its entrance with the car stopped and level. |
 
-Fixture names such as `FDO`, `FDC`, and `FDH` choose the entrance through the configured alias. See [Buttons](/hera/configuration/buttons).
-
-A door control cannot open a landing that does not exist at the car's floor. Normal controls are also restricted while the car is moving and during special service.
+For scripted controls, use [extension door methods](/hera/extensions/controller#doors). Watch `onDoorStateChanged` for the requested group to reach `open` or `closed`.
 
 ## Sensor reopening
 
-During a normal close, a player character entering the sensor area makes the doors reopen. After reopening, the normal wait uses `REOPEN_TIMER_LENGTH`, or `TIMER_LENGTH` if no separate reopen time is set.
-
-While a sensor remains obstructed, the normal countdown pauses or resets according to `TIMER_HOLD_MODE`. The nudge countdown continues, so repeated obstruction does not keep postponing nudging indefinitely.
-
-Test using your avatar. A loose part is not treated as a passenger by Hera's standard sensor detection.
+The group sensor detects player characters during a normal close. After a reversal, dwell uses `REOPEN_TIMER_LENGTH` or falls back to `TIMER_LENGTH`. While held by the sensor, dwell pauses in `TIMER_HOLD_MODE = 1` and resets in mode `2`.
 
 ## Nudging
 
-If the entrance remains occupied long enough, Hera starts its nudge warning and closes using the nudge speeds. Sensors no longer cause the doors to reverse during this close.
-
-A nudge close is distinct from an ordinary close: the warning, speed values, and timeout are configured separately. Test the normal reopen behavior before testing the prolonged-obstruction case.
+Obstruction leaves the nudge timer running. Door Hold and special service suspend the normal timers. At the nudge threshold, the warning sounds if enabled and the nudge close follows after `NUDGE_CLOSE_DELAY`. Normal sensor reversal is suppressed during that close. [Door settings](/hera/configuration/doors)
 
 ## Special-service door controls
 
-| Service | Door behavior |
-| --- | --- |
-| Phase I fire recall | Doors close for recall and are held open at the recall landing. Normal passenger controls do not interrupt recall. |
-| Phase II On | Hold Door Open or Door Close until the movement finishes. Releasing early reverses the movement. |
-| Phase II Hold | Holds the stationary car at its landing with the selected doors open. |
-| Independent service | Holds doors open at arrival. In 26.9.6, hold a destination floor button through closure to depart. |
-
-Use the complete sequences in [Fire service](/hera/operation/fire-service) and [Independent service](/hera/operation/independent-service). The normal sensor-reopening sequence described above applies to normal service; do not assume it replaces the held-control rules in those modes.
+Use the held controls documented for [fire service](/hera/operation/fire-service) and [independent service](/hera/operation/independent-service).
 
 ## If a door stops partway
 
-Check Output for a door failure before changing the timer. In 26.9.6, a failed door cycle can set the group to `fault` and put the elevator out of service. Fix the reported model or movement problem and restart. See [Troubleshooting](/hera/reference/troubleshooting#doors-stop-partway-or-the-elevator-goes-out-of-service).
+A failed cycle can put the group in `fault` and take the car out of service. Record the floor and group from `onDoorFault` and use the first server Output error to locate the failure. [Door troubleshooting](/hera/reference/troubleshooting#doors-stop-partway-or-the-elevator-goes-out-of-service)

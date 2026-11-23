@@ -53,7 +53,7 @@
     "tabs": [
       {
         "tab": "XCS",
-        "icon": "shield-check",
+        "icon": "/logo/xcs-symbol.svg",
         "groups": [
           {
             "group": "Fundamentals",
@@ -130,6 +130,7 @@
       {
         "tab": "Hera",
         "icon": "building-2",
+        "hidden": true,
         "groups": [
           {
             "group": "Start here",
@@ -158,6 +159,15 @@
               "hera/configuration/buttons",
               "hera/configuration/sound-and-voice",
               "hera/configuration/indicators"
+            ]
+          },
+          {
+            "group": "Extensions",
+            "icon": "puzzle",
+            "pages": [
+              "hera/extensions/getting-started",
+              "hera/extensions/floor-lockouts",
+              "hera/extensions/controller"
             ]
           },
           {
