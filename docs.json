@@ -100,7 +100,30 @@
           {
             "group": "API Documentation",
             "icon": "book-open",
-            "pages": ["api/consumer-overview"]
+            "pages": ["api/consumer-overview", "api/organization-api-keys", "api/get-connection"]
+          },
+          {
+            "group": "Identities",
+            "icon": "users",
+            "pages": [
+              "api/identities",
+              "api/list-identities",
+              "api/get-identity",
+              "api/create-identity",
+              "api/update-identity",
+              "api/invite-identity",
+              "api/withdraw-identity-invitation",
+              "api/remove-identity"
+            ]
+          },
+          {
+            "group": "Identity Access Groups",
+            "icon": "users-round",
+            "pages": [
+              "api/list-access-groups",
+              "api/add-identity-access-groups",
+              "api/remove-identity-access-groups"
+            ]
           },
           {
             "group": "Access Points",
@@ -108,6 +131,7 @@
             "pages": [
               "api/list-access-points",
               "api/get-access-point",
+              "api/create-access-point",
               "api/access-points"
             ]
           },

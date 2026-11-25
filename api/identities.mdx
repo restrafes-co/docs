@@ -1,0 +1,61 @@
+---
+title: "Manage identities"
+description: "Enroll identities, manage invitations, and configure access with the Consumer API."
+icon: "users"
+---
+
+Use an organization API key with the scopes required by your integration and no location restrictions. XCS determines the organization from `X-API-Key` and checks the scope grantor's current permissions on each request. [Organization API keys and scopes](/api/organization-api-keys#identity-scope-delegation)
+
+The `id` in an identity path is the identity ID returned by the API. `userId` identifies an XCS account.
+
+## Enroll an identity
+
+| Type | Supply | Initial status |
+| --- | --- | --- |
+| `USER` | An XCS `userId` | `INVITED`, or `NOT_INVITED` with `invite: false` |
+| `ROBLOX` | A `robloxUsername` | `INVITED`, or `PSUEDO` with `invite: false` for an unlinked Roblox account |
+| `ROBLOX_GROUP` | A `robloxGroupId` and, optionally, `robloxGroupRoles` | `PRESENT` |
+| `CARD` | One or more card identifiers in `identifiers` | `PRESENT` |
+| `PIN` | One or more PIN strings in `identifiers` | `PRESENT` |
+
+XCS can resolve a Roblox username to a `USER` identity if the Roblox account is linked to an XCS account that shares its public account links. Use the `type` and `id` in the response for subsequent requests. New identities receive the organization's active default access groups and organization roles. The `robloxGroupRoles` field filters membership by Roblox group role ID. Omit it or send `[]` to include all roles in that Roblox group.
+
+Card identifiers and PINs are write-only. Use an alias to label a credential identity without storing a credential value in the label.
+
+This example uses `identities.write`. Set `invite: false` when you want to enroll the account before sending its invitation.
+
+```bash
+curl --request POST \
+  --header "X-API-Key: $XCS_API_KEY" \
+  --json '{"type":"USER","userId":"f5c87646-c6d8-465d-ba31-c3c8e15026d4","invite":false}' \
+  https://api.restrafes.co/api/consumer/v1/identities
+```
+
+Save the returned `identity.id`. For an XCS account enrolled with `invite: false`, call [Invite an identity](/api/invite-identity) when the person is ready to join. XCS delivers invitations to linked accounts through the XCS inbox. Email delivery depends on the recipient's preferences and the sending cooldown.
+
+## Assign access groups
+
+Use [List access groups](/api/list-access-groups) to find group IDs. A [partial update](/api/update-identity) with `accessGroupIds` replaces the identity's directly assigned groups. Use [add](/api/add-identity-access-groups) or [remove](/api/remove-identity-access-groups) to change selected memberships. Role-inherited groups are managed through organization roles.
+
+## Set availability
+
+Use `enabled` to control both access channels, and `logicalEnabled` and `physicalEnabled` to control them individually. Logical access covers XCS resources. Physical access covers access-point credential checks. A start or expiry timestamp must include a time zone. Set a timestamp to `null` to clear that boundary. Expiry must be later than the start when both are set for the same channel.
+
+To limit the resources an identity can access, set `logicalScope` or `physicalScope` to `selected` and supply the permitted location and access-point IDs. A selected location includes its access points. An empty selection permits no resources for that channel. Use `all` with empty ID arrays for unrestricted resource scope. Group grants and other access rules still apply.
+
+## Set tap data
+
+`tapData` is a JSON object attached to an identity. During a credential check, XCS starts with the access-point scenario data, applies active direct access-group data in ascending priority order, and then applies the identity's tap data. Identity values take precedence on overlapping keys. A patch replaces the entire stored object. Send `{}` to clear it.
+
+This example uses `tap_data.write`.
+
+```bash
+curl --request PATCH \
+  --header "X-API-Key: $XCS_API_KEY" \
+  --json '{"tapData":{"visitType":"contractor"}}' \
+  "https://api.restrafes.co/api/consumer/v1/identities/$XCS_IDENTITY_ID"
+```
+
+## End an invitation or remove access
+
+Use [Withdraw an identity invitation](/api/withdraw-identity-invitation) to cancel a pending invitation while keeping the identity. Use [Remove an identity](/api/remove-identity) to revoke membership. Removed identities remain available by ID, or through a list filtered to `REVOKED`.

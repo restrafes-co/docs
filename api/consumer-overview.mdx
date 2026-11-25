@@ -1,6 +1,6 @@
 ---
 title: "Introduction"
-description: "Reference for Consumer API authentication, service checks, access-point management, permissions, and remote unlock."
+description: "Reference for Consumer API authentication, identities, access points, permissions, and remote unlock."
 icon: "code"
 ---
 
@@ -12,17 +12,17 @@ https://api.restrafes.co/api/consumer/v1
 
 ## Authentication
 
-Create or revoke organization API keys from the organization management area in the XCS dashboard. Send the key in the `X-API-Key` header:
+Create a key in your organization's **Settings** → **API Keys** and select the scopes required by your integration. Send the key in the `X-API-Key` header. [Organization API keys and scopes](/api/organization-api-keys)
 
 ```bash
 curl \
   -H "X-API-Key: $XCS_API_KEY" \
-  https://api.restrafes.co/api/consumer/v1/ping
+  https://api.restrafes.co/api/consumer/v1/connection
 ```
 
-The access-point endpoints require this header. The API returns `401` when the key is missing, unknown, belongs to an inactive organization, or belongs to an archived organization.
+This example uses `locations.read`. The API returns `401` when the key is missing, unknown, or belongs to an inactive or archived organization. A valid key without the required operation scope receives `403`.
 
-An organization API key may be restricted to selected locations. A location-scoped key receives `403` when it targets an access point outside those locations. A key without location restrictions may target any access point owned by its organization.
+An organization API key may be restricted to selected locations. A location-scoped key receives `403` if it targets an access point outside those locations. Identity and access-group endpoints require a key with no location restrictions and the corresponding identity scopes.
 
 Store API keys in server-side secret storage. Do not include them in Roblox `LocalScript` code, browser code, source control, logs, or client-visible configuration.
 
@@ -32,13 +32,29 @@ Store API keys in server-side secret storage. Do not include them in Roblox `Loc
 | -------- | ------------------------------------------------------------------------- | ------------------------------------------------- |
 | `GET`    | `/`                                                                       | Check whether the Consumer API is reachable       |
 | `GET`    | `/ping`                                                                   | Read the current Consumer API version             |
+| `GET`    | [`/connection`](/api/get-connection)                                      | Get the organization and authorized locations      |
+| `GET`    | [`/identities`](/api/list-identities)                                      | List organization identities                     |
+| `POST`   | [`/identities`](/api/create-identity)                                      | Enroll an identity                               |
+| `GET`    | [`/identities/{id}`](/api/get-identity)                                    | Get an identity                                  |
+| `PATCH`  | [`/identities/{id}`](/api/update-identity)                                 | Partially update an identity                     |
+| `DELETE` | [`/identities/{id}`](/api/remove-identity)                                 | Revoke an identity's membership                  |
+| `POST`   | [`/identities/{id}/invitation`](/api/invite-identity)                      | Start an invitation                              |
+| `DELETE` | [`/identities/{id}/invitation`](/api/withdraw-identity-invitation)         | Withdraw an invitation                           |
+| `GET`    | [`/access-groups`](/api/list-access-groups)                                | List organization access groups                  |
+| `POST`   | [`/identities/{id}/access-groups`](/api/add-identity-access-groups)        | Add direct access-group assignments              |
+| `DELETE` | [`/identities/{id}/access-groups`](/api/remove-identity-access-groups)     | Remove direct access-group assignments           |
 | `GET`    | [`/locations/{id}/access-points`](/api/list-access-points)                | List every access point in a location             |
+| `POST`   | [`/locations/{id}/access-points`](/api/create-access-point)                | Create a regular access point                     |
 | `GET`    | [`/access-points/{id}`](/api/get-access-point)                            | Get an individual access point                    |
 | `PATCH`  | [`/access-points/{id}`](/api/access-points)                               | Partially update an access point                  |
 | `GET`    | [`/access-points/{id}/permissions`](/api/access-point-permissions)        | List directly granted permissions                 |
 | `POST`   | [`/access-points/{id}/permissions`](/api/add-access-point-permissions)    | Add permissions without replacing existing grants |
 | `DELETE` | [`/access-points/{id}/permissions`](/api/remove-access-point-permissions) | Remove selected permissions                       |
 | `POST`   | [`/access-points/{id}/remote-unlock`](/api/remote-unlock)                 | Send a remote-unlock command                      |
+
+## Organization roster migration
+
+The public `GET /organizations` directory now omits the `members` field. To retrieve a roster, call `GET /identities` with that organization's API key and the `identities.read` scope. [List identities](/api/list-identities)
 
 ## Service check
 

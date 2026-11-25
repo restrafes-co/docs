@@ -1,0 +1,51 @@
+---
+title: "Organization API keys"
+description: "Create API keys, change their scopes, and find the scope required for each Consumer API operation."
+icon: "key-round"
+---
+
+Organization API keys authenticate server-side integrations. XCS identifies the organization from the key and authorizes each operation by scope. Location restrictions also apply to requests that target a location or access point.
+
+## Create a key
+
+1. In the XCS dashboard, open your organization's **Settings** → **API Keys**.
+2. Choose **New API Key**, enter a name, and use the **Permissions** checkboxes to select the scopes your integration needs. A new dashboard key starts with no scopes selected.
+3. Create the key and save the secret in server-side secret storage. The dashboard shows the secret once.
+
+## Change scopes or revoke a key
+
+Open **Edit** on the key's row to select or clear scopes. Your integration continues to use the same key secret. To invalidate the key, choose **Revoke** on its row.
+
+The first eight scopes below were available to organization keys before scope selection was introduced. Keys that already existed retain those scopes and can be edited to narrow access or add identity scopes.
+
+## Scopes
+
+To grant a scope, you need **Manage API keys** and the additional organization permission listed below.
+
+| Scope | Grants access to | Additional permission |
+| --- | --- | --- |
+| `locations.read` | [Get the organization and its authorized locations](/api/get-connection) | View organization |
+| `access_points.read` | [List access points](/api/list-access-points) and [get an access point](/api/get-access-point) | View organization |
+| `access_points.write` | [Create](/api/create-access-point) and [update](/api/access-points) access points | Configure access points |
+| `access_point_permissions.read` | [List access-point permissions](/api/access-point-permissions) | View organization |
+| `access_point_permissions.write` | [Add](/api/add-access-point-permissions) or [remove](/api/remove-access-point-permissions) direct grants on an access point | Configure access points |
+| `access_points.unlock` | [Unlock an access point remotely](/api/remote-unlock) | Remote unlock |
+| `runtime.use` | Authenticate Roblox access-point controllers | View organization |
+| `intercom.use` | Start or manage Roblox [Callbox](/api/callbox) sessions | View organization |
+| `identities.read` | [List identities](/api/list-identities) and [get an identity](/api/get-identity) | Manage identities |
+| `identities.write` | [Enroll identities](/api/create-identity) and [update](/api/update-identity) their aliases, credentials, Roblox group role filters, or availability | Manage identities |
+| `identities.delete` | [Remove an identity](/api/remove-identity) | Manage identities |
+| `invitations.write` | [Invite an identity](/api/invite-identity) and [withdraw an invitation](/api/withdraw-identity-invitation) | Manage identities |
+| `access_groups.read` | [List an organization's access groups](/api/list-access-groups) | Manage identities |
+| `access_groups.write` | [Add](/api/add-identity-access-groups), [remove](/api/remove-identity-access-groups), or [replace](/api/update-identity) an identity's direct group assignments | Manage identities |
+| `tap_data.write` | [Replace or clear an identity's tap data](/api/update-identity) | Manage identities |
+
+## Identity scope delegation
+
+An identity scope requires a key with no location restrictions. Granting or changing identity scopes with **Manage API keys** and **Manage identities** binds delegation to the person making that change. XCS checks that the grantor is active and still has both permissions on each identity request.
+
+Enrolling a `USER` or `ROBLOX` identity requires `identities.write` and `invitations.write` by default. Send `invite: false` to enroll without issuing an invitation using just `identities.write`.
+
+For a mixed identity update, the key needs the scopes for all fields in the request. For example, updating `alias` and `tapData` together requires both `identities.write` and `tap_data.write`. Updating only `tapData` requires just `tap_data.write`.
+
+An operation that returns a result after a write uses the scopes for that write. Use a read scope to make a separate list or detail request.

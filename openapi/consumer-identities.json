@@ -1,0 +1,763 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "XCS Consumer Identity API",
+    "version": "1.0.0"
+  },
+  "servers": [{ "url": "https://api.restrafes.co" }],
+  "security": [{ "ApiKeyAuth": [] }],
+  "paths": {
+    "/api/consumer/v1/identities": {
+      "get": {
+        "operationId": "listIdentities",
+        "summary": "List identities",
+        "description": "Requires `identities.read`. Lists identities in the API key's organization, ordered by creation time and then by ID, both ascending. Set `status` to include identities with a specific status. When `status` is omitted, the list excludes `LEFT` and `REVOKED` identities.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Offset" },
+          { "$ref": "#/components/parameters/Limit" },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filter by identity type.",
+            "schema": { "$ref": "#/components/schemas/IdentityType" }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by exact identity status.",
+            "schema": { "$ref": "#/components/schemas/IdentityStatus" }
+          },
+          {
+            "name": "accessGroupId",
+            "in": "query",
+            "description": "Filter by direct access-group membership.",
+            "schema": { "$ref": "#/components/schemas/ResourceId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An identity page and its pagination metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["identities", "pagination"],
+                  "properties": {
+                    "identities": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Identity" }
+                    },
+                    "pagination": { "$ref": "#/components/schemas/Pagination" }
+                  }
+                },
+                "example": {
+                  "identities": [],
+                  "pagination": { "offset": 0, "limit": 50, "total": 0 }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/RequestValidation" }
+        }
+      },
+      "post": {
+        "operationId": "enrollIdentity",
+        "summary": "Enroll an identity",
+        "description": "Requires `identities.write`. Enrolling a `USER` or `ROBLOX` identity also requires `invitations.write` unless you send `invite: false`. XCS assigns the organization's active default roles and access groups during enrollment. XCS can resolve a Roblox user to a linked XCS account. Save the returned identity ID for subsequent requests.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/IdentityEnrollment" },
+              "example": {
+                "type": "USER",
+                "userId": "f5c87646-c6d8-465d-ba31-c3c8e15026d4",
+                "invite": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/StagedIdentity" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": {
+            "description": "The key or scope grantor lacks authorization, the grantor cannot assign the organization's default roles, or enrollment exceeds the organization's member quota.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "404": {
+            "description": "The requested XCS or Roblox user could not be found.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "409": {
+            "description": "The account is already enrolled or a past membership is still managed by its provider.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "422": { "$ref": "#/components/responses/RequestValidation" }
+        }
+      }
+    },
+    "/api/consumer/v1/identities/{id}": {
+      "parameters": [{ "$ref": "#/components/parameters/IdentityId" }],
+      "get": {
+        "operationId": "getIdentity",
+        "summary": "Get an identity",
+        "description": "Requires `identities.read`. Returns the identity for this organization, including historical memberships. The response includes directly assigned access groups.",
+        "responses": {
+          "200": { "$ref": "#/components/responses/Identity" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/IdentityNotFound" }
+        }
+      },
+      "patch": {
+        "operationId": "updateIdentity",
+        "summary": "Update an identity",
+        "description": "Requires `tap_data.write` for `tapData`, `access_groups.write` for `accessGroupIds`, and `identities.write` for all other fields. If you submit fields from multiple scopes, the key needs every corresponding scope. The organization owner, the scope grantor, and identities under active provider management have additional availability protections.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/IdentityPatch" },
+              "example": {
+                "alias": "Facilities contractor",
+                "tapData": { "visitType": "contractor" },
+                "physicalExpiresAt": "2027-09-30T18:00:00Z"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/Identity" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/IdentityNotFound" },
+          "409": { "$ref": "#/components/responses/IdentityStateConflict" },
+          "422": { "$ref": "#/components/responses/RequestValidation" }
+        }
+      },
+      "delete": {
+        "operationId": "removeIdentity",
+        "summary": "Remove an identity",
+        "description": "Requires `identities.delete`. Revokes the identity's organization membership and clears any pending invitation. The membership record remains available by ID. The organization owner, the scope grantor, and identities under active provider management are protected from removal through this endpoint.",
+        "responses": {
+          "200": {
+            "description": "The identity has no current membership.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success"],
+                  "properties": { "success": { "type": "boolean", "enum": [true] } }
+                },
+                "example": { "success": true }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/IdentityNotFound" }
+        }
+      }
+    },
+    "/api/consumer/v1/identities/{id}/invitation": {
+      "parameters": [{ "$ref": "#/components/parameters/IdentityId" }],
+      "post": {
+        "operationId": "inviteIdentity",
+        "summary": "Invite an identity",
+        "description": "Requires `invitations.write`. Starts an invitation for a `USER` identity in `NOT_INVITED` or a `ROBLOX` identity in `NOT_INVITED` or `PSUEDO`. Returns the identity with status `INVITED`. A retry while the invitation is pending returns the current identity. XCS delivers invitations for linked accounts through the XCS inbox and sends email according to the recipient's settings and the sending cooldown.",
+        "responses": {
+          "200": { "$ref": "#/components/responses/InvitedIdentity" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/IdentityNotFound" }
+        }
+      },
+      "delete": {
+        "operationId": "withdrawIdentityInvitation",
+        "summary": "Withdraw an identity invitation",
+        "description": "Requires `invitations.write`. Withdraws a pending invitation, invalidates its email links, and returns the identity with status `NOT_INVITED`. A retry on an identity with status `NOT_INVITED` returns the current identity.",
+        "responses": {
+          "200": { "$ref": "#/components/responses/StagedIdentity" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/IdentityNotFound" }
+        }
+      }
+    },
+    "/api/consumer/v1/identities/{id}/access-groups": {
+      "parameters": [{ "$ref": "#/components/parameters/IdentityId" }],
+      "post": {
+        "operationId": "addIdentityAccessGroups",
+        "summary": "Add identity access groups",
+        "description": "Requires `access_groups.write`. Adds the supplied groups to the identity's direct assignments. An existing assignment is kept. Every group must belong to the same organization as the identity.",
+        "requestBody": { "$ref": "#/components/requestBodies/AccessGroupsMutation" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/Identity" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/IdentityNotFound" },
+          "409": { "$ref": "#/components/responses/IdentityStateConflict" },
+          "422": { "$ref": "#/components/responses/RequestValidation" }
+        }
+      },
+      "delete": {
+        "operationId": "removeIdentityAccessGroups",
+        "summary": "Remove identity access groups",
+        "description": "Requires `access_groups.write`. Removes the supplied groups from the identity's direct assignments. An existing group must belong to the same organization as the identity.",
+        "requestBody": { "$ref": "#/components/requestBodies/AccessGroupsMutation" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/Identity" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/IdentityNotFound" },
+          "409": { "$ref": "#/components/responses/IdentityStateConflict" },
+          "422": { "$ref": "#/components/responses/RequestValidation" }
+        }
+      }
+    },
+    "/api/consumer/v1/access-groups": {
+      "get": {
+        "operationId": "listAccessGroups",
+        "summary": "List access groups",
+        "description": "Requires `access_groups.read`. Lists the organization's access groups, ordered by name and then by ID, both ascending. Use the returned IDs to assign access groups to identities.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Offset" },
+          { "$ref": "#/components/parameters/Limit" }
+        ],
+        "responses": {
+          "200": {
+            "description": "An access-group page and its pagination metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["accessGroups", "pagination"],
+                  "properties": {
+                    "accessGroups": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/AccessGroup" }
+                    },
+                    "pagination": { "$ref": "#/components/schemas/Pagination" }
+                  }
+                },
+                "example": {
+                  "accessGroups": [
+                    {
+                      "id": "3f8b480b-323d-4d28-a2af-79ca79456549",
+                      "name": "Facilities",
+                      "active": true,
+                      "default": false,
+                      "locationId": null
+                    }
+                  ],
+                  "pagination": { "offset": 0, "limit": 50, "total": 1 }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/RequestValidation" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "An organization API key with the required operation scopes and no location restrictions. The scope grantor must be active and retain permission to manage API keys and organization members."
+      }
+    },
+    "parameters": {
+      "IdentityId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Organization identity ID from an enrollment or list response.",
+        "schema": { "type": "string" },
+        "example": "ebcb6cc9-f088-4976-a071-69003e371051"
+      },
+      "Offset": {
+        "name": "offset",
+        "in": "query",
+        "description": "Number of matching records to skip.",
+        "schema": { "type": "integer", "minimum": 0, "maximum": 2147483647, "default": 0 }
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "description": "Maximum number of records to return.",
+        "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 50 }
+      }
+    },
+    "requestBodies": {
+      "AccessGroupsMutation": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["accessGroupIds"],
+              "properties": {
+                "accessGroupIds": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 1000,
+                  "items": { "$ref": "#/components/schemas/ResourceId" },
+                  "description": "IDs of access groups in the key's organization."
+                }
+              }
+            },
+            "example": { "accessGroupIds": ["3f8b480b-323d-4d28-a2af-79ca79456549"] }
+          }
+        }
+      }
+    },
+    "responses": {
+      "Identity": {
+        "description": "The organization identity.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/IdentityEnvelope" },
+            "example": {
+              "identity": {
+                "id": "ebcb6cc9-f088-4976-a071-69003e371051",
+                "type": "USER",
+                "status": "PRESENT",
+                "alias": "Facilities contractor",
+                "userId": "f5c87646-c6d8-465d-ba31-c3c8e15026d4",
+                "robloxId": null,
+                "robloxGroupId": null,
+                "robloxGroupRoles": [],
+                "accessGroups": [
+                  { "id": "3f8b480b-323d-4d28-a2af-79ca79456549", "name": "Facilities" }
+                ],
+                "tapData": { "visitType": "contractor" },
+                "enabled": true,
+                "logicalEnabled": true,
+                "physicalEnabled": true,
+                "logicalStartsAt": null,
+                "logicalExpiresAt": null,
+                "physicalStartsAt": null,
+                "physicalExpiresAt": "2027-09-30T18:00:00.000Z",
+                "logicalScope": { "mode": "all", "locationIds": [], "accessPointIds": [] },
+                "physicalScope": { "mode": "all", "locationIds": [], "accessPointIds": [] },
+                "createdAt": "2027-09-01T12:00:00.000Z",
+                "updatedAt": "2027-09-01T12:05:00.000Z"
+              }
+            }
+          }
+        }
+      },
+      "StagedIdentity": {
+        "description": "The organization identity. This example shows an XCS account enrolled with `invite: false` or an identity after its invitation was withdrawn.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/IdentityEnvelope" },
+            "example": {
+              "identity": {
+                "id": "ebcb6cc9-f088-4976-a071-69003e371051",
+                "type": "USER",
+                "status": "NOT_INVITED",
+                "alias": null,
+                "userId": "f5c87646-c6d8-465d-ba31-c3c8e15026d4",
+                "robloxId": null,
+                "robloxGroupId": null,
+                "robloxGroupRoles": [],
+                "accessGroups": [],
+                "tapData": {},
+                "enabled": true,
+                "logicalEnabled": true,
+                "physicalEnabled": true,
+                "logicalStartsAt": null,
+                "logicalExpiresAt": null,
+                "physicalStartsAt": null,
+                "physicalExpiresAt": null,
+                "logicalScope": { "mode": "all", "locationIds": [], "accessPointIds": [] },
+                "physicalScope": { "mode": "all", "locationIds": [], "accessPointIds": [] },
+                "createdAt": "2027-09-01T12:00:00.000Z",
+                "updatedAt": "2027-09-01T12:00:00.000Z"
+              }
+            }
+          }
+        }
+      },
+      "InvitedIdentity": {
+        "description": "The organization identity with an invitation pending.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/IdentityEnvelope" },
+            "example": {
+              "identity": {
+                "id": "ebcb6cc9-f088-4976-a071-69003e371051",
+                "type": "USER",
+                "status": "INVITED",
+                "alias": null,
+                "userId": "f5c87646-c6d8-465d-ba31-c3c8e15026d4",
+                "robloxId": null,
+                "robloxGroupId": null,
+                "robloxGroupRoles": [],
+                "accessGroups": [],
+                "tapData": {},
+                "enabled": true,
+                "logicalEnabled": true,
+                "physicalEnabled": true,
+                "logicalStartsAt": null,
+                "logicalExpiresAt": null,
+                "physicalStartsAt": null,
+                "physicalExpiresAt": null,
+                "logicalScope": { "mode": "all", "locationIds": [], "accessPointIds": [] },
+                "physicalScope": { "mode": "all", "locationIds": [], "accessPointIds": [] },
+                "createdAt": "2027-09-01T12:00:00.000Z",
+                "updatedAt": "2027-09-01T12:05:00.000Z"
+              }
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "One or more request values are invalid or the requested operation is invalid for this identity.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "Unauthorized": {
+        "description": "The API key is missing, invalid, or belongs to an inactive or archived organization.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "Forbidden": {
+        "description": "The API key lacks a required scope, has location restrictions, or the scope grantor is inactive or lacks the required permissions. A protected identity operation can also return this status.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "IdentityNotFound": {
+        "description": "No identity with this ID exists in the API key's organization.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "IdentityStateConflict": {
+        "description": "The identity's current lifecycle status prevents the requested operation.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "RequestValidation": {
+        "description": "The request body or query parameters do not match the schema.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      }
+    },
+    "schemas": {
+      "IdentityType": {
+        "type": "string",
+        "enum": ["USER", "ROBLOX", "ROBLOX_GROUP", "CARD", "PIN"]
+      },
+      "IdentityStatus": {
+        "type": "string",
+        "enum": ["NOT_INVITED", "INVITED", "PSUEDO", "PRESENT", "LEFT", "REVOKED", "SUSPENDED"],
+        "description": "Organization membership status. `PSUEDO` is the API spelling for a staged Roblox identity."
+      },
+      "IdentityEnrollment": {
+        "oneOf": [
+          { "$ref": "#/components/schemas/UserEnrollment" },
+          { "$ref": "#/components/schemas/RobloxEnrollment" },
+          { "$ref": "#/components/schemas/RobloxGroupEnrollment" },
+          { "$ref": "#/components/schemas/CredentialEnrollment" }
+        ]
+      },
+      "UserEnrollment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "userId"],
+        "properties": {
+          "type": { "type": "string", "enum": ["USER"] },
+          "userId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "description": "The XCS user ID."
+          },
+          "alias": { "$ref": "#/components/schemas/Alias" },
+          "invite": {
+            "type": "boolean",
+            "default": true,
+            "description": "Set to false to enroll with status `NOT_INVITED`."
+          }
+        }
+      },
+      "RobloxEnrollment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "robloxUsername"],
+        "properties": {
+          "type": { "type": "string", "enum": ["ROBLOX"] },
+          "robloxUsername": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "description": "The Roblox username."
+          },
+          "alias": { "$ref": "#/components/schemas/Alias" },
+          "invite": {
+            "type": "boolean",
+            "default": true,
+            "description": "Set to false to stage enrollment. The returned status is `PSUEDO` for a Roblox identity or `NOT_INVITED` for a resolved XCS identity."
+          }
+        }
+      },
+      "RobloxGroupEnrollment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "robloxGroupId"],
+        "properties": {
+          "type": { "type": "string", "enum": ["ROBLOX_GROUP"] },
+          "robloxGroupId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$",
+            "maxLength": 32,
+            "description": "The numeric Roblox group ID, as a string."
+          },
+          "robloxGroupRoles": { "$ref": "#/components/schemas/RobloxGroupRoles" },
+          "alias": { "$ref": "#/components/schemas/Alias" }
+        }
+      },
+      "CredentialEnrollment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "identifiers"],
+        "properties": {
+          "type": { "type": "string", "enum": ["CARD", "PIN"] },
+          "identifiers": {
+            "allOf": [{ "$ref": "#/components/schemas/CredentialIdentifiers" }, { "minItems": 1 }],
+            "description": "At least one card identifier or PIN."
+          },
+          "alias": { "$ref": "#/components/schemas/Alias" }
+        }
+      },
+      "ResourceId": { "type": "string", "minLength": 1, "maxLength": 256 },
+      "Alias": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 160,
+        "description": "Display label for this organization identity."
+      },
+      "RobloxGroupRoles": {
+        "type": "array",
+        "maxItems": 1000,
+        "items": { "type": "string", "pattern": "^[1-9][0-9]*$", "maxLength": 32 },
+        "description": "Roblox group role IDs. An empty array matches every role in the group."
+      },
+      "CredentialIdentifiers": {
+        "type": "array",
+        "maxItems": 1000,
+        "items": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "description": "Card identifiers for `CARD` or PIN strings for `PIN`. Send them as strings to preserve leading zeros."
+      },
+      "TapData": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Identity tap data. Its values take precedence over overlapping access-point and access-group tap data during a credential check. A patch replaces the entire object. Send `{}` to clear it."
+      },
+      "Scope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["mode", "locationIds", "accessPointIds"],
+        "properties": {
+          "mode": { "type": "string", "enum": ["all", "selected"] },
+          "locationIds": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "accessPointIds": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": { "type": "string", "minLength": 1 }
+          }
+        },
+        "description": "Use `all` with empty ID arrays for unrestricted scope. With `selected`, supply the permitted organization resource IDs. An empty selection permits no resources for that channel. Each scope accepts up to 1,000 location and access-point IDs combined.",
+        "example": {
+          "mode": "selected",
+          "locationIds": ["598f41c2-b931-4819-89b7-555d5371314a"],
+          "accessPointIds": []
+        }
+      },
+      "IdentityPatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "alias": {
+            "type": "string",
+            "nullable": true,
+            "minLength": 1,
+            "maxLength": 160,
+            "description": "Display label. Send null to clear it."
+          },
+          "tapData": { "$ref": "#/components/schemas/TapData" },
+          "accessGroupIds": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": { "$ref": "#/components/schemas/ResourceId" },
+            "description": "Replaces directly assigned access groups. Send an empty array to clear direct assignments."
+          },
+          "identifiers": {
+            "allOf": [{ "$ref": "#/components/schemas/CredentialIdentifiers" }],
+            "description": "For `CARD` or `PIN`. Replaces the identity's credentials. Send an empty array to clear them."
+          },
+          "robloxGroupRoles": { "$ref": "#/components/schemas/RobloxGroupRoles" },
+          "enabled": { "type": "boolean", "description": "Controls both access channels." },
+          "logicalEnabled": {
+            "type": "boolean",
+            "description": "Controls access to XCS resources."
+          },
+          "physicalEnabled": {
+            "type": "boolean",
+            "description": "Controls access-point credential checks."
+          },
+          "logicalStartsAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Logical access start. Send null to clear it."
+          },
+          "logicalExpiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Logical access expiry. Send null to clear it."
+          },
+          "physicalStartsAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Physical access start. Send null to clear it."
+          },
+          "physicalExpiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Physical access expiry. Send null to clear it."
+          },
+          "logicalScope": { "$ref": "#/components/schemas/Scope" },
+          "physicalScope": { "$ref": "#/components/schemas/Scope" }
+        }
+      },
+      "IdentityEnvelope": {
+        "type": "object",
+        "required": ["identity"],
+        "properties": { "identity": { "$ref": "#/components/schemas/Identity" } }
+      },
+      "Identity": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "status",
+          "alias",
+          "userId",
+          "robloxId",
+          "robloxGroupId",
+          "robloxGroupRoles",
+          "accessGroups",
+          "tapData",
+          "enabled",
+          "logicalEnabled",
+          "physicalEnabled",
+          "logicalStartsAt",
+          "logicalExpiresAt",
+          "physicalStartsAt",
+          "physicalExpiresAt",
+          "logicalScope",
+          "physicalScope",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "type": { "$ref": "#/components/schemas/IdentityType" },
+          "status": { "$ref": "#/components/schemas/IdentityStatus" },
+          "alias": { "type": "string", "nullable": true },
+          "userId": { "type": "string", "format": "uuid", "nullable": true },
+          "robloxId": { "type": "string", "nullable": true },
+          "robloxGroupId": { "type": "string", "nullable": true },
+          "robloxGroupRoles": { "type": "array", "items": { "type": "string" } },
+          "accessGroups": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/IdentityAccessGroup" },
+            "description": "Directly assigned access groups."
+          },
+          "tapData": { "$ref": "#/components/schemas/TapData" },
+          "enabled": { "type": "boolean" },
+          "logicalEnabled": { "type": "boolean" },
+          "physicalEnabled": { "type": "boolean" },
+          "logicalStartsAt": { "type": "string", "format": "date-time", "nullable": true },
+          "logicalExpiresAt": { "type": "string", "format": "date-time", "nullable": true },
+          "physicalStartsAt": { "type": "string", "format": "date-time", "nullable": true },
+          "physicalExpiresAt": { "type": "string", "format": "date-time", "nullable": true },
+          "logicalScope": { "$ref": "#/components/schemas/Scope" },
+          "physicalScope": { "$ref": "#/components/schemas/Scope" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "IdentityAccessGroup": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" }
+        }
+      },
+      "AccessGroup": {
+        "type": "object",
+        "required": ["id", "name", "active", "default", "locationId"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "active": { "type": "boolean" },
+          "default": {
+            "type": "boolean",
+            "description": "Whether the group is configured as a default for new identities."
+          },
+          "locationId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "The group's location, or null for an organization-wide group."
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "required": ["offset", "limit", "total"],
+        "properties": {
+          "offset": { "type": "integer", "minimum": 0, "maximum": 2147483647 },
+          "limit": { "type": "integer", "minimum": 1, "maximum": 100 },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of records that match before pagination."
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error"],
+        "properties": { "error": { "type": "string" } }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+---
+title: "Create an access point"
+description: "Create a regular access point with locked defaults in an authorized location."
+icon: "plus"
+openapi: "/openapi/consumer-access-points.json POST /api/consumer/v1/locations/{id}/access-points"
+playground: "simple"
+---
+
+XCS creates an enabled, armed access point that stays locked while offline. Names are unique within the location, ignoring case.
+
+Generate a new `requestId` for each access point you intend to create. Use the same ID and settings if you retry the request for that location. A new access point returns `201` with `replayed: false`. A matching retry returns `200` with `replayed: true`. Reusing that ID with different settings in the same location returns `409`.
