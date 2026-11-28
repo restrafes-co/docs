@@ -1,7 +1,7 @@
 ---
-title: "Apply floor lockouts"
+title: "Example 1: Floor Lockouts"
 description: "Lock a landing, entrance or call class through a Hera extension."
-icon: "lock"
+icon: "code"
 ---
 
 This [extension](/hera/extensions/getting-started) applies a maintenance lock to floor 2 while the elevator's `MaintenanceActive` attribute is true. Set `restrictedFloor` to a floor served by the car.
@@ -42,11 +42,19 @@ end
 return extension
 ```
 
-## Test it from the server
+## Lock behavior
 
-Start Play, select the elevator in the **server** view and toggle `MaintenanceActive` on. From another landing, try the floor-2 car button and a call to another floor. Floor 2 should be rejected and the other call should still run. Toggle the attribute off and register a **new** call to floor 2. Releasing a lock does not requeue cancelled calls.
+Toggle `MaintenanceActive` to apply or release the lock.
 
-A whole-floor lock rejects ordinary car, landing, API and parking calls and guards closed entrances against manual opening. Applying a lock during travel can leave the car committed to braking at that landing. A cancelled call that has no unlocked callers remaining is withdrawn from door service. An active door cycle, including obstruction handling, can still finish. Phase I recall and Phase II calls bypass extension locks.
+<Note>
+  Releasing a lock does not requeue cancelled calls.
+</Note>
+
+A whole-floor lock rejects ordinary car, landing, API and parking calls and guards closed entrances against manual opening. Applying a lock during travel can leave the car committed to braking at that landing. A cancelled call that has no unlocked callers remaining is withdrawn from door service. An active door cycle, including obstruction handling, can still finish.
+
+<Note>
+  Phase I recall and Phase II calls bypass extension locks.
+</Note>
 
 ## Narrow the rule
 
@@ -56,7 +64,7 @@ Each of these calls acquires a separate lock. Pick the one that matches the inst
 | --- | --- |
 | All ordinary access | `controller.floor.lock(2)` |
 | Only entrance 2 | `controller.floor.lock(2, {doorGroup = 2})` |
-| Calls using source `"car"`, including the built-in COP | `controller.floor.lock(2, {source = "car"})` |
+| Calls using source `"car"`, including the built-in car panel | `controller.floor.lock(2, {source = "car"})` |
 | Only upward landing calls at entrance 1 | `controller.floor.lock(2, {source = "landing", doorGroup = 1, direction = 1})` |
 | Only calls originating as API requests, including ERSA and XCS calls | `controller.floor.lock(2, {source = "api"})` |
 | Only the idle parking trip | `controller.floor.lock(2, {source = "parking"})` |

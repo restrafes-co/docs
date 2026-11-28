@@ -1,5 +1,5 @@
 ---
-title: "Configure chimes and announcements"
+title: "Sound and voice"
 description: "Set sound assets and cues for motors, fixtures, arrival chimes and voice."
 icon: "volume-2"
 ---
@@ -45,7 +45,7 @@ Motor audio follows movement. `CAR_MOTOR` and `COUNTERWEIGHT_MOTOR` use `DIVIDER
 
 ## Arrival chimes
 
-Configure `SOUNDS.CHIME.DATA_CAR` and `DATA_FLOOR` with `UP` and `DOWN` clips. `SOUNDS.CHIME.INTERNAL_ENABLED` gates local playback. Set local timing in `SOUNDS.CHIME` and accessory event timing in `API.CHIME`. `SOUNDS.CHIME.API_ENABLED` is a legacy field. An accessory should handle or ignore `chime` and `chimeCar` directly. [Timing table](/hera/configuration/indicators#when-lanterns-turn-on)
+Configure `SOUNDS.CHIME.DATA_CAR` and `DATA_FLOOR` with `UP` and `DOWN` clips. `SOUNDS.CHIME.INTERNAL_ENABLED` controls local playback. Set local timing in `SOUNDS.CHIME` and accessory event timing in `API.CHIME`. An accessory should handle or ignore `chime` and `chimeCar` directly. [Timing table](/hera/configuration/indicators#when-lanterns-turn-on)
 
 ### Use part of an audio asset
 
@@ -68,7 +68,7 @@ The preset supplies the vocabulary audio and timestamps. You still choose announ
 
 ## Choose announcements
 
-Edit `VOICE.DATA.CUES`, preserving other cues you want to keep:
+Edit `VOICE.DATA.CUES`:
 
 ```lua
 CUES = {
@@ -89,9 +89,9 @@ Cue tokens are separated by spaces. Their spelling must match the selected vocab
 
 Active event entries include `DOORS_OPENING`, `DOORS_CLOSING`, `QUEUE_UP`, `QUEUE_DOWN`, `QUEUE_NONE`, `MOVE_UP_START`, `MOVE_UP_STOP`, `MOVE_DOWN_START` and `MOVE_DOWN_STOP`. An event entry must be enabled to play. For the standard sensor obstruction warning, use `SOUNDS.ON_DOOR_OBSTRUCTION`. `DOOR_OBSTRUCTION` is an unused voice cue in the template.
 
-Floor announcements are separate from display labels. A button displaying `L` will not automatically make the voice say “Lobby.” Add that floor's cue explicitly. Floors without a usable custom cue fall back to the controller's numbered-floor phrase, which still requires matching vocabulary tokens.
+Floor announcements are separate from display labels. A button displaying `L` will not automatically make the voice say "Lobby." Add that floor's cue explicitly. Floors without a usable custom cue fall back to the controller's numbered-floor phrase, which still requires matching vocabulary tokens.
 
-Placeholders `{current-floor}`, `{move-direction}`, and `{queue-direction}` insert the corresponding **numeric** value. If you use them, provide vocabulary entries for those values; they do not automatically turn `1` into `GOING-UP`.
+Placeholders `{current-floor}`, `{move-direction}`, and `{queue-direction}` insert the corresponding numeric value. If you use them, provide vocabulary entries for those values; they do not automatically turn `1` into `GOING-UP`.
 
 ## Use your own recording
 
@@ -107,7 +107,3 @@ LOBBY = { START = 1.2, END = 2.0 },
 ```
 
 A token can include `ID` to use a separate audio asset instead of the shared vocabulary recording. Use real timings from your recording and keep `END` greater than `START`.
-
-## Verify playback
-
-Test both serving directions at an intermediate landing. Check the car and hall chimes separately. For a missing voice cue, verify its event flag, vocabulary token, clip bounds and asset permissions. A cue can be skipped while another announcement is playing.

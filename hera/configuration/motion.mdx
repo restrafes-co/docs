@@ -1,10 +1,10 @@
 ---
-title: "Tune car motion"
+title: "Motion"
 description: "Set the motion profile, leveling and pre-opening in MOVE."
 icon: "move-vertical"
 ---
 
-Set the `LEVEL_MAIN` heights before tuning `MOVE`. Use the longest run to check full-speed behavior and the shortest run to check braking and leveling before rated speed.
+Set the `LEVEL_MAIN` heights before tuning `MOVE`.
 
 ## Travel speed and starting
 
@@ -12,24 +12,28 @@ Set `MOVE.MOTOR_SPEED` for top speed in controller units. Under `MOVE.MOTOR_STAR
 
 ## Slowing and leveling
 
+| `MOVE.METHOD` | Effect |
+| --- | --- |
+| `1` | Starts the approach using `LEVELING_OFFSET`. |
+| `2` | Calculates braking distance using speed and directional deceleration. This is the default. |
+
 | Setting | Effect |
 | --- | --- |
-| `MOVE.METHOD = 1` | Starts the approach using `LEVELING_OFFSET`. |
-| `MOVE.METHOD = 2` | Calculates braking distance using speed and directional deceleration. This is the default. |
 | `MOTOR_STOP_SETTINGS.DECELERATION_RATE_UP` and `DECELERATION_RATE_DOWN` | Set slowing for each direction. Both default to `0.025`. |
 | `LEVELING_SPEED` | Controls the final approach to the platform-center height. Keep it positive and at or below `MOTOR_SPEED`. |
 
-## Tune the ride in order
-
-Test long and short runs in both directions after changing speed or acceleration. Tune deceleration and leveling, then verify an intermediate pickup during a full run. If the stop error is isolated to one landing, check its datum before retuning the profile. [Movement limits and defaults](/hera/reference/configuration#movement)
+If the stop error is isolated to one landing, check its datum before retuning the profile. [Movement limits and defaults](/hera/reference/configuration#movement)
 
 ## Movement engine
 
-`MOVE.ENGINE = 1` moves the assembly with CFrame. `2` uses a PrismaticConstraint servo. Retain the engine supplied with the car when adjusting its ride profile. Check welds and passenger travel after changing engines.
+| `MOVE.ENGINE` | Movement engine |
+| --- | --- |
+| `1` | Moves the assembly with CFrame. |
+| `2` | Uses a PrismaticConstraint servo. |
 
 ## Pre-opening
 
-`PREDOORS_ENABLED` allows a normal-service entrance to begin opening during final leveling, within `PREDOORS_OFFSET` of its landing. `PREDOORS_IGNORE_DOOR_OPEN_DELAY` controls whether pre-opening bypasses the normal arrival opening delay. On a multi-entrance car, test each selected group near the destination.
+`PREDOORS_ENABLED` allows a normal-service entrance to begin opening during final leveling, within `PREDOORS_OFFSET` of its landing. `PREDOORS_IGNORE_DOOR_OPEN_DELAY` controls whether pre-opening bypasses the normal arrival opening delay.
 
 ## Counterweight and sheaves
 
@@ -46,4 +50,4 @@ COUNTERWEIGHT = {
 
 `MULTIPLIER = -1` drives the counterweight opposite the car along the selected axis. Use `.SHEAVE` parts in the counterweight assembly when enabling sheave animation.
 
-Check counterweight clearance at both terminals. [Counterweight settings](/hera/reference/configuration#counterweight)
+[Counterweight settings](/hera/reference/configuration#counterweight)

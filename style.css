@@ -1,3 +1,13 @@
+#navbar img[src*="/logo/restrafes-wordmark.png"] {
+  height: 1.25rem;
+  width: auto;
+  filter: brightness(0);
+}
+
+html.dark #navbar img[src*="/logo/restrafes-wordmark.png"] {
+  filter: none;
+}
+
 html.dark img[src$="/logo/xcs-symbol.svg"] {
   filter: invert(1);
 }

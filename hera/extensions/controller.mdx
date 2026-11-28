@@ -1,5 +1,5 @@
 ---
-title: "Extension controller reference"
+title: "Extension API"
 description: "Look up door commands, floor locks, call results, state snapshots, and event subscriptions."
 icon: "code"
 ---
@@ -37,7 +37,7 @@ Door commands return `true` when at least one group accepts the request. Manual 
 | `isLocked(floor, scope?)` | Checks registered extension rules for a match against the supplied fields. |
 | `onChanged(listener)` | Subscribes to `onFloorChanged`. The payload contains `floor` and can include `label`. |
 
-A lock scope accepts `doorGroup`, `source` and `direction`. Sources are `"car"`, `"landing"`, `"api"` and `"parking"`. Directions are `-1`, `0` and `1`. An omitted field on a **rule** matches any value. [Lockout examples and release behavior](/hera/extensions/floor-lockouts)
+A lock scope accepts `doorGroup`, `source` and `direction`. Sources are `"car"`, `"landing"`, `"api"` and `"parking"`. Directions are `-1`, `0` and `1`. An omitted field on a rule matches any value. [Lockout examples and release behavior](/hera/extensions/floor-lockouts)
 
 ## Calls
 

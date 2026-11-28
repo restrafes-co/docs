@@ -1,8 +1,11 @@
 ---
-title: "Connect Hera to XCS"
+title: "XCS integration"
 description: "Configure state reporting and dashboard commands for a Hera car in a live Roblox server."
-icon: "shield-check"
+icon: "/logo/xcs-symbol.svg"
+tag: "Coming soon"
 ---
+
+<Badge shape="pill" stroke>Coming soon</Badge>
 
 The Hera bridge posts car state over HTTPS and receives dashboard commands through Roblox MessagingService. Configure both paths on a published Roblox server with a nonempty job ID. Each path has its own enable switch.
 
@@ -12,7 +15,11 @@ Create or select an Elevator access point at the correct organization and locati
 
 ## Fill in Hera configuration
 
-In `ServerScriptService`, create a ModuleScript named `HeraXCSSecrets` that returns the organization API key. Reference it when the server loader requires `CONFIGURATION`. Keep the key value out of the elevator model in `Workspace`.
+In `ServerScriptService`, create a ModuleScript named `HeraXCSSecrets` that returns the organization API key. Reference it when the server loader requires `CONFIGURATION`.
+
+<Warning>
+  Keep the key value out of the elevator model in `Workspace`.
+</Warning>
 
 ```lua
 XCS = {
@@ -34,7 +41,7 @@ Enable the experience's server HTTP access for reporting. Join a running server 
 
 ## What the dashboard receives
 
-Reports include the indicated and tracked floors, travel direction, operating and service state, queued floors, served floors, door states and the user IDs of players in the server. Hera coalesces event-triggered reports and sends at most one every two seconds. Periodic reporting defaults to five seconds and is clamped to 2–30 seconds.
+Reports include the indicated and tracked floors, travel direction, operating and service state, queued floors, served floors, door states and the user IDs of players in the server. Hera coalesces event-triggered reports and sends at most one every two seconds. Periodic reporting defaults to five seconds and is clamped between 2 and 30 seconds.
 
 ## Remote controls
 

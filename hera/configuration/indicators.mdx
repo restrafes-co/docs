@@ -1,5 +1,5 @@
 ---
-title: "Configure PIs and lanterns"
+title: "Indicators and labels"
 description: "Set floor labels, PI update timing and car or hall lantern timing."
 icon: "panel-top"
 ---
@@ -22,26 +22,35 @@ FLOOR_LABELS = {
 },
 ```
 
-`FLOORS` uses **numeric keys**. Each entry has `LABEL` and may have `PRIMARY` and `IGNORE_PREFIX_SUFFIX`.
+`FLOORS` uses numeric keys. Each entry has `LABEL` and may have `PRIMARY` and `IGNORE_PREFIX_SUFFIX`.
 
-`PRIMARY = true` sets the display marker `isPrimary`. Configure the operational primary floor in `MAIN.PRIMARY_FLOOR`.
+<Note>
+  `PRIMARY = true` sets the display marker `isPrimary`. Configure the operational primary floor in `MAIN.PRIMARY_FLOOR`.
+</Note>
 
 A car-call fixture with a `TextLabel` named `.LABEL` can show the configured label. A custom display receives a label object in `message.data.label`, with `label` for the text and `isPrimary` for the marker. If no label is configured, the label object can be absent; display the numeric floor instead.
 
 ### Prefixes and suffixes by entrance
 
-`COMMON_PREFIX` and `COMMON_SUFFIX` use **door-group numbers**, not floor numbers. For example:
+`COMMON_PREFIX` and `COMMON_SUFFIX` use door-group numbers, not floor numbers. For example:
 
 ```lua
 COMMON_PREFIX = { [1] = "" },
 COMMON_SUFFIX = { [1] = "", [2] = "R" },
 ```
 
-These suffixes produce `2` on the group-1 COP button and `2R` on group 2. A floor entry with `IGNORE_PREFIX_SUFFIX = true` uses its label alone. A PI event can carry a floor label without an entrance suffix because it describes the car's floor indication.
+These suffixes produce `2` on the group-1 car button and `2R` on group 2. A floor entry with `IGNORE_PREFIX_SUFFIX = true` uses its label alone. A PI event can carry a floor label without an entrance suffix because it describes the car's floor indication.
 
 ## When the floor display changes
 
-`API.FLOOR.FLOOR_CHANGE_TIME` controls `onFloorChanged`. Modes `1` and `2` follow the approaching-floor path in this core. Mode `3` indicates the next stoppable landing and can advance during acceleration when `FLOOR_CHANGE_ON_ACCELERATION` is enabled. Use the [car and door states](/hera/reference/events#state-response) for boarding logic.
+`API.FLOOR.FLOOR_CHANGE_TIME` controls `onFloorChanged`:
+
+| `API.FLOOR.FLOOR_CHANGE_TIME` | Floor indication |
+| --- | --- |
+| `1` and `2` | Follow the approaching-floor path. |
+| `3` | Indicates the next stoppable landing. It can advance during acceleration when `FLOOR_CHANGE_ON_ACCELERATION` is enabled. |
+
+Use the [car and door states](/hera/reference/events#state-response) for boarding logic.
 
 ## When lanterns turn on
 
@@ -56,12 +65,17 @@ Set `API.INDICATOR.FLOOR_LIT_TIME` for the landing and `CAR_LIT_TIME` for the ca
 
 ## When lanterns turn off
 
-Set `FLOOR_UNLIT_TIME` or `CAR_UNLIT_TIME` in the same section to 1 for the start of closing or 2 for the end. Both default to 2.
+Set `FLOOR_UNLIT_TIME` or `CAR_UNLIT_TIME` in the same section. Both default to 2.
+
+| Timing value | Lantern turns off |
+| --- | --- |
+| 1 | At the start of closing. |
+| 2 | At the end of closing. |
 
 ## Match chimes to lanterns
 
 `API.CHIME` controls accessory chime events. To signal a landing lantern and an external chime at the start of opening, set both landing timing entries to 2. Configure locally played chimes under `SOUNDS.CHIME`. [Sound and voice](/hera/configuration/sound-and-voice)
 
-## Connect and test a display
+## Connect a display
 
-Use `onMoveDirectionChanged` for a travel arrow and `onQueueDirectionChanged` for the direction the car intends to serve. Test an intermediate stop and a terminal reversal. [Display wiring](/hera/integration/group-control-and-displays#floor-displays)
+Use `onMoveDirectionChanged` for a travel arrow and `onQueueDirectionChanged` for the direction the car intends to serve. [Display wiring](/hera/integration/group-control-and-displays#floor-displays)

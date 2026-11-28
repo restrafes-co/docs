@@ -4,73 +4,44 @@ description: "Required instance paths, stopping and weld datums, and door leaf n
 icon: "folder-tree"
 ---
 
-Use these instance names when building or copying an assembly. Leading dots are literal. Hera indexes the landings and entrances during startup, so restart Play after changes to the hierarchy.
+Use the names and paths below when building or copying an assembly. Leading dots are part of the instance names. Restart Play after changing the hierarchy.
 
-## A two-floor elevator
+## Elevator root
 
-The following tree shows one front entrance at two floors. Repeat the landing door structure at each served floor. The loader is included with your supplied model; its name may differ.
+The elevator model contains these objects:
 
-```text
-Elevator (Model)
-├── Loader (supplied Script)
-├── CONFIGURATION (ModuleScript)
-├── extensions (optional Folder)
-│   └── Maintenance (ModuleScript)
-├── CAR (Model)
-│   ├── .PLATFORM (BasePart)
-│   ├── .DOORS (Model)
-│   │   └── 1 (Model: front door group)
-│   │       ├── LEVEL (BasePart)
-│   │       └── DOORS (Model)
-│   │           ├── DL1 (Model)
-│   │           │   └── SCALE (BasePart)
-│   │           └── DR1 (Model)
-│   │               └── SCALE (BasePart)
-│   ├── .DOORSENSORS (Model)
-│   │   └── 1 (Model)
-│   │       └── Sensor (BasePart)
-│   └── .BUTTONS (Model)
-│       ├── F1 (Model)
-│       │   └── BUTTON (BasePart)
-│       ├── F2 (Model)
-│       │   └── BUTTON (BasePart)
-│       ├── FDO (Model)
-│       │   └── BUTTON (BasePart)
-│       └── FDC (Model)
-│           └── BUTTON (BasePart)
-└── FLOORS (Model)
-    ├── 1 (Model)
-    │   ├── LEVEL_MAIN (BasePart)
-    │   ├── .DOORS (Model)
-    │   │   └── 1 (Model)
-    │   │       ├── LEVEL (BasePart)
-    │   │       └── DOORS (Model)
-    │   │           ├── DL1 (Model)
-    │   │           │   └── SCALE (BasePart)
-    │   │           └── DR1 (Model)
-    │   │               └── SCALE (BasePart)
-    │   └── .BUTTONS (Model)
-    │       └── F (Model)
-    │           └── U (Model)
-    │               └── BUTTON (BasePart)
-    └── 2 (Model)
-        ├── LEVEL_MAIN (BasePart)
-        ├── .DOORS (same structure as floor 1)
-        └── .BUTTONS (Model)
-            └── F (Model)
-                └── D (Model)
-                    └── BUTTON (BasePart)
-```
+| Object | Purpose |
+| --- | --- |
+| Supplied loader | Starts Hera. |
+| `CONFIGURATION` | Contains the car's settings. |
+| `CAR` | Contains the car, its entrances, sensors, and controls. |
+| `FLOORS` | Contains the landings. |
+| `extensions` | Optional folder for your server-side ModuleScripts. |
 
 ## Car and floor reference parts
 
-The stopping datums are the center Y of `CAR/.PLATFORM` and the center Y of `FLOORS/<floor>/LEVEL_MAIN`. The door group's `LEVEL` is its weld datum. Preserve the offset between the stopping datum, the weld datum and the sill when copying a landing.
+| Reference | Purpose |
+| --- | --- |
+| `CAR/.PLATFORM` | The center Y is the car's stopping datum. |
+| `FLOORS/<floor>/LEVEL_MAIN` | The center Y is the car's stopping height at that landing. |
+| Door group's `LEVEL` | The weld datum for that door group. |
+
+When copying a landing, preserve the offsets between the stopping datum, weld datum, and sill.
 
 Name floors with canonical integers such as `-1`, `0` or `3`. Numbers and `LEVEL_MAIN` heights must both increase from bottom to top. Skipped numbers are fine. Use [floor labels](/hera/configuration/indicators) for names like `L` or `P1`.
 
 ## Door groups
 
-An entrance is available when its numeric group is present under both the car and the landing. Groups `0` and `-1` are reserved. With car groups `1` and `2`, a landing containing only group `2` is rear-only if your car uses the default front and rear layout. [Fit floors and entrances](/hera/adding-floors)
+An entrance is available when the same numeric group exists under `.DOORS` on both the car and the landing. Groups `0` and `-1` are reserved.
+
+With the default front and rear layout:
+
+| Group | Entrance |
+| --- | --- |
+| `1` | Front |
+| `2` | Rear |
+
+A landing with only group `2` is rear-only. See [Floors and entrances](/hera/adding-floors) to add an entrance.
 
 ## Door leaves and travel distance
 
@@ -89,11 +60,17 @@ For a center-opening pair, start with `DL1` and `DR1`. Keep the scaler's orienta
 
 ## Sensors
 
-Put touch-enabled, non-colliding sensor parts across the entrance in `CAR/.DOORSENSORS/<group>`. Match the numeric group to the door. In Play, obstruct one entrance with an avatar and observe that group reopen.
+Put touch-enabled, non-colliding sensor parts across the entrance in `CAR/.DOORSENSORS/<group>`. Match the numeric group to the door.
 
 ## Buttons and lights
 
-Use `.BUTTONS` panels directly under `CAR` and the landings. Give each fixture a direct `BUTTON` part. Optional direct parts with names beginning with `LED` carry the lamp styles. Hera uses `BUTTON` as the lamp when no LED parts are present. [Fixture names and examples](/hera/configuration/buttons)
+| Object | Placement and purpose |
+| --- | --- |
+| `.BUTTONS` panel | Place directly under `CAR` or a landing. |
+| `BUTTON` | A direct child of each fixture; also used as the lamp when no LED parts are present. |
+| `LED` parts | Optional direct children of the fixture. Parts with names beginning with `LED` carry the lamp styles. |
+
+See [Buttons and lights](/hera/configuration/buttons) for fixture names and examples.
 
 ## Optional counterweight
 

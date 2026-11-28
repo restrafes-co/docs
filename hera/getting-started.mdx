@@ -1,23 +1,23 @@
 ---
 title: "Get started"
-description: "Verify startup and normal service on a supplied Hera model in Studio."
+description: "Set up and run a supplied Hera model in Studio."
 icon: "rocket"
 ---
 
-Commission the supplied layout before moving landings or changing `CONFIGURATION`. Use a complete model with its server loader and two landings that share an entrance.
+Start with the supplied Hera model. It includes the server loader, `CONFIGURATION`, `CAR`, and `FLOORS`. Place the model in `Workspace` and move the car and landings together when positioning it.
 
-## Place the elevator
+## Set up floors and entrances
 
-1. Insert the complete model into `Workspace` in Edit mode. Move the car and landings together if you need to reposition the installation.
-2. Verify the elevator root contains the supplied loader, `CONFIGURATION`, `CAR` and `FLOORS`. The [model tree](/hera/model-structure) shows the required references and fixture names.
-3. At the intended startup landing, align the center Y of `CAR/.PLATFORM` with `LEVEL_MAIN`. Confirm that the car and both test landings have matching numeric groups under `.DOORS`.
+Each landing under `FLOORS` has an integer name and a `LEVEL_MAIN` part. The car stops when the center Y of `CAR/.PLATFORM` matches the landing's `LEVEL_MAIN` center Y.
 
-## Call, ride and return
+Door groups pair the car's entrances with the landings they serve. A group must exist under `.DOORS` on both the car and the landing. By default, `F` maps to group `1` and `R` maps to group `2`.
 
-Start **Play** with an avatar and open server **Output**. Register a hall call, then a car call to the second landing. Verify that the car levels, the selected entrance opens and the call lamps clear. Run the return trip in the opposite direction. During a normal close, step into the sensor field and verify reopening.
+For example, a car button named `F2` calls floor `2` using the front entrance. A front hall Up button at that floor uses `.BUTTONS/F/U/BUTTON`. Fixture names use floor numbers, even when you configure a different display label.
 
-If the car fails to start, diagnose the first Hera error in server Output. A server integration should [wait for a state response](/hera/integration/controller-api#connect-and-wait-for-startup) before issuing commands.
+See [Model structure](/hera/model-structure) for the required parts and [Buttons and lights](/hera/configuration/buttons) for fixture names.
 
-## Fit the model to the building
+## Run and customize the elevator
 
-Stop Play before editing. [Add landings or entrances](/hera/adding-floors), [tune the configuration](/hera/configuration/overview), then run the [commissioning checks](/hera/testing) for the equipment you changed.
+Start Play and use a hall button or a car button to call the elevator. If it fails to start, check the first Hera error in server Output. A server integration should [wait for a state response](/hera/integration/controller-api#connect-and-wait-for-startup) before issuing commands.
+
+To fit the elevator to your building, [add floors or entrances](/hera/adding-floors), then adjust motion, doors, fixtures, and service modes in [Configuration](/hera/configuration/overview).

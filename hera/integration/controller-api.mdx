@@ -33,11 +33,27 @@ assert(snapshot, "Hera did not become ready")
 
 ## Message format
 
-Send `{request = name, data = payload}` and listen on `api.Event` for `{event = name, data = payload}`. `api:Fire(...)` has no return value. For request-specific call results, attach a separate BindableEvent.
+Send `{request = name, data = payload}` and listen on `api.Event` for `{event = name, data = payload}`.
+
+<Note>
+  `api:Fire(...)` has no return value. For request-specific call results, attach a separate BindableEvent.
+</Note>
 
 ## Add a call
 
-`queueAdd` requires `floor`, `doorGroup`, `direction` and `source`. Send the numeric floor and an entrance served by the car at that landing. Use direction `1` for Up, `-1` for Down or `0` for neutral. Use source `"api"` for an external integration, `"car"` for a COP input or `"landing"` for a local hall input. Pass `accessibility = true` for extended door timers.
+`queueAdd` requires `floor`, `doorGroup`, `direction` and `source`. Send the numeric floor and an entrance served by the car at that landing. Pass `accessibility = true` for extended door timers.
+
+| Direction | Meaning |
+| --- | --- |
+| `1` | Up |
+| `-1` | Down |
+| `0` | Neutral |
+
+| Source | Use for |
+| --- | --- |
+| `"api"` | An external integration |
+| `"car"` | A car button input |
+| `"landing"` | A local hall input |
 
 ```lua
 api:Fire({
@@ -48,10 +64,9 @@ api:Fire({
 
 ### Receive completion or cancellation
 
-On a core that advertises `snapshot.confirmsCalls == true`, set `confirm = true` on the outer request and supply a **parented BindableEvent** as `data.api`. Connect the callback before sending. This snippet continues from the startup example.
+Set `confirm = true` on the outer request and supply a **parented BindableEvent** as `data.api`. Connect the callback before sending. This snippet continues from the startup example.
 
 ```lua
-assert(snapshot.confirmsCalls == true, "This core does not confirm calls")
 local reply = Instance.new("BindableEvent")
 reply.Parent = elevator
 local finished = false
@@ -85,7 +100,11 @@ end)
 | `api-onArrival` | Hera served the call. Use the door state to confirm the group is fully open. |
 | `api-onCancelled` | Hera withdrew the call before service. |
 
-An accepted same-floor `"car"` request can operate the doors directly without an arrival callback. Use a matching door-state observation if your COP integration needs confirmation. The example uses source `"api"` and disposes of the callback after its outcome or a 120-second timeout. The timeout only disposes of the listener. Use `queueRemove` to withdraw the call.
+<Note>
+  An accepted same-floor `"car"` request can operate the doors directly without an arrival callback. Use a matching door-state observation if your car panel integration needs confirmation.
+</Note>
+
+The example uses source `"api"` and disposes of the callback after its outcome or a 120-second timeout. The timeout only disposes of the listener. Use `queueRemove` to withdraw the call.
 
 ## Read current state
 
@@ -97,7 +116,7 @@ An accepted same-floor `"car"` request can operate the doors directly without an
 api:Fire({request = "queueRemove", data = {floor = 2, direction = 0, doorGroup = 1}})
 ```
 
-Use the original floor, direction and group. Cancellation applies to the shared queue entry and notifies its registered callers with `api-onCancelled`. The car can finish braking before completing removal. Older cores can use `api-onArrival` for both service and removal, so validate against the car and entrance state on those builds.
+Use the original floor, direction and group. Cancellation applies to the shared queue entry and notifies its registered callers with `api-onCancelled`. The car can finish braking before completing removal.
 
 ## Lock car or hall inputs
 
@@ -111,14 +130,14 @@ api:Fire({
 })
 ```
 
-This legacy request gates built-in buttons. Clear it with the same entries and `enabled = false`. Use `"hall"` for legacy button locks and `"landing"` as the source for hall-origin calls. Use an [extension lock](/hera/extensions/floor-lockouts) to cover scripted calls or withdraw queued calls.
+This request controls access to built-in buttons. Clear it with the same entries and `enabled = false`. Use `"hall"` for button locks and `"landing"` as the source for hall-origin calls. Use an [extension lock](/hera/extensions/floor-lockouts) to cover scripted calls or withdraw queued calls.
 
 ## Other controls
 
 | Request | Effect |
 | --- | --- |
 | `queueCheck` | Rechecks dispatch. |
-| `riotService` | With `data.enabled = true`, rejects new ordinary calls **to** `MAIN.PRIMARY_FLOOR`. |
+| `riotService` | With `data.enabled = true`, rejects new ordinary calls to `MAIN.PRIMARY_FLOOR`. |
 | `playerWelds` | Uses `data.status` to request passenger attachment or release. |
 
 Use the [service-control API](/hera/reference/service-api) for recall and operator modes and the [extension door methods](/hera/extensions/controller#doors) for normal-service door commands.

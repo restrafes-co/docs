@@ -1,5 +1,5 @@
 ---
-title: "Collective dispatch"
+title: "Calls and dispatch"
 description: "Read the queue, predict pickups and trace cancellation in Hera."
 icon: "list-ordered"
 ---
@@ -10,11 +10,17 @@ Hera keys each queue entry by `floor`, `direction` and `doorGroup`. Matching cal
 
 Hera looks for the nearest compatible call ahead of the car. A late pickup must still be within the car's stopping envelope. If only opposing hall or API calls remain ahead, Hera can run to the furthest one as the reversal point. At a terminal with no remaining calls, the serving direction points back into the hoistway.
 
-Use `currentMoveDirection` for travel and `currentQueueDirection` for serving direction. Each uses `-1` for Down, `0` for neutral and `1` for Up.
+Use `currentMoveDirection` for travel and `currentQueueDirection` for serving direction. Both use the same values:
+
+| Value | Direction |
+| --- | --- |
+| `-1` | Down |
+| `0` | Neutral |
+| `1` | Up |
 
 ## Repeated and current-floor calls
 
-Repeating a registered COP call keeps the entry. At a level, stationary car, a current-floor car call can open or reopen that entrance. A same-floor hall or API call is eligible for immediate service when the serving direction matches the request or the car's serving direction is neutral. During leveling, Hera can defer service until the car stops.
+Repeating a registered car call keeps the entry. At a level, stationary car, a current-floor car call can open or reopen that entrance. A same-floor hall or API call is eligible for immediate service when the serving direction matches the request or the car's serving direction is neutral. During leveling, Hera can defer service until the car stops.
 
 ## Locks and cancellations
 

@@ -1,5 +1,5 @@
 ---
-title: "Fire recall and Phase II"
+title: "Fire service"
 description: "Configure primary and alternate recall, Phase II controls and reset in Hera."
 icon: "siren"
 ---
@@ -18,7 +18,9 @@ Send mode and constant-pressure inputs from the server. The Phase I control sele
 2. Verify cancellation of ordinary calls. A moving car can brake at an intermediate landing with its doors closed before running to recall.
 3. At recall, verify the selected group opens and holds.
 
-Extension floor locks yield to fire service. A stopped or faulted car can still be unable to recall. Read `onFireServiceCommandRejected` for the command and reason.
+<Note>
+  Extension floor locks yield to fire service. A stopped or faulted car can still be unable to recall. Read `onFireServiceCommandRejected` for the command and reason.
+</Note>
 
 ## Phase II firefighter control
 
@@ -30,7 +32,7 @@ Extension floor locks yield to fire service. A stopped or faulted car can still 
 
 ### Make a trip
 
-After completed recall, select On and register one COP destination. Hold Door Close through closure. At arrival, hold Door Open through the opening stroke. Hera rejects hall and API pickups during Phase II.
+After completed recall, select On and register one car destination. Hold Door Close through closure. At arrival, hold Door Open through the opening stroke. Hera rejects hall and API pickups during Phase II.
 
 ### Release a control early
 
@@ -42,8 +44,4 @@ Select Hold while stationary. Select On to resume Phase II or Off to return to P
 
 ## Return to normal service
 
-Set Phase II to Off. Wait for the car to finish recall at the selected landing, then disable Phase I. Confirm normal operation with a fresh hall call and car call.
-
-## Check the installation
-
-Test each recall landing and both early-release cases. Include one recall during motion and one with the car idle and doors open. [Installation tests](/hera/testing)
+Set Phase II to Off. Wait for the car to finish recall at the selected landing, then disable Phase I.

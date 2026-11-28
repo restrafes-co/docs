@@ -42,7 +42,9 @@ To grant a scope, you need **Manage API keys** and the additional organization p
 
 ## Identity scope delegation
 
-An identity scope requires a key with no location restrictions. Granting or changing identity scopes with **Manage API keys** and **Manage identities** binds delegation to the person making that change. XCS checks that the grantor is active and still has both permissions on each identity request.
+<Note>
+  An identity scope requires a key with no location restrictions. Granting or changing identity scopes with **Manage API keys** and **Manage identities** binds delegation to the person making that change. XCS checks that the grantor is active and still has both permissions on each identity request.
+</Note>
 
 Enrolling a `USER` or `ROBLOX` identity requires `identities.write` and `invitations.write` by default. Send `invite: false` to enroll without issuing an invitation using just `identities.write`.
 

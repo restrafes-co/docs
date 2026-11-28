@@ -1,6 +1,6 @@
 ---
 title: "Configuration reference"
-description: "Defaults, allowed values and legacy aliases for the Hera configuration table."
+description: "Defaults and allowed values for the Hera configuration table."
 icon: "list-tree"
 ---
 
@@ -14,7 +14,7 @@ These are Hera's defaults. The supplied `CONFIGURATION` can override them. Timer
 | Idle return or rider attachment | [Parking and passengers](#parking-and-passengers) |
 | Dashboard transport | [XCS connection](#xcs-connection) |
 
-Extension-enabled builds load modules from `Elevator/extensions`. See the [extension reference](/hera/extensions/controller) for runtime controls and lock scopes.
+Hera loads extension modules from `Elevator/extensions`. See the [extension reference](/hera/extensions/controller) for runtime controls and lock scopes.
 
 ## Identity and main floor
 
@@ -60,7 +60,6 @@ See [Fire service](/hera/operation/fire-service) and [Independent service](/hera
 | `MOVE.PREDOORS_OFFSET` | `0.05` | Non-negative pre-opening distance in studs. |
 | `MOVE.PREDOORS_IGNORE_DOOR_OPEN_DELAY` | `true` | Bypasses normal arrival opening delay for pre-opening. |
 | `MOVE.TICK` | `RunService.Heartbeat` | Movement timing signal; retain for normal setup. |
-| `MOVE.DELAY` | `0` | Older shared start-delay value. Prefer the direction-specific delays above. |
 
 The validation minimum is `0.001` for motor and leveling speeds and `0.00001` for acceleration rates.
 
@@ -85,7 +84,7 @@ For all speed entries below, values must be at least `0.01`. With methods 2 and 
 
 | Setting | Default | Purpose |
 | --- | --- | --- |
-| `DOORS.METHOD` | `2` | `1`: legacy interpolation; `2`: built-in easing; `3`: cubic Bezier curves. |
+| `DOORS.METHOD` | `2` | `1`: interpolation; `2`: built-in easing; `3`: cubic Bezier curves. |
 | `DOORS.CAR_OPEN_SPEED` | `0.8` | Car opening timing. |
 | `DOORS.FLOOR_OPEN_SPEED` | `0.8` | Landing opening timing. |
 | `DOORS.CAR_CLOSE_SPEED` | `1.5` | Car closing timing. |
@@ -142,8 +141,6 @@ All paths below start with `DOORS.CUBIC_BEZIER`. Use `DOORS.METHOD = 3`.
 | `TRANSITION_TIME` | Transition durations keyed by door state. |
 | `TRANSITION_DELAY` | Transition delays keyed by door state. |
 
-Older configurations can contain `SENSOR_LED_ENABLED`, `SENSOR_LED`, `SENSOR_LED_TRANSITION_TIME` and `SENSOR_LED_TRANSITION_DELAY`. Hera translates the legacy profile when `SENSOR_SIGNALIZATION` is absent. Preserve the complete profile during a migration.
-
 See [Doors](/hera/configuration/doors).
 
 ## Button lights
@@ -164,19 +161,16 @@ Category-specific entries:
 
 | Setting | Default | Purpose |
 | --- | --- | --- |
-| `BUTTONS.DOOR_CONTROL.LIT_ON_CLICK` | `true` | Legacy field. Input lighting ignores it. |
 | `BUTTONS.DOOR_CONTROL.LIT_ON_DOOR_MOVE` | `true` | Keeps door-control lights active with door movement. |
-| `BUTTONS.ALARM.LIT_ON_HOLD` | `true` | Legacy field. Input lighting ignores it. |
-| `BUTTONS.HALL.LIT_ON_HALL_LOCK` | `true` | Legacy field. Input lighting ignores it. |
 | `MISCELLANEOUS.DOOR_GROUP_ALIASES` | `{ F = 1, R = 2 }` | Maps fixture letters to numeric entrances. |
 
-The COP's ordinary floor-button release timer reads `BUTTONS.HALL.LIT_ON_CLICK_DURATION`.
+The car's ordinary floor-button release timer reads `BUTTONS.HALL.LIT_ON_CLICK_DURATION`.
 
 See [Buttons](/hera/configuration/buttons).
 
 ## Sounds
 
-Sound entries use the following properties where applicable. Retain the properties supplied for each sound.
+Sound entries use the following properties where applicable.
 
 | Property | Meaning |
 | --- | --- |
@@ -189,14 +183,14 @@ Sound entries use the following properties where applicable. Retain the properti
 
 | Sound entry | Default availability | Additional settings |
 | --- | --- | --- |
-| `SOUNDS.CHIME` | Internal and API flags `true` | See chime table below. |
+| `SOUNDS.CHIME` | Internal playback enabled | See chime table below. |
 | `SOUNDS.ON_BUTTON_PRESS` | `HALL = false`; `CARCALL`, `DOOR_CONTROL`, `ALARM = true` | One shared sound with category switches. |
 | `SOUNDS.ON_FLOOR_CHANGE` | Enabled | `ON_FLOOR_CHANGE_TIME = 1`; with floor-display mode 3, value `2` follows tracked floor passage. |
 | `SOUNDS.ON_DOOR_OPEN`, `SOUNDS.ON_DOOR_CLOSE` | Disabled | Opening and closing cues. |
 | `SOUNDS.ON_DOOR_OBSTRUCTION` | Disabled | Player obstruction cue. |
 | `SOUNDS.ON_CARCALL_REJECTED`, `SOUNDS.ON_HALLCALL_REJECTED` | Disabled | Locked-call rejection sounds. |
 | `SOUNDS.ALARM` | Supplied, looping | Controlled by the held alarm button. |
-| `SOUNDS.NUDGE` | Enabled, looping | Also used by the recall warning. Use `DOORS.NUDGE_CLOSE_DELAY` for timing. `DELAY_UNTIL_CLOSE` is a legacy field. |
+| `SOUNDS.NUDGE` | Enabled, looping | Also used by the recall warning. Use `DOORS.NUDGE_CLOSE_DELAY` for timing. |
 | `SOUNDS.CAR_MOTOR` | Enabled | `DIVIDER = 10`, must be positive. |
 | `SOUNDS.COUNTERWEIGHT_MOTOR` | Disabled | `DIVIDER = 10`, must be positive. |
 | `SOUNDS.DOOR_MOTOR` | Enabled | `PEAK_PITCH = 0.5`. |
@@ -209,17 +203,23 @@ Paths start with `SOUNDS.CHIME`.
 | Entry | Default | Purpose |
 | --- | --- | --- |
 | `INTERNAL_ENABLED` | `true` | Enables Hera's own chime playback. |
-| `API_ENABLED` | `true` | Legacy field. API chime events are emitted independently of this flag. |
 | `CAR_CHIME_TIME` | `3` | Internal car chime timing. |
 | `FLOOR_CHIME_TIME` | `4` | Internal landing chime timing. |
-| `CHIME_ON_FLOOR_CALL_ENABLED` | `true` | Legacy field. Chime playback ignores it. |
-| `CHIME_ON_NO_QUEUE_ENABLED` | `true` | Legacy field. Chime playback ignores it. |
 | `DATA_CAR.UP`, `DATA_CAR.DOWN` | Supplied audio IDs | Direction-specific car recordings. |
 | `DATA_FLOOR.UP`, `DATA_FLOOR.DOWN` | Supplied audio IDs | Direction-specific landing recordings. |
 
 Each direction entry can contain `SOUND`, `START`, `END`, and `REPEATS`. `START` defaults to `0`, `END` to the full recording length, and `REPEATS` to `0` extra plays. Keep start/end within the recording and end after start.
 
-For `*_CHIME_TIME`, `1` means leveling, `2` beginning opening, `3` fully open, and `4` leveling after travel or opening for a same-floor request. External events use the separate `API.CHIME` timing.
+For `*_CHIME_TIME`, choose the phase when the chime should play:
+
+| `*_CHIME_TIME` | Chime phase |
+| --- | --- |
+| `1` | Leveling. |
+| `2` | Beginning opening. |
+| `3` | Fully open. |
+| `4` | Leveling after travel or opening for a same-floor request. |
+
+External events use the separate `API.CHIME` timing.
 
 See [Sound and voice](/hera/configuration/sound-and-voice).
 
@@ -232,9 +232,9 @@ See [Sound and voice](/hera/configuration/sound-and-voice).
 | `API.FLOOR_LABELS.COMMON_SUFFIX` | `{}` | Suffixes keyed by numeric door group. |
 | `API.FLOOR.FLOOR_CHANGE_TIME` | `2` | `1` and `2` indicate the approaching floor. `3` indicates the next floor at which the car can stop. |
 | `API.FLOOR.FLOOR_CHANGE_ON_ACCELERATION` | `true` | Allows mode 3 floor indication changes during acceleration. |
-| `API.CHIME.CAR_CHIME_TIME` | `3` | External car chime event timing, choices `1`–`4` as above. |
+| `API.CHIME.CAR_CHIME_TIME` | `3` | External car chime event timing, choices `1` through `4` as above. |
 | `API.CHIME.FLOOR_CHIME_TIME` | `4` | External landing chime event timing. |
-| `API.INDICATOR.FLOOR_LIT_TIME` | `4` | Landing lantern turn-on timing, choices `1`–`4` as above. |
+| `API.INDICATOR.FLOOR_LIT_TIME` | `4` | Landing lantern turn-on timing, choices `1` through `4` as above. |
 | `API.INDICATOR.CAR_LIT_TIME` | `2` | Car lantern turn-on timing. |
 | `API.INDICATOR.FLOOR_UNLIT_TIME` | `2` | `1`: start closing; `2`: after closing. |
 | `API.INDICATOR.CAR_UNLIT_TIME` | `2` | Car lantern turn-off timing, same choices. |
@@ -292,35 +292,7 @@ See [Parking and passengers](/hera/operation/parking-and-welding).
 | `XCS.API_URL` | `nil` | HTTPS API base URL for reporting. |
 | `XCS.API_KEY` | `nil` | Organization API key for reporting. |
 | `XCS.STATUS_POLLING_ENABLED` | `true` | Enables outgoing reports when URL and key are set. |
-| `XCS.STATUS_POLL_SECONDS` | `5` | Polling interval, limited to 2–30 seconds. |
+| `XCS.STATUS_POLL_SECONDS` | `5` | Polling interval, limited to between 2 and 30 seconds. |
 | `XCS.MESSAGING_CONTROL_ENABLED` | `true` | Enables incoming remote controls. |
 
 The bridge remains inactive without its connection IDs and requires a live game server. See [Connect XCS](/hera/integration/xcs).
-
-## Older setting names
-
-Hera recognizes these older names when the current setting is absent. Use the current names in new configurations.
-
-| Older name | Current name |
-| --- | --- |
-| `MOVE.LEVEL_OFFSET` | `MOVE.LEVELING_OFFSET` |
-| `MOVE.MOTOR_START_SETTINGS.ACCELERATION_RATE` | `ACCELERATION_RATE_UP` and `ACCELERATION_RATE_DOWN` in the same section |
-| `MOVE.MOTOR_STOP_SETTINGS.DECELERATION_RATE` | `DECELERATION_RATE_UP` and `DECELERATION_RATE_DOWN` in the same section |
-| `MOVE.DELAY` | `MOVE.MOTOR_START_SETTINGS.UP_DELAY` and `DOWN_DELAY` |
-| `DOORS.OPEN_SPEED` | `DOORS.CAR_OPEN_SPEED` and `FLOOR_OPEN_SPEED` |
-| `DOORS.CLOSE_SPEED` | `DOORS.CAR_CLOSE_SPEED` and `FLOOR_CLOSE_SPEED` |
-| `DOORS.CLOSE_NUDGE_SPEED` | `DOORS.CAR_CLOSE_NUDGE_SPEED` and `FLOOR_CLOSE_NUDGE_SPEED` |
-| `DOORS.TIMER` | `DOORS.TIMER_LENGTH` |
-| `DOORS.HANDICAP_TIMER` | `DOORS.ACCESSIBILITY_TIMER_LENGTH` |
-| `DOORS.NUDGE_TIMER` | `DOORS.NUDGE_TIMER_LENGTH` |
-| `DOORS.HANDICAP_NUDGE_TIMER` | `DOORS.ACCESSIBILITY_NUDGE_TIMER_LENGTH` |
-| `DOORS.TIMER_MODE` | `DOORS.TIMER_HOLD_MODE` |
-| `DOORS.CUBIC_BEZIER.PLOTTING_POINTS` | Separate `OPEN.PLOTTING_POINTS` and `CLOSE.PLOTTING_POINTS` |
-| `BUTTONS.MAIN` | `BUTTONS.CAR` |
-| `QUEUE.CALL_PROCESS_DELAY` | `QUEUE.PROCESS_DELAY` |
-| `MISCELLANEOUS.DOOR_SIDE_ALIASES` | `MISCELLANEOUS.DOOR_GROUP_ALIASES` |
-| `MISCELLANEOUS.PARKING.IDLE_TIME` | `MISCELLANEOUS.PARKING.REQUIRED_IDLE_TIME` |
-
-A legacy `DOORS.METHOD = 2` with `CUBIC_BEZIER.ENABLED = true` is translated to method `3`. A direct floor-label map can be translated into `API.FLOOR_LABELS.FLOORS`; use the full current form in new configurations.
-
-After migrating a configuration, [commission the car](/hera/testing) and check accessory calls and events against the [Controller API](/hera/integration/controller-api).

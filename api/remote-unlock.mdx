@@ -70,4 +70,8 @@ XCS publishes to `xcs-location-{locationId}`. Remote unlock and Telephone Entry 
 
 Roblox MessagingService delivery is best-effort. The stock XCS package subscribes to the location topic and handles supported acknowledgments automatically.
 
-A player-scoped request can return `504` when XCS does not receive an acknowledgment before the timeout. This does not prove that no server received the published message. The public integration does not expose XCS internal acknowledgment storage; see [Remote Unlock Setup](/guides/remote-unlock-setup) before implementing a custom listener.
+<Note>
+  A player-scoped request can return `504` when XCS does not receive an acknowledgment before the timeout. This does not prove that no server received the published message.
+</Note>
+
+The public integration does not expose XCS internal acknowledgment storage; see [Remote Unlock Setup](/guides/remote-unlock-setup) before implementing a custom listener.

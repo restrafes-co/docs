@@ -24,7 +24,9 @@ This example uses `locations.read`. The API returns `401` when the key is missin
 
 An organization API key may be restricted to selected locations. A location-scoped key receives `403` if it targets an access point outside those locations. Identity and access-group endpoints require a key with no location restrictions and the corresponding identity scopes.
 
-Store API keys in server-side secret storage. Do not include them in Roblox `LocalScript` code, browser code, source control, logs, or client-visible configuration.
+<Warning>
+  Store API keys in server-side secret storage. Do not include them in Roblox `LocalScript` code, browser code, source control, logs, or client-visible configuration.
+</Warning>
 
 ## Endpoints
 

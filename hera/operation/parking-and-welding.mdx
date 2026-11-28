@@ -1,5 +1,5 @@
 ---
-title: "Parking and passenger welding"
+title: "Parking and passengers"
 description: "Configure the idle return and passenger release phase."
 icon: "square-parking"
 ---
@@ -10,13 +10,11 @@ Set `MISCELLANEOUS.PARKING.ENABLED = true`. `FLOOR` selects the parking landing 
 
 Hera queues parking with source `"parking"`, direction `0` and door group `0`. The car returns with the doors closed. A whole-floor or parking-source lock can prevent the trip. [Lock scopes](/hera/extensions/floor-lockouts#narrow-the-rule)
 
-Test parking from another landing, then repeat with a passenger call during the idle interval.
-
 ## Passenger welding
 
 `MISCELLANEOUS.WELD.PLAYERS_ENABLED` attaches detected avatars during travel. The detection area follows the cabin's `.PLATFORM` footprint. Set `UNWELD_TIME` to select the release phase.
 
-| Value | Release point |
+| `MISCELLANEOUS.WELD.UNWELD_TIME` | Release point |
 | --- | --- |
 | `1` | Start of leveling |
 | `2` | Full stop (default) |

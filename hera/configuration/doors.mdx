@@ -1,5 +1,5 @@
 ---
-title: "Configure door operators"
+title: "Door settings"
 description: "Set car and landing door profiles, dwell, reversals and nudging."
 icon: "panel-left-open"
 ---
@@ -8,7 +8,11 @@ Use `DOORS` for the car and landing operator profiles and their timing. Use the 
 
 ## Choose the movement method
 
-`METHOD = 1` selects the legacy interpolation, `2` uses the built-in easing curve, and `3` uses separate cubic Bezier curves for opening and closing. Start with the supplied profile for the door assembly.
+| `DOORS.METHOD` | Movement method |
+| --- | --- |
+| `1` | Interpolation. |
+| `2` | Built-in easing curve. |
+| `3` | Separate cubic Bezier curves for opening and closing. |
 
 ## Car and landing timing
 
@@ -19,7 +23,9 @@ Use `DOORS` for the car and landing operator profiles and their timing. Use the 
 | Close during nudging | `CAR_CLOSE_NUDGE_SPEED`, `FLOOR_CLOSE_NUDGE_SPEED` |
 | Stagger a car or landing motor start | `CAR_OPEN_DELAY`, `FLOOR_OPEN_DELAY`, `CAR_CLOSE_DELAY`, `FLOOR_CLOSE_DELAY` |
 
-For methods 2 and 3, smaller speed values give faster panel travel. Compare the car and landing panels together before tuning their delays.
+<Note>
+  For methods 2 and 3, smaller speed values give faster panel travel. Compare the car and landing panels together before tuning their delays.
+</Note>
 
 ## Time with the doors open
 
@@ -27,15 +33,22 @@ For methods 2 and 3, smaller speed values give faster panel travel. Compare the 
 
 ## Opening and reversal delays
 
-`OPEN_DELAY` delays normal arrival opening. `REOPEN_DELAY` and `RECLOSE_DELAY` control the wait when reversing direction. Test a reversal halfway through travel and again near the end. If pre-opening is enabled, check `MOVE.PREDOORS_IGNORE_DOOR_OPEN_DELAY` too.
+`OPEN_DELAY` delays normal arrival opening. `REOPEN_DELAY` and `RECLOSE_DELAY` control the wait when reversing direction. If pre-opening is enabled, check `MOVE.PREDOORS_IGNORE_DOOR_OPEN_DELAY` too.
 
 ## Obstruction sensors
 
-With `SENSOR_ENABLED` enabled, the normal timer pauses on obstruction in `TIMER_HOLD_MODE = 1` or resets in mode `2`. Walk a player through the appropriate group's sensor while the doors are closing. [Door cycle and controls](/hera/operation/door-operation)
+`SENSOR_ENABLED` enables obstruction detection. The hold mode determines what happens to the normal timer:
+
+| `DOORS.TIMER_HOLD_MODE` | On obstruction |
+| --- | --- |
+| `1` | Pauses the timer. |
+| `2` | Resets the timer. |
+
+[Door cycle and controls](/hera/operation/door-operation)
 
 ## Nudging
 
-`NUDGE_TIMER_LENGTH` sets the nudge threshold. `NUDGE_CLOSE_DELAY` is the delay between that threshold and the close command. Test with a prolonged obstruction and verify the warning if `SOUNDS.NUDGE.ENABLED` is set.
+`NUDGE_TIMER_LENGTH` sets the nudge threshold. `NUDGE_CLOSE_DELAY` is the delay between that threshold and the close command. The warning sounds if `SOUNDS.NUDGE.ENABLED` is set.
 
 ## Custom opening and closing curves
 
@@ -57,7 +70,7 @@ CUBIC_BEZIER = {
 
 Each profile takes `{x1, y1, x2, y2}`, with each value in `[0, 1]`.
 
-`REOPEN_CURVE_CORRECTION` adjusts the opening curve when reversing from a partly closed position. Test reversals early, midway, and late in closing.
+`REOPEN_CURVE_CORRECTION` adjusts the opening curve when reversing from a partly closed position.
 
 The optional interlock stage adds short travel at the start of opening or end of closing. `OFFSET` sets the travel and `DURATION` is in seconds. Configure its audio in `SOUNDS.DOOR_INTERLOCK.OPEN` and `.CLOSE`.
 
@@ -65,4 +78,4 @@ The optional interlock stage adds short travel at the start of opening or end of
 
 ## Sensor lights
 
-`SENSOR_SIGNALIZATION` styles the entrance lights. Start with the complete profile for your entrance, including its state styles and transition times. The detection switch is `SENSOR_ENABLED`. [Door settings reference](/hera/reference/configuration#sensor-lights)
+`SENSOR_SIGNALIZATION` styles the entrance lights, including their state styles and transition times. The detection switch is `SENSOR_ENABLED`. [Door settings reference](/hera/reference/configuration#sensor-lights)

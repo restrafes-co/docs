@@ -1,16 +1,24 @@
 ---
-title: "Write a Hera extension"
+title: "Writing extensions"
 description: "Install a server ModuleScript and use the controller lifecycle and event hooks."
 icon: "puzzle"
 ---
 
-Use a Hera build with extension support. This example requests the first available entrance on `onReady` and logs when it reaches `open`.
+This example requests the first available entrance on `onReady` and logs when it reaches `open`.
 
 ## Install the ModuleScript
 
-1. Stop the Studio playtest. In Explorer, find the elevator model that contains `CONFIGURATION`, `CAR` and `FLOORS`.
-2. Add a **Folder** named `extensions` directly under that model. Use lowercase.
-3. Add a **ModuleScript** named `WelcomeDoor` directly inside the folder. Replace its contents with the example below.
+<Steps>
+  <Step title="Find the elevator">
+    Stop the Studio playtest. In Explorer, find the elevator model that contains `CONFIGURATION`, `CAR` and `FLOORS`.
+  </Step>
+  <Step title="Create the extensions folder">
+    Add a Folder named `extensions` directly under that model. Use lowercase.
+  </Step>
+  <Step title="Create the ModuleScript">
+    Add a ModuleScript named `WelcomeDoor` directly inside the folder. Replace its contents with the example below.
+  </Step>
+</Steps>
 
 ```text
 Elevator
@@ -70,4 +78,4 @@ The displayed floor can advance during travel. For a boarding display, also chec
 
 Hera discovers direct ModuleScript children at startup. Restart Play after installing a module. Put car-specific setup in `init`; return a cleanup function for any Roblox connections or other resources you own. Hera releases locks and subscriptions acquired through the controller when the elevator is destroyed or initialization fails.
 
-If nothing appears in Output, check the folder name and nesting, the selected core build, and that your module returns a table containing `init`. A warning with the ModuleScript's full path identifies the extension that failed. [Build a floor lockout](/hera/extensions/floor-lockouts) · [Controller methods](/hera/extensions/controller)
+If nothing appears in Output, check the folder name and nesting, and that your module returns a table containing `init`. A warning with the ModuleScript's full path identifies the extension that failed. [Build a floor lockout](/hera/extensions/floor-lockouts) · [Controller methods](/hera/extensions/controller)

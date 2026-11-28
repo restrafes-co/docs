@@ -20,7 +20,9 @@ The `id` in an identity path is the identity ID returned by the API. `userId` id
 
 XCS can resolve a Roblox username to a `USER` identity if the Roblox account is linked to an XCS account that shares its public account links. Use the `type` and `id` in the response for subsequent requests. New identities receive the organization's active default access groups and organization roles. The `robloxGroupRoles` field filters membership by Roblox group role ID. Omit it or send `[]` to include all roles in that Roblox group.
 
-Card identifiers and PINs are write-only. Use an alias to label a credential identity without storing a credential value in the label.
+<Note>
+  Card identifiers and PINs are write-only. Use an alias to label a credential identity without storing a credential value in the label.
+</Note>
 
 This example uses `identities.write`. Set `invite: false` when you want to enroll the account before sending its invitation.
 
@@ -35,7 +37,11 @@ Save the returned `identity.id`. For an XCS account enrolled with `invite: false
 
 ## Assign access groups
 
-Use [List access groups](/api/list-access-groups) to find group IDs. A [partial update](/api/update-identity) with `accessGroupIds` replaces the identity's directly assigned groups. Use [add](/api/add-identity-access-groups) or [remove](/api/remove-identity-access-groups) to change selected memberships. Role-inherited groups are managed through organization roles.
+Use [List access groups](/api/list-access-groups) to find group IDs. Use [add](/api/add-identity-access-groups) or [remove](/api/remove-identity-access-groups) to change selected memberships. Role-inherited groups are managed through organization roles.
+
+<Warning>
+  A [partial update](/api/update-identity) with `accessGroupIds` replaces the identity's directly assigned groups.
+</Warning>
 
 ## Set availability
 

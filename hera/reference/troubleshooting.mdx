@@ -1,10 +1,10 @@
 ---
-title: "Troubleshoot a Hera elevator"
+title: "Troubleshooting"
 description: "Trace startup faults, failed calls, entrance behavior and integration errors."
 icon: "wrench"
 ---
 
-Start with the first Hera error in server **Output**. Record the loaded core build, service mode, floor, door group and triggering input. For a bank, include the ERSA build and assigned car.
+Start with the first Hera error in server **Output**. Record the service mode, floor, door group and triggering input. For a bank, include the assigned car.
 
 ## Hera does not start
 
@@ -21,13 +21,13 @@ Confirm the supplied loader and `CONFIGURATION` are under the complete elevator 
 | `Unable to find the SCALE part` | Restore the scaler inside the named leaf. |
 | `has an invalid value` | Check the named parameter's bounds in the [configuration reference](/hera/reference/configuration). |
 
-If Output reports an incomplete package or product authorization failure, check the supplied loader and selected build with your provider. [Model structure](/hera/model-structure)
+If Output reports an incomplete package or product authorization failure, check the supplied loader with your provider. [Model structure](/hera/model-structure)
 
 ## An extension does not run
 
 | Symptom | Check |
 | --- | --- |
-| No initialization log | Use an extension-enabled core. Install the ModuleScript directly under the lowercase `Elevator/extensions` Folder and restart Play. |
+| No initialization log | Install the ModuleScript directly under the lowercase `Elevator/extensions` Folder and restart Play. |
 | `Expected a table with init(controller)` | Return a table with an `init` function that receives the controller. Use dot calls. |
 | Lock setup throws | Check the floor, served entrance and scope keys. Failed initialization releases the module's Hera subscriptions and acquired locks. |
 | `door.open()` or `door.close()` returns false | Check service, stop or fault state, alignment, group availability, lock, nudge and obstruction. |
@@ -64,7 +64,7 @@ Test an avatar during normal closing before nudging. Check `DOORS.SENSOR_ENABLED
 
 | Symptom | Check |
 | --- | --- |
-| One COP button fails | Alias, numeric floor, served group and direct `BUTTON` child. |
+| One car button fails | Alias, numeric floor, served group and direct `BUTTON` child. |
 | Whole panel fails | `.BUTTONS` prefix and placement directly under `CAR` or the landing. |
 | Hall button fails | Entrance alias and `U`, `D` or `N` fixture name. |
 | Button registers but the lamp stays dark | Direct `LED*` BaseParts and their configured styles. If there are no LED parts, check `BUTTON`. |
@@ -82,7 +82,7 @@ Confirm that the server sends the release only when the operator releases or lea
 
 ## Independent service will not depart
 
-Hold the COP destination through closure of all entrances. A custom panel sends `independentServiceFloorControl` for the held input. A plain `queueAdd` using source `"car"` can be used once the doors are closed. [Independent service](/hera/operation/independent-service)
+Hold the car's destination button through closure of all entrances. A custom panel sends `independentServiceFloorControl` for the held input. A plain `queueAdd` using source `"car"` can be used once the doors are closed. [Independent service](/hera/operation/independent-service)
 
 ## Floor labels or arrows are wrong
 
@@ -99,9 +99,8 @@ Check asset permissions, asset ID, volume, audible range and the entry's enable 
 | No `returnStates` | Use a server Script, connect before firing, and match `data.returnId`. Retry during startup. |
 | Door state missing | Read `data.doorStates` beside `data.states`. |
 | `Fire()` has no result | Observe an event or use a private call callback. |
-| Invalid call is silent | Check `confirmsCalls`, set `confirm = true` on the request, and pass a parented BindableEvent in `data.api`. Read `data.reason` on `api-onCallResult`. |
+| Invalid call is silent | Set `confirm = true` on the request and pass a parented BindableEvent in `data.api`. Read `data.reason` on `api-onCallResult`. |
 | Accepted call has no arrival callback | Check for a same-floor car call that handled the entrance directly. Observe the door group for its resulting state. |
-| Older core reports arrival after removal | Check the landing, travel and door state before signalling boarding. |
 
 [Controller API](/hera/integration/controller-api)
 
@@ -111,4 +110,4 @@ Check the published server and job ID, access point and location IDs, reporting 
 
 ## Gather details for help
 
-Include the first Output error, selected builds, floor and entrance, service mode, reproduction steps and relevant Explorer hierarchy. Redact API keys and credentials from screenshots or configuration excerpts.
+Include the first Output error, floor and entrance, service mode, reproduction steps and relevant Explorer hierarchy. Redact API keys and credentials from screenshots or configuration excerpts.

@@ -1,6 +1,6 @@
 ---
-title: "Wire COP and hall fixtures"
-description: "Map COP and hall fixtures to door groups, call inputs and lamp styles."
+title: "Buttons and lights"
+description: "Map car and hall fixtures to door groups, call inputs and lamp styles."
 icon: "circle-dot"
 ---
 
@@ -8,7 +8,7 @@ Use a fixture model with a direct `BUTTON` BasePart. Hera derives the input from
 
 ## Map front and rear entrances
 
-The default `MISCELLANEOUS.DOOR_GROUP_ALIASES` maps `F = 1` and `R = 2`. Match the alias to your car and landing group IDs. [Model tree](/hera/model-structure)
+The default `MISCELLANEOUS.DOOR_GROUP_ALIASES` maps `F = 1` and `R = 2`. Match the alias to your car and landing group IDs. [Model structure](/hera/model-structure)
 
 ## Car buttons
 
@@ -57,12 +57,14 @@ CAR = {
 },
 ```
 
-`TRANSITION_DURATION` sets the color transition in seconds and defaults to `0.1`. Use `LIT_ON_CLICK_DURATION` for momentary feedback. The COP's ordinary floor-button release timer reads `BUTTONS.HALL.LIT_ON_CLICK_DURATION`. Registered calls keep their lamp lit until service or cancellation.
+`TRANSITION_DURATION` sets the color transition in seconds and defaults to `0.1`. Use `LIT_ON_CLICK_DURATION` for momentary feedback. Registered calls keep their lamp lit until service or cancellation.
 
-A `TEXTURE` value in `LIT` or `UNLIT` changes a `Decal` or `Texture` named `.BUTTON` or `.TEXTURE` directly inside the illuminated part. Keep the supplied texture structure when changing this feature.
+<Note>
+  The car's ordinary floor-button release timer reads `BUTTONS.HALL.LIT_ON_CLICK_DURATION`.
+</Note>
 
-`LIT_ON_DOOR_MOVE` keeps Door Open and Door Close lamps lit during the corresponding strokes. [Active and legacy lamp settings](/hera/reference/configuration#button-lights)
+A `TEXTURE` value in `LIT` or `UNLIT` changes a `Decal` or `Texture` named `.BUTTON` or `.TEXTURE` directly inside the illuminated part.
 
-## Check your panel
+`LIT_ON_DOOR_MOVE` keeps Door Open and Door Close lamps lit during the corresponding strokes. [Lamp settings](/hera/reference/configuration#button-lights)
 
-Register a destination away from the car. Verify the lamp stays lit until service. A flash indicates input feedback and can accompany a rejection. For a failure isolated to one entrance, check its alias, door group and any [lockout](/hera/extensions/floor-lockouts).
+A flash indicates input feedback and can accompany a rejection. For a failure isolated to one entrance, check its alias, door group and any [lockout](/hera/extensions/floor-lockouts).

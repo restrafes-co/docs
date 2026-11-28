@@ -1,18 +1,24 @@
 ---
-title: "Add floors and entrances"
+title: "Floors and entrances"
 description: "Fit a new landing or add another entrance to a Hera car."
 icon: "layers"
 ---
 
-Make these changes in Studio Edit mode. Hera builds its floor and door indexes at startup.
-
 ## Add a floor
 
-1. Duplicate a complete landing under `FLOORS` and assign an integer model name. For a new top landing above `2`, use `3`.
-2. Move the landing assembly as a unit. Set the center Y of `LEVEL_MAIN` to the platform center Y at the stop. Align the landing door assembly with the opening and preserve the offset of its `LEVEL` reference.
-3. Fit the station for the new landing. For a front-opening car with the default alias, use `.BUTTONS/F/D/BUTTON` at the upper terminal. Convert the former terminal to an intermediate station if it now accepts both directions.
-4. Add `F3` to the COP with a direct `BUTTON` child. Set the [PI label](/hera/configuration/indicators#floor-labels) and [announcement](/hera/configuration/sound-and-voice#choose-announcements) if required.
-5. Restart Play. Run a car call and a separate hall pickup at the new landing. Check leveling, entrance selection and lamp clearing.
+Duplicate a complete landing under `FLOORS` and give it an integer name. Move the landing assembly as a unit, then align its door assembly with the opening.
+
+Set the center Y of `LEVEL_MAIN` to the platform center Y at the stop. Preserve the offset of the door group's `LEVEL` reference.
+
+For example, to add floor `3` above floor `2` on a front-opening car with the default alias:
+
+| Fixture | Setup |
+| --- | --- |
+| Upper terminal hall button | Use `.BUTTONS/F/D/BUTTON` at floor `3`. |
+| Former terminal hall station | Convert it to an intermediate station if it now accepts both directions. |
+| Car button | Add `F3` to the car panel with a direct `BUTTON` child. |
+
+Set the [PI label](/hera/configuration/indicators#floor-labels) and [announcement](/hera/configuration/sound-and-voice#choose-announcements) if needed. Restart Play after adding the landing.
 
 ## Align a landing
 
@@ -20,17 +26,27 @@ An error isolated to one landing usually points to `LEVEL_MAIN` or the offset be
 
 ## Add a rear entrance
 
-1. Fit the rear car assembly under `CAR/.DOORS/2` with its own `LEVEL` and `DOORS`. Place its sensors under `CAR/.DOORSENSORS/2`.
-2. Add `.DOORS/2` only at landings served by the rear. Keep car and landing group IDs matched.
-3. Set `MISCELLANEOUS.DOOR_GROUP_ALIASES.R = 2`. Use fixtures such as `R3` on the COP and `.BUTTONS/R/U/BUTTON` at the landing. [Fixture naming](/hera/configuration/buttons)
-4. Test each available entrance separately, then register both groups for the same floor and queue direction. At a rear-only floor, the front call should be rejected. Verify the configured recall and independent-service entrances at the affected landings.
+Set up the rear entrance as group `2`:
+
+| Item | Setup |
+| --- | --- |
+| Car doors | Place the assembly under `CAR/.DOORS/2`, with its own `LEVEL` and `DOORS`. |
+| Sensors | Place them under `CAR/.DOORSENSORS/2`. |
+| Landing doors | Add `.DOORS/2` at each landing served by the rear. The car and landing group IDs must match. |
+| Alias | Set `MISCELLANEOUS.DOOR_GROUP_ALIASES.R = 2`. |
+| Car button | Use a name such as `R3` for a rear call to floor `3`. |
+| Hall button | Use a path such as `.BUTTONS/R/U/BUTTON` for a rear Up call. |
+
+See [Buttons and lights](/hera/configuration/buttons) for fixture naming.
+
+At a rear-only floor, a front call is rejected.
 
 For temporary restrictions, keep the landing geometry in place and apply a [floor lockout](/hera/extensions/floor-lockouts).
 
 ## Remove a floor
 
-Remove the landing and its COP fixtures. Check the primary floor, parking, recall, PI labels, voice cues, ERSA stations and extensions for references to the removed floor. Restart and run between the adjacent remaining landings.
+Remove the landing and its car panel fixtures. Check the primary floor, parking, recall, PI labels, voice cues, ERSA stations and extensions for references to the removed floor. Restart Play.
 
 ## Move the complete elevator
 
-Move the car, landings and counterweight together. Recheck sill alignment and test each sensor with an avatar. [Commissioning checks](/hera/testing)
+Move the car, landings and counterweight together. Keep the sills aligned.

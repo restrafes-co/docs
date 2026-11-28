@@ -1,5 +1,5 @@
 ---
-title: "Service-control requests"
+title: "Service requests"
 description: "Request payloads, constant-pressure input handling and service rejection codes."
 icon: "siren"
 ---
@@ -85,7 +85,9 @@ api:Fire({ request = "independentService", data = { enabled = false } })
 
 ## Held controls
 
-Send one request on press and one on release. Keep the action and door group identical. Treat loss of focus or the end of the interaction as release.
+<Note>
+  Send one request on press and one on release. Keep the action and door group identical. Treat loss of focus or the end of the interaction as release.
+</Note>
 
 Call this function with `true` on press and `false` on release for Phase II Door Open at group 1.
 
@@ -145,5 +147,3 @@ A rejection includes `command` and `reason`, with `floor` and `source` for some 
 | `invalid_call` | Check the independent held-floor number and entrance. |
 | `invalid_recall_call` | An internal recall call does not match the active recall. External callers should use the recall request. |
 | `recall_blocked` | Check stop and out-of-service conditions, then the configured recall trip. |
-
-Controllers without held-floor support can report `doors_not_closed` for an independent car call while doors are open.

@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "aspen",
+  "theme": "luma",
   "name": "Restrafes Documentation",
   "description": "Documentation for Restrafes products and services.",
   "colors": {
@@ -13,8 +13,8 @@
     "library": "lucide"
   },
   "logo": {
-    "light": "/logo/brand-logo-black.png",
-    "dark": "/logo/brand-logo.png",
+    "light": "/logo/restrafes-wordmark.png",
+    "dark": "/logo/restrafes-wordmark.png",
     "href": "/"
   },
   "api": {
@@ -94,66 +94,8 @@
         ]
       },
       {
-        "tab": "Consumer API",
-        "icon": "code",
-        "groups": [
-          {
-            "group": "API Documentation",
-            "icon": "book-open",
-            "pages": ["api/consumer-overview", "api/organization-api-keys", "api/get-connection"]
-          },
-          {
-            "group": "Identities",
-            "icon": "users",
-            "pages": [
-              "api/identities",
-              "api/list-identities",
-              "api/get-identity",
-              "api/create-identity",
-              "api/update-identity",
-              "api/invite-identity",
-              "api/withdraw-identity-invitation",
-              "api/remove-identity"
-            ]
-          },
-          {
-            "group": "Identity Access Groups",
-            "icon": "users-round",
-            "pages": [
-              "api/list-access-groups",
-              "api/add-identity-access-groups",
-              "api/remove-identity-access-groups"
-            ]
-          },
-          {
-            "group": "Access Points",
-            "icon": "door-closed",
-            "pages": [
-              "api/list-access-points",
-              "api/get-access-point",
-              "api/create-access-point",
-              "api/access-points"
-            ]
-          },
-          {
-            "group": "Access Point Permissions",
-            "icon": "key-round",
-            "pages": [
-              "api/access-point-permissions",
-              "api/add-access-point-permissions",
-              "api/remove-access-point-permissions"
-            ]
-          },
-          {
-            "group": "Actions",
-            "icon": "zap",
-            "pages": ["api/remote-unlock"]
-          }
-        ]
-      },
-      {
         "tab": "Hera",
-        "icon": "building-2",
+        "icon": "/logo/hera.svg",
         "hidden": true,
         "groups": [
           {
@@ -165,12 +107,11 @@
             ]
           },
           {
-            "group": "Build and test",
+            "group": "Build",
             "icon": "layers",
             "pages": [
               "hera/model-structure",
-              "hera/adding-floors",
-              "hera/testing"
+              "hera/adding-floors"
             ]
           },
           {
@@ -231,6 +172,64 @@
               "hera/reference/glossary",
               "hera/reference/troubleshooting"
             ]
+          }
+        ]
+      },
+      {
+        "tab": "Consumer API",
+        "icon": "code",
+        "groups": [
+          {
+            "group": "API Documentation",
+            "icon": "book-open",
+            "pages": ["api/consumer-overview", "api/organization-api-keys", "api/get-connection"]
+          },
+          {
+            "group": "Identities",
+            "icon": "users",
+            "pages": [
+              "api/identities",
+              "api/list-identities",
+              "api/get-identity",
+              "api/create-identity",
+              "api/update-identity",
+              "api/invite-identity",
+              "api/withdraw-identity-invitation",
+              "api/remove-identity"
+            ]
+          },
+          {
+            "group": "Identity Access Groups",
+            "icon": "users-round",
+            "pages": [
+              "api/list-access-groups",
+              "api/add-identity-access-groups",
+              "api/remove-identity-access-groups"
+            ]
+          },
+          {
+            "group": "Access Points",
+            "icon": "door-closed",
+            "pages": [
+              "api/list-access-points",
+              "api/get-access-point",
+              "api/create-access-point",
+              "api/access-points"
+            ]
+          },
+          {
+            "group": "Access Point Permissions",
+            "icon": "key-round",
+            "pages": [
+              "api/access-point-permissions",
+              "api/add-access-point-permissions",
+              "api/remove-access-point-permissions"
+            ]
+          },
+          {
+            "group": "Actions",
+            "icon": "zap",
+            "pages": ["api/remote-unlock"]
           }
         ]
       }

@@ -1,5 +1,5 @@
 ---
-title: "State and event reference"
+title: "States and events"
 description: "Look up the data sent to extensions, displays and server-side API listeners."
 icon: "radio"
 ---
@@ -15,7 +15,7 @@ A `getStates` request returns:
     event = "returnStates",
     data = {
         returnId = "your-request-id",
-        confirmsCalls = true, -- present when call confirmation is supported
+        confirmsCalls = true,
         states = { -- controller state
             -- floor, trueFloor, currentMoveDirection, and other fields below
         },
@@ -43,7 +43,7 @@ A `getStates` request returns:
 | `fireService` | Fire-service state. |
 | `independentService` | Independent-service state. |
 
-`data.doorStates` is keyed by numeric entrance group. Each entry contains `doorGroup`, `state`, `nudge` and `availableFloors`. Legacy snapshots can omit `availableFloors`. States include `closed`, `opening`, `open`, `closing`, `reopen`, `reclose` and `fault`.
+`data.doorStates` is keyed by numeric entrance group. Each entry contains `doorGroup`, `state`, `nudge` and `availableFloors`. States include `closed`, `opening`, `open`, `closing`, `reopen`, `reclose` and `fault`.
 
 For boarding logic, check the tracked landing, stopped car and selected group's `open` state.
 
@@ -61,14 +61,14 @@ Stop and out-of-service conditions are separate fields, so inspect them as well 
 
 `states.fireService` includes `phaseOne`, `phaseTwo`, `recallFloor`, `targetFloor`, `recallFloorUnavailable`, and `recalled`. `phaseTwo` is `"off"`, `"on"`, or `"hold"`.
 
-`states.independentService` includes `enabled` and `targetFloor`. Additional internal fields can exist; use the published mode and control events for your panel rather than changing those tables.
+`states.independentService` includes `enabled` and `targetFloor`. Additional internal fields can exist. Use the published mode and control events for your panel; do not change those tables.
 
 ## Movement and calls
 
 | Event | `message.data` | Meaning |
 | --- | --- | --- |
 | `onReady` | Empty table | Startup completed. Sent once. |
-| `returnStates` | `returnId`, `states`, `doorStates`, optional `confirmsCalls` | Snapshot for the requesting script. |
+| `returnStates` | `returnId`, `states`, `doorStates`, `confirmsCalls` | Snapshot for the requesting script. |
 | `onFloorChanged` | `floor`, optional `label` | Floor indication changed. `label` is an object with `label` and `isPrimary`. |
 | `onMoveDirectionChanged` | `direction` | Travel direction changed; `0` indicates stop. |
 | `onQueueDirectionChanged` | `direction` | Serving direction changed. |
@@ -92,7 +92,7 @@ Call results use `message.request` on the caller's private BindableEvent. See [c
 | `chime` | `floor`, `doorGroup`, `direction` and sound information where supplied | Landing chime command. |
 | `chimeCar` | Direction and applicable floor/sound information | Car chime command. |
 
-Accessory signals vary with the configured arrival phase. Handle the fields relevant to your accessory and use the [timing settings](/hera/configuration/indicators) rather than treating every signal as a completed stop.
+Accessory signals vary with the configured arrival phase and do not always mean the stop is complete. Handle the fields relevant to your accessory and use the [timing settings](/hera/configuration/indicators).
 
 ## Fire-service events
 

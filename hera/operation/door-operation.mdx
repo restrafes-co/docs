@@ -13,13 +13,13 @@ Hera tracks each entrance independently. A normal stop opens the selected groups
 | Door Open | Opens the selected entrance at a served landing or requests a reversal during a normal close. |
 | Door Hold | Latches the selected group open. |
 | Door Close | Releases the hold and zeroes dwell. Normal closure waits for the sensor to clear. |
-| Current-floor COP button | Can open or reopen its entrance with the car stopped and level. |
+| Current-floor car button | Can open or reopen its entrance with the car stopped and level. |
 
 For scripted controls, use [extension door methods](/hera/extensions/controller#doors). Watch `onDoorStateChanged` for the requested group to reach `open` or `closed`.
 
 ## Sensor reopening
 
-The group sensor detects player characters during a normal close. After a reversal, dwell uses `REOPEN_TIMER_LENGTH` or falls back to `TIMER_LENGTH`. While held by the sensor, dwell pauses in `TIMER_HOLD_MODE = 1` and resets in mode `2`.
+The group sensor detects player characters during a normal close. After a reversal, dwell uses `REOPEN_TIMER_LENGTH` or falls back to `TIMER_LENGTH`. While held by the sensor, dwell pauses in `TIMER_HOLD_MODE = 1` and resets in mode `2`. See [obstruction sensor settings](/hera/configuration/doors#obstruction-sensors).
 
 ## Nudging
 

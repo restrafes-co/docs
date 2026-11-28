@@ -1,12 +1,12 @@
 ---
-title: "ERSA, hall lanterns and PIs"
+title: "Group control and displays"
 description: "Wire shared hall stations and connect accessories to Hera car events."
 icon: "panels-top-left"
 ---
 
 ## ERSA group control
 
-ERSA assigns shared hall calls to eligible cars. Each car runs its own Hera core and queue. Use a core that advertises `confirmsCalls` for explicit acceptance and cancellation callbacks.
+ERSA assigns shared hall calls to eligible cars. Each car runs its own Hera core and queue, with acceptance and cancellation callbacks.
 
 ### Set up a group
 
@@ -25,17 +25,13 @@ GroupController
                     └── BUTTON
 ```
 
-Commission each complete car before moving it under `ELEVATORS`. Use the supplied ERSA loader and configuration. Match the station aliases to the car group IDs in the bank's `MISCELLANEOUS.DOOR_GROUP_ALIASES`. If the bank config supplies the legacy `DOOR_SIDE_ALIASES`, ERSA uses that table first. The example registers an Up call at floor 2 for alias `F`. Use `D` for Down or `N` for neutral. A direct part named `LED` carries the station lamp. With no `LED`, ERSA uses `BUTTON`.
+Move each complete car under `ELEVATORS`. Use the supplied ERSA loader and configuration. Match the station aliases to the car group IDs in the bank's `MISCELLANEOUS.DOOR_GROUP_ALIASES`. The example registers an Up call at floor 2 for alias `F`. Use `D` for Down or `N` for neutral. A direct part named `LED` carries the station lamp. With no `LED`, ERSA uses `BUTTON`.
 
-### Test the shared calls
+### Call assignment
 
-ERSA ranks eligible cars by service at the calling floor, compatible approach, then idle availability. It prefers the closer car within each rank. A rejected or cancelled assignment can fall through to another eligible car. ERSA submits source `"api"`, so use an API-scoped lock when testing reassignment.
+ERSA ranks eligible cars by service at the calling floor, compatible approach, then idle availability. It prefers the closer car within each rank. A rejected or cancelled assignment can fall through to another eligible car. ERSA submits source `"api"`.
 
-Register a shared hall call and listen on the bank's `API` for `carAssigned` with `car`, `floor`, `direction` and `doorGroup`. Verify the station lamp clears at pickup. Repeat with one car in special service, then with a station served by only one car. If ERSA exhausts the eligible cars, it publishes `onMultibayError` with the call key and reason.
-
-### Older accessory packages
-
-Older cores can use the same callback for arrival and queue removal. For these cars, ERSA checks the queue and entrance state before clearing the station. For the legacy opening delay, ERSA reads `Settings.DOORS.OPEN_DELAY` from the car's `Settings` ModuleScript when present.
+The bank's `API` publishes `carAssigned` with `car`, `floor`, `direction` and `doorGroup`. The station lamp clears at pickup. If ERSA exhausts the eligible cars, it publishes `onMultibayError` with the call key and reason.
 
 ## Hall lanterns
 
@@ -52,30 +48,15 @@ Lanterns
                 └── LED
 ```
 
-On the older supplied lantern controller, set `ELEVATOR_MODEL` to the car and `LANTERNS_MODEL` to the fixture container. That version reads the car aliases from a ModuleScript named `Settings`. Use a compatible accessory or subscribe directly to `indicator` if your car uses `CONFIGURATION`.
+A lantern controller that reads car aliases from a ModuleScript named `Settings` uses `ELEVATOR_MODEL` for the car and `LANTERNS_MODEL` for the fixture container. If your car uses `CONFIGURATION`, use a compatible accessory or subscribe directly to `indicator`.
 
 For a custom lantern, map `data.floor` and `data.doorGroup` to the fixture and `data.direction` to Up or Down. Apply `data.event` as `lit` or `unlit`.
 
-Set timing in [Indicators and labels](/hera/configuration/indicators). For a terminal floor, fit only the direction light that can be used there, and test arrivals from the available direction.
+Set timing in [Indicators and labels](/hera/configuration/indicators). For a terminal floor, fit only the direction light that can be used there.
 
 ## Floor displays
 
-Add a `SurfaceGui` named `Display` below the elevator with a direct `TextLabel` named `FloorLabel`. Install this ModuleScript under `Elevator/extensions` on an extension-enabled core. It initializes the PI and updates it on `onFloorChanged`.
-
-```lua
-return {
-    init = function(controller)
-        local display = assert(controller.elevator.model:FindFirstChild("Display", true), "Display missing")
-        local label = assert(display:FindFirstChild("FloorLabel"), "FloorLabel missing")
-        label.Text = tostring(controller.elevator.getState().floor)
-        controller.floor.onChanged(function(data)
-            label.Text = if data.label then data.label.label else tostring(data.floor)
-        end)
-    end,
-}
-```
-
-The snapshot supplies the numeric floor. Initialize from your floor-label mapping if the PI needs display text before the first floor-change event. A remote PI can subscribe through the [BindableEvent API](/hera/integration/controller-api).
+An extension can use `controller.floor.onChanged` to update a `TextLabel` when the floor indication changes. Read `data.label.label` when a label is available; otherwise, display the numeric `data.floor`. The initial state supplies the numeric floor, so use your floor-label mapping if the display needs a label before the first floor-change event. A remote PI can subscribe through the [BindableEvent API](/hera/integration/controller-api).
 
 ## Choose the arrow meaning
 
@@ -86,4 +67,4 @@ The snapshot supplies the numeric floor. Initialize from your floor-label mappin
 | `indicator` | This landing's arrival lantern should be lit or unlit. |
 | `indicatorCar` | The car's arrival direction lamp should be lit or unlit. |
 
-A car that arrives while travelling up can next serve down. Test a final destination and a reversal so your arrows show the intended meaning.
+A car that arrives while travelling up can next serve down.

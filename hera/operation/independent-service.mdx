@@ -1,6 +1,6 @@
 ---
 title: "Independent service"
-description: "Configure independent service and commission the constant-pressure COP sequence."
+description: "Configure independent service and use constant-pressure car controls."
 icon: "user-round-cog"
 ---
 
@@ -8,15 +8,15 @@ Set `INDEPENDENT_SERVICE.ENABLED = true` and choose the preferred `DOOR_GROUP`. 
 
 ## Depart with a held destination
 
-1. Hold the COP destination until every entrance is fully closed, then release.
+1. Hold the car's destination button until every entrance is fully closed, then release.
 2. At arrival, verify the destination's selected entrance opens and holds.
 3. Repeat and release the destination during closing. Hera cancels the departure and reopens the available entrances. An explicit Door Open also cancels a pending held-floor departure.
 
-On a front-and-rear car, verify both groups close before departure. A custom COP must send paired press and release messages with `independentServiceFloorControl`, using the same floor and group.
+On a front-and-rear car, verify both groups close before departure. A custom car panel must send paired press and release messages with `independentServiceFloorControl`, using the same floor and group.
 
 ## Use a separate Door Close control
 
-Hold Door Close through closure, then register the destination. Use this sequence if the controller lacks held-floor support or the integration sends a plain `queueAdd` with source `"car"`.
+Hold Door Close through closure, then register the destination. Use this sequence when the integration sends a plain `queueAdd` with source `"car"`.
 
 ## Turn independent service off
 
